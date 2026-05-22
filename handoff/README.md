@@ -47,5 +47,6 @@ last-updated: 2026-05-22
 | `handoff/template-full.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/template-full.md) | 7단계 전체 템플릿 (큰 맥락 변화·복귀용) |
 | `handoff/templates/self-contained.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/templates/self-contained.md) | 자급자족 템플릿 (모바일 ⌘V용) |
 | `handoff/LOCAL-ONLY.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/LOCAL-ONLY.md) | 공개/비공개 분리 원칙 |
+| `handoff/PUBLIC-POLICY.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/PUBLIC-POLICY.md) | 공개/비공개 구분 + 금지 패턴 + 자가 점검 |
 | `handoff/projects/` | gitignore | 프로젝트별 핸드오프 — 로컬 전용 |
 <!-- SECTION:END name=files_in_this_area -->
