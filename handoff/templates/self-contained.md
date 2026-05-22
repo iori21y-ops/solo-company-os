@@ -25,9 +25,23 @@
 - 메인: ~/projects/_meta/{경로}
 - 클코 박제 패턴: {예: 섹션 마커 str_replace}
 
-## 필요 시 페치 (선택적)
-전체 맥락이 필요하면:
-- https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/{경로}
+## 필요 시 페치 (선택적 — 인덱스 한 줄 방식)
+
+맥락이 더 필요하면 새 세션에 아래 중 하나를 한 줄로 전달:
+
+```
+# 에이전트 구조 확인용
+agents/README.md를 읽어서 9개 에이전트가 뭔지 정리해줘:
+https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/README.md
+```
+
+```
+# 경계 규칙 작업 시작용
+agents/_shared/boundary-rules.md를 페치해서 지난 작업의 경계 규칙 패턴을 파악해줘:
+https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/boundary-rules.md
+```
+
+전체 인덱스: https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/README.md
 
 ## 첫 작업
 {구체적으로 무엇부터 시작할지}

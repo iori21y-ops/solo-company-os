@@ -53,3 +53,17 @@ last-updated: 2026-05-22
 - 수정은 섹션 마커 기반 str_replace로만
 - 매 수정 시 `_shared/modification-checklist.md` 따라 누락 확인
 - 경계 규칙은 양쪽 SKILL.md에 중복 기록 (누락 방지)
+
+<!-- SECTION:START name=files_in_this_area -->
+## 이 영역의 파일 지도
+
+| 파일 | raw URL | 용도 |
+|------|---------|------|
+| `agents/README.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/README.md) | 인덱스 — 여기 |
+| `agents/_shared/boundary-rules.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/boundary-rules.md) | 에이전트 간 경계 규칙 (쌍1·쌍2 확정) |
+| `agents/_shared/modification-checklist.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/modification-checklist.md) | 수정 시 누락 방지 체크리스트 |
+| `agents/marketing/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/marketing/SKILL.md) | Marketing Agent 정의 |
+| `agents/content/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/content/SKILL.md) | Content Agent 정의 |
+| `agents/data/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/data/SKILL.md) | Data Agent 정의 |
+| `agents/{sales,cs,ops,finance,legal,strategy}/SKILL.md` | — | 스텁 (정의 대기) |
+<!-- SECTION:END name=files_in_this_area -->

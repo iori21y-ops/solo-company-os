@@ -1,3 +1,8 @@
+---
+title: 핸드오프 시스템
+last-updated: 2026-05-22
+---
+
 # 핸드오프 시스템
 
 ## 목적
@@ -31,3 +36,16 @@
 ### 새 세션 시작 시
 1. 새 채팅에서 ⌘V (유니버설 클립보드로 아이폰에서도 가능)
 2. 클로드가 메모리 + 핸드오프로 즉시 컨텍스트 잡음
+
+<!-- SECTION:START name=files_in_this_area -->
+## 이 영역의 파일 지도
+
+| 파일 | raw URL | 용도 |
+|------|---------|------|
+| `handoff/README.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/README.md) | 인덱스 — 여기 |
+| `handoff/template-short.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/template-short.md) | 200자 핸드오프 템플릿 (일반 세션용) |
+| `handoff/template-full.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/template-full.md) | 7단계 전체 템플릿 (큰 맥락 변화·복귀용) |
+| `handoff/templates/self-contained.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/templates/self-contained.md) | 자급자족 템플릿 (모바일 ⌘V용) |
+| `handoff/LOCAL-ONLY.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/LOCAL-ONLY.md) | 공개/비공개 분리 원칙 |
+| `handoff/projects/` | gitignore | 프로젝트별 핸드오프 — 로컬 전용 |
+<!-- SECTION:END name=files_in_this_area -->
