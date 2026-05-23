@@ -15,6 +15,7 @@ credentials*
 # 백업 파일
 *.bak
 *.backup
+*.work-bak
 
 # 로컬 전용 (향후 사업 디테일 박을 자리)
 agents-private/
