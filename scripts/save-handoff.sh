@@ -96,7 +96,7 @@ fi
 
 # 클립보드 자동 복사 (다음 세션 즉시 시작 가능)
 if command -v pbcopy > /dev/null 2>&1; then
-  cat "$TARGET_DIR/handoff-latest.md" | pbcopy
+  printf '%s\n\n위 핸드오프를 읽고 이어서 진행해줘.' "$URL" | pbcopy
   echo "✅ 클립보드에도 복사됨 — 새 Claude 채팅에 ⌘V"
 fi
 
