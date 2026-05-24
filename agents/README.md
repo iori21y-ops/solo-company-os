@@ -22,7 +22,7 @@ last-updated: 2026-05-22
 | 6 | ops | 파이프라인·서버·인프라 실행·스케줄·장애복구. 현장 엔지니어 | 정의됨 |
 | 7 | finance | 매출·지출 집계, 정산 초안, 손익 리포트 | 스텁 |
 | 8 | legal | 계약·약관·세금계산서 검토·분류·요약 (보조만) | 스텁 |
-| 9 | strategy | 다른 에이전트 산출물 종합. 주간 리뷰, 우선순위 제안 | 스텁 |
+| 9 | strategy | 복수 에이전트 조율·사업 방향 판단. 현 단계 파운더 직접 수행 | 최소 정의됨 |
 <!-- SECTION:END name=agent_list -->
 
 ## 구도 핵심
@@ -39,9 +39,9 @@ last-updated: 2026-05-22
 - content ↔ data (쌍2)
 - sales ↔ cs (쌍3)
 - ops ↔ data (쌍4)
+- strategy ↔ 전체 (쌍5)
 
 확정 대기:
-- strategy ↔ 전체 (쌍5)
 - legal ↔ finance (쌍6)
 
 상세는 `_shared/boundary-rules.md` 참조.

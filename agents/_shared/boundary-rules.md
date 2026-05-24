@@ -166,3 +166,35 @@ last-updated: 2026-05-22
 - data 검증·조회 → `_shared/security/auto-allowed.md`
 - 운영 서버 재부팅·rm -rf → `_shared/security/delegation-blacklist.md` (절대 금지)
 <!-- SECTION:END name=pair_4_ops_data -->
+
+<!-- SECTION:START name=pair_5_strategy_all -->
+## 쌍 5: strategy ↔ 전체
+
+**경계선**: "단일 에이전트 소관이면 해당 에이전트, 복수 에이전트에 걸치거나 사업 방향 판단이면 strategy"
+
+**strategy 개입 조건** (4가지, 이 중 하나라도 해당하면 strategy):
+1. 복수 에이전트 간 우선순위 충돌
+2. 신규 사업 방향·기능 도입 여부 판단
+3. 리소스(시간·비용) 배분 결정
+4. 분기·월간 목표 설정 및 리뷰
+
+**원칙**: strategy는 실무에 개입하지 않는다. 경계가 확정된 영역의 실무 판단은 해당 에이전트가 자율 수행.
+
+**회색지대 판정**:
+| 케이스 | 담당 | 이유 |
+|--------|------|------|
+| marketing 내부 콘텐츠 우선순위 결정 | marketing | 단일 에이전트 소관 |
+| marketing + content 리소스 배분 충돌 | strategy | 복수 에이전트 경합 |
+| data 정합성 이슈 — data 자체 해결 가능 | data | 단일 에이전트 소관 |
+| data 정합성 이슈 — ops 투입 필요 | strategy 조율 | 복수 에이전트 투입 |
+| 신규 서비스(정책매칭 등) 착수 판단 | strategy | 사업 방향 판단 |
+| 특정 에이전트 작업량 과부하 | strategy | 리소스 재배분 |
+| 경계 미확정 영역의 업무 귀속 판단 | strategy | 에이전트 간 조율 |
+| 주간 KPI 리뷰 후 다음 주 우선순위 | strategy | 전체 목표 재조정 |
+
+**한 줄 테스트**:
+- "이 판단이 단일 에이전트 내에서 끝나는가?" Yes → 해당 에이전트
+- "이 판단이 복수 에이전트 또는 사업 방향에 걸치는가?" Yes → strategy
+
+**현 단계 위임**: 불가 — 파운더 직접 판단 영역. 멀티에이전트 자율화 후 재정의.
+<!-- SECTION:END name=pair_5_strategy_all -->
