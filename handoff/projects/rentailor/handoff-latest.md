@@ -1,27 +1,26 @@
 ---
 project: rentailor (solo-company-os 메타)
-session: 디렉토리 재구조화 + 자동화 완료 → 쌍3 sales↔cs로
+session: 디렉토리 재구조화 + 자동화 + 단축어 완성
 date: 2026-05-24
 status: 완료
 ---
 
-# 핸드오프: 인프라 정비 완료 → 쌍3 sales↔cs로
+# 핸드오프: 인프라 완료 → 쌍3 sales↔cs로
 
 ## 직전 세션 (자급자족)
 
-**무엇을 했나**: 핸드오프 시스템 디렉토리 재구조화 + 자동화 스크립트 구축.
+**무엇을 했나**: 핸드오프 시스템 인프라 완성.
 
 **완료된 것**:
-1. GitHub 공개 저장소 구조 정비 (`meta/agents`, `scratch/general` 영역 신설)
-2. `scripts/new-handoff.sh` — 신규 영역 자동 생성
-3. `scripts/refresh-readme.sh` — README 활성 영역 표 자동 갱신
-4. 루트 README에 "🚀 활성 핸드오프 영역" 섹션 자동 생성
-5. `.gitignore` 보강 (`notes-private.md` 추가)
-6. 공개 9개 URL 200, 차단 2개 URL 404 확인 완료
+1. 디렉토리 재구조화 — `handoff/{projects,meta,scratch}` 3-카테고리 구조
+2. `scripts/new-handoff.sh` — 신규 영역 자동 생성 (카테고리+이름+설명 → 파일 일괄 생성)
+3. `scripts/refresh-readme.sh` — README "🚀 활성 핸드오프 영역" 자동 갱신
+4. 모바일 단축어 4칸 메뉴 완성 — 랜테일러 / 에이전트 / 일회성 / 취소
+5. GitHub 푸시 완료 (공개 9 × 200, 차단 2 × 404 검증 통과)
 
 ## 이번 세션에서 할 일
 
-**쌍3: sales ↔ cs 경계 정의**
+**쌍3: sales ↔ cs 경계 정의** (`handoff/meta/agents/` 영역에서 진행)
 
 지금까지 확정된 경계:
 - 쌍1 marketing↔content: 요리사 ↔ 재료 공급자
@@ -45,7 +44,7 @@ status: 완료
    - `agents/README.md` 상태 갱신
 6. 박제 시 `_shared/modification-checklist.md` 케이스 A 따라 4곳 누락 확인
 
-## 핵심 페치 URL (필요 시)
+## 핵심 페치 URL
 
 - 전체 인덱스: https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/README.md
 - 에이전트 목록: https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/README.md
