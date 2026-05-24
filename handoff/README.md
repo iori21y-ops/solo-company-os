@@ -20,22 +20,28 @@ last-updated: 2026-05-22
 ├── README.md                    (이 파일)
 ├── template-short.md            (200자 핸드오프 템플릿)
 ├── template-full.md             (전체 핸드오프 7단계 템플릿)
-└── projects/
-    ├── rentailor/
-    │   ├── DECISIONS.md         (누적 결정사항)
-    │   ├── current-state.md     (현재 진행 상태)
-    │   └── handoff-latest.md    (마지막 핸드오프, ⌘V 대상)
-    └── (다른 프로젝트들)
+├── projects/
+│   ├── rentailor/
+│   │   ├── DECISIONS.md         (누적 결정사항)
+│   │   ├── current-state.md     (현재 진행 상태)
+│   │   └── handoff-latest.md    (마지막 핸드오프, ⌘V 대상)
+│   └── (다른 프로젝트들)
+├── meta/
+│   └── agents/
+│       └── handoff-latest.md
+└── scratch/
+    └── general/
+        └── handoff-latest.md
 
 ## 사용법
 ### 세션 종료 시
 1. 채팅 클로드에 "세션 마무리해줘" 입력
 2. 클로드가 출력하는 클코 명령어를 클코에 붙여넣기
-3. 클코가 3개 파일 갱신 + pbcopy 자동 실행
+3. save-handoff.sh가 핸드오프 저장 + push + raw URL을 클립보드에 복사
 
 ### 새 세션 시작 시
 1. 새 채팅에서 ⌘V (유니버설 클립보드로 아이폰에서도 가능)
-2. 클로드가 메모리 + 핸드오프로 즉시 컨텍스트 잡음
+2. 클로드가 URL을 web_fetch로 읽어서 즉시 컨텍스트 잡음
 
 <!-- SECTION:START name=files_in_this_area -->
 ## 이 영역의 파일 지도
