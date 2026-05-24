@@ -94,6 +94,12 @@ else
   echo "FAIL: $STATUS"
 fi
 
+# 클립보드 자동 복사 (다음 세션 즉시 시작 가능)
+if command -v pbcopy > /dev/null 2>&1; then
+  cat "$TARGET_DIR/handoff-latest.md" | pbcopy
+  echo "✅ 클립보드에도 복사됨 — 새 Claude 채팅에 ⌘V"
+fi
+
 echo ""
 echo "완료. 영역: $AREA"
 echo "URL: $URL"
