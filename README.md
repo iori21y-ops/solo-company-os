@@ -55,3 +55,16 @@ agents/_shared/boundary-rules.md를 페치해서 지난 작업의 경계 규칙 
 https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/boundary-rules.md
 ```
 <!-- SECTION:END name=mobile_index -->
+
+<!-- AUTO-GENERATED:START active_areas -->
+## 🚀 활성 핸드오프 영역
+
+> 자동 생성 — `scripts/refresh-readme.sh` 실행 시 갱신됩니다.
+
+| 영역 | 카테고리 | 핸드오프 |
+| ---- | -------- | -------- |
+| `meta/agents` | meta | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/meta/agents/handoff-latest.md) |
+| `projects/rentailor` | projects | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/projects/rentailor/handoff-latest.md) |
+| `scratch/general` | scratch | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/scratch/general/handoff-latest.md) |
+
+<!-- AUTO-GENERATED:END active_areas -->

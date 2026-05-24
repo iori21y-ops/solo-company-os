@@ -21,7 +21,8 @@ credentials*
 agents-private/
 handoff/projects/*/private/
 
-# 프로젝트별 핸드오프 — 민감 파일만 개별 차단 (handoff-latest.md는 공개)
+# 핸드오프 — 민감 파일만 개별 차단 (handoff-latest.md는 공개)
 # 주의: 디렉토리 전체 차단 시 ! 예외가 git에서 작동하지 않아 파일별 지정
 handoff/projects/**/DECISIONS.md
 handoff/projects/**/current-state.md
+handoff/projects/**/notes-private.md
