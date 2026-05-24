@@ -29,7 +29,7 @@ last-updated: 2026-05-22
 
 - **수평 1~8**: 병렬 실행
 - **수직 9 (strategy)**: 다른 에이전트 감독
-- **위임 정책**: `docs/delegation/` 참조. 위임금지 영역은 에이전트가 보조만, 결정은 사람
+- **위임 정책**: `_shared/delegation-template.md`, `_shared/workflow-template.md`, `_shared/security/` 참조. 위임금지 영역은 에이전트가 보조만, 결정은 사람
 
 <!-- SECTION:START name=boundary_status -->
 ## 경계 규칙 점검 현황
