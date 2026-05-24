@@ -48,3 +48,43 @@
 `handoff/` 디렉토리를 스캔해 `handoff-latest.md`가 있는 모든 영역을 표로 생성합니다.
 `AUTO-GENERATED:START/END active_areas` 마커 사이 내용을 덮어씁니다.
 마커가 없으면 README 맨 끝에 섹션을 추가합니다.
+
+## save-handoff.sh
+
+세션 마무리 시 핸드오프를 영역에 박제하고 push.
+
+사용법:
+  ./scripts/save-handoff.sh <태그|경로> [세션명]
+
+태그 매핑:
+  - 랜테일러 → projects/rentailor
+  - 에이전트 → meta/agents
+  - 일회성 → scratch/general
+
+또는 풀 경로: projects/rentailor, meta/agents, scratch/general
+
+본문 전달 (두 가지 방식):
+
+방식 1 - 환경변수:
+  HANDOFF_CONTENT="내용" ./scripts/save-handoff.sh 에이전트 "세션명"
+
+방식 2 - 파이프:
+  echo "내용" | ./scripts/save-handoff.sh 랜테일러 "세션명"
+
+자동 처리:
+  - 날짜 파일 생성: handoff/{area}/YYYY-MM-DD-{session}.md
+  - handoff-latest.md 갱신 (날짜 파일 복사)
+  - 금지 패턴 자가 점검 (IP, Supabase, 키 등)
+  - README 자동 갱신 (refresh-readme.sh 호출)
+  - git add/commit/push
+  - raw URL 검증 (200 확인)
+
+Claude 자연어 패턴:
+  "세션 마무리 에이전트"
+  "세션 마무리 meta/agents"
+
+Claude가 자동:
+  1. 영역 인지 (페치한 area 프론트매터 또는 메모리)
+  2. 오늘 세션 내용 요약
+  3. save-handoff.sh 호출 명령 생성
+  4. 클코에 던지면 끝
