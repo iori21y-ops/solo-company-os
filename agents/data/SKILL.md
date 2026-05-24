@@ -1,7 +1,7 @@
 ---
 title: Data Agent
-status: 정의됨 (경계 점검 일부 완료)
-last-updated: 2026-05-22
+status: 정의됨 (경계 점검 완료 — 쌍2·쌍4)
+last-updated: 2026-05-25
 ---
 
 # Data Agent
@@ -44,9 +44,11 @@ last-updated: 2026-05-22
 - 구조화 데이터·DB·사이트 표준 표시 자산까지 data
 - 사람이 보는 별도 발행·재사용 자산부터 content
 
-### vs ops (쌍 미확정)
-- 잠정: ops = 서버·인프라 상태, data = 데이터 정합성
-- 다음 세션에서 확정 필요
+### vs ops (쌍4) — 경계선: "실행 책임인가, 결과 책임인가?"
+- ops: 파이프라인이 돌아가게 만드는 것 (실행·스케줄·장애복구·인프라)
+- data: 파이프라인 결과가 맞게 나왔는지 확인하는 것 (검증·정합성·품질)
+- 관계: 직렬 협력. ops가 실행 → data가 결과 검증 → 이상 시 data가 ops에 재실행 요청
+- 상세는 boundary-rules.md 쌍4 참조
 <!-- SECTION:END name=boundaries -->
 
 <!-- SECTION:START name=gray_zones -->

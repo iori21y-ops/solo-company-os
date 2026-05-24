@@ -117,3 +117,52 @@ last-updated: 2026-05-22
 - sales 산출물(내부 분석) → 대부분 `_shared/security/auto-allowed.md` 가능 (읽기·분석)
 - 단, sales의 룰·스코어링이 cs 응대 우선순위를 바꾸는 경우 → approval-required
 <!-- SECTION:END name=pair_3_sales_cs -->
+
+<!-- SECTION:START name=pair_4_ops_data -->
+## 쌍 4: ops ↔ data
+
+**비유**: ops = 현장 엔지니어 (기계가 돌아가게), data = 품질 검사관 (결과가 맞는지 확인)
+
+**경계선**: "실행 책임인가, 결과 책임인가?"
+- ops: 파이프라인이 돌아가게 만드는 것 (실행·스케줄·장애복구·인프라)
+- data: 파이프라인 결과가 맞게 나왔는지 확인하는 것 (검증·정합성·품질)
+
+**관계**: 직렬 협력
+- ops → data: 실행 완료 신호 전달
+- data → ops: 결과 이상 감지 시 재실행 요청
+
+**판정 순서**:
+1. 파이프라인·서버·스케줄을 돌리거나 유지하는 행위인가? → ops
+2. 파이프라인 결과물의 정확성·정합성을 확인하는 행위인가? → data
+3. 양쪽 모두 필요한 작업? → 분리 실행 (ops가 먼저, data가 검증)
+
+**회색지대 판정**:
+| 케이스 | 담당 | 이유 |
+|--------|------|------|
+| 파서 스크립트 실행 | ops | 실행 행위 |
+| 파서 결과 검증 (레코드 수·값 범위) | data | 결과 품질 확인 |
+| GWP n8n 워크플로 실행 | ops | n8n 실행·스케줄 |
+| GWP 글 품질 검증 | data → content | 내용 품질은 content까지 |
+| Supabase Storage 버킷 생성·정리 | ops | 인프라 운영 |
+| Supabase 데이터 정합성 점검 | data | 데이터 품질 |
+| 서버 CPU·메모리·디스크 모니터링 | ops | 인프라 상태 |
+| 데이터 이상치 감지 (레코드 누락·불일치) | data | 데이터 품질 |
+| DB 마이그레이션 스키마 설계 | data | 데이터 구조 정의 |
+| DB 마이그레이션 실행·롤백 | ops | 실행 행위 |
+| Vercel 배포 실행 | ops | 실행 행위 |
+| 배포 후 사이트 표시 데이터 확인 | data | 결과 검증 |
+| n8n 워크플로 신규 구축 | ops | 실행 인프라 구성 |
+| 워크플로 입출력 데이터 스펙 정의 | data | 데이터 품질 기준 |
+| 서버 에러 로그 분석 | ops | 인프라 상태 |
+| 비즈니스 로그 분석 (전환율·유입) | data → sales | 비즈니스 데이터 |
+
+**한 줄 테스트**:
+- "이 산출물이 파이프라인을 돌리거나 서버를 유지하는 행위인가?" Yes → ops
+- "이 산출물이 파이프라인 결과의 정확성·정합성을 확인하는 행위인가?" Yes → data
+
+**위임 정책 참조**:
+- ops 읽기·모니터링 → `_shared/security/auto-allowed.md`
+- ops 실행·배포·재시작 → `_shared/security/approval-required.md` (텔레그램 승인 필수)
+- data 검증·조회 → `_shared/security/auto-allowed.md`
+- 운영 서버 재부팅·rm -rf → `_shared/security/delegation-blacklist.md` (절대 금지)
+<!-- SECTION:END name=pair_4_ops_data -->
