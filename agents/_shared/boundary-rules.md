@@ -198,3 +198,32 @@ last-updated: 2026-05-22
 
 **현 단계 위임**: 불가 — 파운더 직접 판단 영역. 멀티에이전트 자율화 후 재정의.
 <!-- SECTION:END name=pair_5_strategy_all -->
+
+<!-- SECTION:START name=pair_6_legal_finance -->
+## 쌍 6: legal ↔ finance
+
+**경계선**: "돈의 흐름이면 finance, 규정·계약이면 legal"
+
+**판정 기준**:
+- "금액이 오가는 행위인가?" Yes → finance
+- "규정·계약 문구를 다루는가?" Yes → legal
+- 둘 다 해당하면 → 산출물 분리 (계약 구조는 legal, 금액 산정은 finance)
+
+**회색지대 판정**:
+| 케이스 | 담당 | 이유 |
+|--------|------|------|
+| 딜러 제휴 계약서의 계약 구조·조항 | legal | 규정·계약 |
+| 딜러 제휴 계약서의 수수료 금액 산정 | finance | 돈의 흐름 |
+| 세금 신고 자료 준비 | finance | 돈의 흐름 |
+| 세법 해석·법적 요건 확인 | legal | 규정 해석 |
+| 환불 정책 문구·약관 수립 | legal | 규정·정책 |
+| 환불 금액 처리·회계 반영 | finance | 돈의 흐름 |
+| 개인정보 관련 과징금 규정 위반 여부 | legal | 규정 위반 |
+| 과징금 회계 처리 | finance | 돈의 흐름 |
+
+**한 줄 테스트**:
+- "이 산출물이 금액·정산·집계를 다루는가?" Yes → finance
+- "이 산출물이 약관·계약·규제를 다루는가?" Yes → legal
+
+**현 단계 위임**: 둘 다 불가 — 실거래·법적 문서는 blacklist 대상. 파운더 직접 수행.
+<!-- SECTION:END name=pair_6_legal_finance -->

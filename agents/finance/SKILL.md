@@ -1,22 +1,45 @@
 ---
 title: Finance Agent
-status: 스텁 (정의 대기)
-last-updated: 2026-05-22
+status: 최소 정의됨 (쌍6 확정 — 현 단계 파운더 직접 수행)
+last-updated: 2026-05-25
 ---
 
 # Finance Agent
 
 <!-- SECTION:START name=definition -->
 ## 한 줄 정의
-매출·지출 집계, 정산 초안, 손익 리포트.
+돈의 흐름 추적·집계·정산. 딜러 수수료, 매출·비용, 세금 신고 자료 준비.
+현 단계에서는 파운더(경년)가 직접 수행.
 <!-- SECTION:END name=definition -->
 
-<!-- SECTION:START name=status -->
-## 상태
-스텁. 경계 점검 후 정의 예정.
+<!-- SECTION:START name=scope_conditions -->
+## 소관 조건
 
-정의 시 8개 표준 섹션 채울 것:
-- 한 줄 정의 / 주요 산출물 / 트리거 / 핵심 KPI / 검토 부담
-- 인접 에이전트와의 경계 / 회색지대 판정 / 자가검증 한 줄 테스트
-- 위임 등급
-<!-- SECTION:END name=status -->
+아래 조건을 충족할 때 finance 소관:
+
+1. **딜러 수수료 계산·정산** — 체결 건당 수수료 산정 및 지급 추적
+2. **매출·비용·수익 추적** — 월간/분기 손익 집계
+3. **세금·회계 자료 생성** — 부가세 신고, 세금계산서 발행 준비
+4. **결제·환불 관련 데이터 처리** — 금액 처리 (정책 수립은 legal)
+<!-- SECTION:END name=scope_conditions -->
+
+<!-- SECTION:START name=boundaries -->
+## 경계
+
+- 돈의 흐름 = finance
+- 계약 구조·약관·법적 준수 = legal
+
+경계 판정 기준: "금액이 오가는 행위인가?" Yes → finance. "규정·계약 문구를 다루는가?" Yes → legal.
+
+상세는 boundary-rules.md 쌍6 참조.
+<!-- SECTION:END name=boundaries -->
+
+<!-- SECTION:START name=delegation_grade -->
+## 위임 등급
+
+**현 단계 위임 불가 — 파운더 직접 판단 영역.**
+
+- 결제·정산 실거래 처리 → `_shared/security/delegation-blacklist.md` (절대 금지)
+- 세금계산서 발행·회계 장부 수정 → blacklist
+- 내부 집계·리포트 생성 → 향후 auto-allowed 검토 가능 (현재는 보류)
+<!-- SECTION:END name=delegation_grade -->

@@ -1,22 +1,45 @@
 ---
 title: Legal Agent
-status: 스텁 (정의 대기)
-last-updated: 2026-05-22
+status: 최소 정의됨 (쌍6 확정 — 현 단계 파운더 직접 수행)
+last-updated: 2026-05-25
 ---
 
 # Legal Agent
 
 <!-- SECTION:START name=definition -->
 ## 한 줄 정의
-계약·약관·세금계산서 검토·분류·요약 (보조만).
+규정·계약·컴플라이언스 관리. 약관, 개인정보처리방침, 딜러 제휴 계약, 금소법 준수.
+현 단계에서는 파운더(경년)가 직접 수행.
 <!-- SECTION:END name=definition -->
 
-<!-- SECTION:START name=status -->
-## 상태
-스텁. 경계 점검 후 정의 예정.
+<!-- SECTION:START name=scope_conditions -->
+## 소관 조건
 
-정의 시 8개 표준 섹션 채울 것:
-- 한 줄 정의 / 주요 산출물 / 트리거 / 핵심 KPI / 검토 부담
-- 인접 에이전트와의 경계 / 회색지대 판정 / 자가검증 한 줄 테스트
-- 위임 등급
-<!-- SECTION:END name=status -->
+아래 조건을 충족할 때 legal 소관:
+
+1. **약관·정책 문서 작성·갱신** — 이용약관, 개인정보처리방침 (약관 수집 시스템 229파일 활용)
+2. **개인정보처리방침 관리** — 수집·보유·파기 정책
+3. **딜러 제휴 계약 조건 검토** — 계약 구조·조항 (금액 산정은 finance)
+4. **금소법 등 규제 컴플라이언스** — 할부·리스 직접 중개 금지 근거 관리
+<!-- SECTION:END name=scope_conditions -->
+
+<!-- SECTION:START name=boundaries -->
+## 경계
+
+- 규정·계약 = legal
+- 돈의 흐름 = finance
+
+경계 판정 기준: "규정·계약 문구를 다루는가?" Yes → legal. "금액이 오가는 행위인가?" Yes → finance.
+
+상세는 boundary-rules.md 쌍6 참조.
+<!-- SECTION:END name=boundaries -->
+
+<!-- SECTION:START name=delegation_grade -->
+## 위임 등급
+
+**현 단계 위임 불가 — 법적 영향 있는 업무는 blacklist 대상.**
+
+- 약관·계약서 외부 공개·발행 → `_shared/security/delegation-blacklist.md` (절대 금지)
+- 법적 답변·규제 해석 → blacklist
+- 기존 약관 문서 수집·분류·요약 → 향후 auto-allowed 검토 가능 (현재는 보류)
+<!-- SECTION:END name=delegation_grade -->
