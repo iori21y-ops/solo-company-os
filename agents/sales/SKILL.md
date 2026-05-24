@@ -1,6 +1,6 @@
 ---
 title: Sales Agent
-status: 정의됨 (경계 점검 완료 — 쌍3)
+status: 정의됨 (경계 점검 완료 — 쌍3·쌍7)
 last-updated: 2026-05-25
 ---
 
@@ -60,9 +60,11 @@ last-updated: 2026-05-25
 - 잠정: data는 차량·정책 등 사업 도메인 사실 수집·정합성, sales는 리드·전환 데이터 분석
 - 둘 다 "데이터"지만 도메인이 다름
 
-### vs marketing (쌍 미확정)
-- marketing은 발행·유입 담당, sales는 유입 이후 분석 담당
-- 마케팅 캠페인 성과 데이터는 sales가 분석해서 marketing에 피드백
+### vs marketing (쌍7) — 경계선: "상담 신청(리드 생성) 시점"
+- sales: 리드 생성 후부터 소관 (스코어링·매칭·CRM·전환 추적)
+- marketing: 리드 생성 전 유입·전환 유도
+- 마케팅 캠페인 성과 데이터는 sales가 채널별 리드 품질로 분석해서 marketing에 피드백
+- 상세는 boundary-rules.md 쌍7 참조
 <!-- SECTION:END name=boundaries -->
 
 <!-- SECTION:START name=gray_zones -->

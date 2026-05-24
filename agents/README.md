@@ -42,7 +42,10 @@ last-updated: 2026-05-22
 - strategy ↔ 전체 (쌍5)
 - legal ↔ finance (쌍6)
 
-✅ **전체 6/6 경계 확정 완료**
+✅ **기본 6/6 경계 확정 완료**
+
+추가 경계 (기본 쌍 외):
+- sales ↔ marketing (쌍7)
 
 상세는 `_shared/boundary-rules.md` 참조.
 <!-- SECTION:END name=boundary_status -->

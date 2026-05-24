@@ -1,7 +1,7 @@
 ---
 title: Marketing Agent
-status: 정의됨 (경계 점검 일부 완료)
-last-updated: 2026-05-22
+status: 정의됨 (경계 점검 완료 — 쌍1·쌍7)
+last-updated: 2026-05-25
 ---
 
 # Marketing Agent
@@ -47,9 +47,10 @@ last-updated: 2026-05-22
 - 발행 채널·카피·트렌드 감각은 marketing 단독 책임
 - 데이터 기반 콘텐츠: content가 팩트블록 생성 → marketing이 카피·디자인 마감
 
-### vs sales (쌍 미확정)
-- 잠정: marketing = 인지·유입까지, sales = 진단 완료 후 리드 추적·전환
-- 다음 세션에서 확정 필요
+### vs sales (쌍7) — 경계선: "상담 신청(리드 생성) 시점"
+- marketing: 상담 신청 버튼을 누르기 전까지 (유입·전환 유도)
+- sales: 상담 신청 데이터가 생성된 후 (리드 추적·체결 전환)
+- 상세는 boundary-rules.md 쌍7 참조
 <!-- SECTION:END name=boundaries -->
 
 <!-- SECTION:START name=gray_zones -->
