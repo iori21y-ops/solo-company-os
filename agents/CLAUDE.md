@@ -608,14 +608,38 @@ agent: {agent}
 
 # 13. 안전 규칙
 
-> [!warning] 미완성
-> 다음 세션에서 작성 예정.
-> 합의 사항:
-> - raw 불변 원칙
-> - wiki 수정 전 한국어 이유 명시
-> - 자가수정 금지 (§0.2 재강조)
-> - 5+ 변경 시 사전 공유
-> - 삭제 시 로그 기록
+이 섹션은 vault 운영 시 지켜야 할 **불변 원칙**과, 위임 관련 **상세 규칙 파일의 인덱스**를 제공한다.
+
+## 13.1 vault 운영 5대 원칙
+
+1. **raw 불변 원칙** — `data/raw/` 하위 파일은 수정·삭제 금지. 가공은 `processed/`로 복사 후.
+2. **wiki 수정 전 한국어 이유 명시** — `wiki/index.md` / `wiki/log.md` 변경 전 사유를 한국어로 먼저 기록.
+3. **자가수정 금지** — 에이전트는 자기 `SKILL.md` / `wiki/` / `CLAUDE.md`를 수정 못 함 (§0.2).
+4. **5+ 변경 시 사전 공유** — 한 번에 5개 이상 변경 시 실행 전 변경 목록 공유 + 합의.
+5. **삭제 시 로그 기록** — 모든 삭제는 `wiki/log.md`에 일자·대상·사유 기록.
+
+## 13.2 위임 안전 규칙 (3계층)
+
+위임 가능 여부는 아래 3개 파일에서 정의된다. 모호하면 항상 **더 보수적인 쪽**을 따른다.
+
+| 계층 | 파일 | 줄수 | 내용 |
+|------|------|------|------|
+| 절대 금지 | [`_shared/security/delegation-blacklist.md`](_shared/security/delegation-blacklist.md) | 28 | DB 파괴 / 고객·리드 데이터 / 파일·환경 / 외부 실거래 |
+| 사전 승인 | [`_shared/security/approval-required.md`](_shared/security/approval-required.md) | 51 | 마스터 데이터 / 차량 이미지 본 컬럼 / 콘텐츠 발행 / 대량 작업 / 버전 관리 / 승인 메시지 형식 |
+| 자동 허용 | [`_shared/security/auto-allowed.md`](_shared/security/auto-allowed.md) | 26 | 데이터 수집 / 결과 저장 / 알림 / 이미지 처리 |
+
+판단 순서:
+1. blacklist 해당? → 중단
+2. approval-required 해당? → 사용자 승인 대기
+3. auto-allowed 해당? → 자동 실행
+
+## 13.3 수정 체크리스트
+
+CLAUDE.md / SKILL.md / 핵심 양식 파일을 수정할 때는 [`_shared/modification-checklist.md`](_shared/modification-checklist.md)를 따른다.
+
+## 13.4 위반 시 처리
+
+위 원칙 위반 (또는 위반 의심) 시: 즉시 중단 → 해당 에이전트 `wiki/log.md`에 기록 → 사용자 보고 후 복구 합의.
 
 ---
 
