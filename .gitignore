@@ -26,3 +26,20 @@ handoff/projects/*/private/
 handoff/projects/**/DECISIONS.md
 handoff/projects/**/current-state.md
 handoff/projects/**/notes-private.md
+
+# 핸드오프 시스템 — 자동 백업 파일 제외
+*.bak2
+*.bak3
+*.prev
+
+# Obsidian (agents vault용) — 사용자별 임시 파일 제외
+agents/.obsidian/workspace.json
+agents/.obsidian/workspace-mobile.json
+agents/.obsidian/graph.json
+agents/.obsidian/hotkeys.json
+agents/.obsidian/appearance.json
+agents/.obsidian/cache/
+agents/.obsidian/plugins/*/data.json
+
+# macOS
+.DS_Store
