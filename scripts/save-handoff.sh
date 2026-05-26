@@ -94,10 +94,10 @@ else
   echo "FAIL: $STATUS"
 fi
 
-# 클립보드 자동 복사 (다음 세션 즉시 시작 가능)
+# 클립보드 자동 복사 — 본문 직접 박기 (다음 세션 즉시 시작 가능)
 if command -v pbcopy > /dev/null 2>&1; then
-  printf '%s\n\n위 핸드오프 문서를 읽어줘. 거기 적힌 "# 완료" 섹션은 이미 끝난 작업이고, "# 다음" 섹션이 이번 세션에서 할 일이야. 완료된 작업을 다시 하지 마.' "$URL" | pbcopy
-  echo "✅ 클립보드에도 복사됨 — 새 Claude 채팅에 ⌘V"
+  { cat "$TARGET_DIR/handoff-latest.md"; printf '\n\n위 내용이 직전 세션 마무리야. "# 완료" 섹션은 끝난 작업이고, "# 다음" 섹션이 이번 세션에서 할 일이야. 완료된 작업을 다시 하지 마.'; } | pbcopy
+  echo "✅ 본문이 클립보드에 복사됨 — 새 Claude 채팅에 ⌘V"
 fi
 
 echo ""
