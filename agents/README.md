@@ -70,3 +70,19 @@ last-updated: 2026-05-22
 | `agents/data/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/data/SKILL.md) | Data Agent 정의 |
 | `agents/{sales,cs,ops,finance,legal,strategy}/SKILL.md` | — | 스텁 (정의 대기) |
 <!-- SECTION:END name=files_in_this_area -->
+
+<!-- SECTION:START name=vault_assets -->
+## vault 운영 자산
+
+에이전트 실제 운영 시 사용하는 자산 (cycle 양식, 사이클 카운터, 정본 참조 stub).
+정의/규칙 파일은 위 `files_in_this_area` 섹션 참조.
+
+| 파일 | raw URL | 용도 |
+|------|---------|------|
+| `_shared/templates/cycle-marketing.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/templates/cycle-marketing.md) | marketing 에이전트 cycle 양식 |
+| `_shared/templates/cycle-content.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/templates/cycle-content.md) | content 에이전트 cycle 양식 |
+| `_shared/templates/cycle-data.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/templates/cycle-data.md) | data 에이전트 cycle 양식 |
+| `_shared/counters/README.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/counters/README.md) | 사이클 카운터 디렉토리 안내 |
+| `_shared/counters/cadam.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/counters/cadam.md) | cadam 프로젝트 사이클 카운터 |
+| `_shared/refs/cadam/_index.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/refs/cadam/_index.md) | cadam 정본(second-brain) 참조 stub 인덱스 |
+<!-- SECTION:END name=vault_assets -->
