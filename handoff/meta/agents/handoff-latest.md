@@ -1,22 +1,36 @@
----
+# 핸드오프 — agents vault 박제 작업 중단
+
 area: meta/agents
 date: 2026-05-26
-session: 핸드오프 시스템 v2.2 - 본문 박기 방식 전환
----
-# 완료
-1. web_fetch 캐시 문제 진단: GitHub raw URL이 클로드 web_fetch에서 5분 캐시에 걸려 옛 버전 반환되는 사고 확인
-2. 1차 우회 시도 실패: ?t=timestamp 쿼리스트링이 web_fetch에서 정규화돼 무효
-3. 방안 전환: URL 박기 → 본문 직접 박기 (web_fetch 자체를 안 함)
-4. save-handoff.sh 수정: pbcopy 대상이 URL → handoff-latest.md 본문+지시문
-5. iOS 단축어 "이어받기" 3분기 재구성 완료
-6. 3분기 전체 실측 검증: 렌테일러/에이전트/일회성 정상
-7. 메모리 #23 v2.1→v2.2 갱신
+session: 파트5 학습루프 설계 + vault 박제 진행 중 (모바일 한계로 중단, 맥미니 앞에서 재개)
 
-# 현황
-PC/모바일 양쪽 캐시 문제 영구 해결. 클로드는 web_fetch 없이 본문 즉시 읽음.
+## 완료
+로컬 커밋 5개 (origin 미푸시):
+1. 321246f — .gitignore 백업 패턴 추가
+2. 184cceb — save-handoff.sh v2.2 본문 박기
+3. f8f7b48 — rentailor 핸드오프 박제
+4. 2b2cdb6 — agents vault 디렉토리 골격 158개
+5. 61c51b1 — agents Obsidian vault 인식 설정
 
-# 다음
-파트5 학습루프 설계 → 파트4 디스코드봇 → 클코 실제 구현
+## 남은 작업 (단계 3~7)
+- 단계 3: CLAUDE.md 본문 박제 (444줄, 17KB) — 명령어 문서 작성 완료 (첨부 파일 참조)
+- 단계 4: README + _shared/counters/{README,cadam.md} + _shared/refs/cadam/_index.md
+- 단계 5: data/_config/*.md 8개 (헤더) + initiatives/wf-vi/README.md + _inbox/adhoc-queue.md
+- 단계 6: 9개 에이전트 wiki/index.md + wiki/log.md 초기화
+- 단계 7: 최종 git push origin main
 
-# 메모
-한 세션=한 파트 원칙. 다음 세션은 파트5 단독.
+## 별도 박제 예정 (cycle 양식 — 합의 완료, 미박제)
+- _shared/templates/cycle-marketing.md
+- _shared/templates/cycle-content.md
+- _shared/templates/cycle-data.md
+
+## 다음 세션 시작 방법
+1. 이 핸드오프 읽기
+2. CLAUDE.md 박제 명령어 문서 첨부 (앞 세션에서 생성)
+3. 단계 3부터 순차 진행
+4. push는 단계 7에서 일괄
+
+## 메모
+- 한 세션 = 한 파트 원칙 (파트5 안에서 마이크로 분할)
+- 모바일에서 디렉토리 트리(├── └──) 렌더링 깨짐 → 맥미니 앞에서만 진행
+- 박제 시 heredoc 시작 토큰은 작은따옴표로 감쌀 것 ('CLAUDE_EOF') — 백틱/변수/위키링크 보호
