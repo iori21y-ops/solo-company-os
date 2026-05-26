@@ -1,66 +1,52 @@
-# 핸드오프 — agents vault 박제 단계 4~7 대기
+# 핸드오프 — agents vault 박제 완료, 다음은 §11·§12 등 본문 작성
 
 area: meta/agents
-date: 2026-05-26
-session: 파트5 학습루프 + vault 박제 (단계 1~3 + cycle 양식 + push 완료)
+date: 2026-05-27
+session: 파트5 학습루프 + vault 박제 단계 4~7 완료
 
-## 완료
-로컬 커밋 9개, origin/main에 push 완료:
-- .gitignore 백업 패턴 추가
-- save-handoff.sh v2.2 본문 박기
-- rentailor 핸드오프 박제
-- agents vault 디렉토리 골격 158개 (2b2cdb6)
-- agents Obsidian vault 인식 설정 (61c51b1)
-- CLAUDE.md 본문 박제
-- 앞 세션 핸드오프 박제
-- cycle 양식 3종 박제 (1732eac)
-- 핸드오프 갱신 (8aec8a7)
+## 완료 (이번 세션)
+로컬 커밋 4개 + 원격 push 완료:
+- 84c3450 — counters README/cadam + refs/cadam _index 신규 생성 (단계4-a)
+- c78df47 — README.md vault_assets 섹션 추가 (단계4-b)
+- b56c76b — data/_config 8개 + wf-vi README + adhoc-queue 박제 (단계5)
+- 72f47a6 — 9개 에이전트 wiki/index.md + wiki/log.md 최소 초기화 (단계6)
 
-## 박제 완료된 핵심 자산
+## 박제 완료 핵심 자산 (누적)
 - agents/CLAUDE.md (444줄, 합의 섹션 + 미완성 헤더 11개)
-- agents/_shared/templates/cycle-marketing.md (75줄)
-- agents/_shared/templates/cycle-content.md (80줄)
-- agents/_shared/templates/cycle-data.md (150줄)
-- vault 디렉토리 골격 233개
-- Obsidian vault 인식 설정
+- agents/README.md (vault_assets 섹션 포함, 4개 SECTION 마커)
+- agents/_shared/templates/cycle-marketing.md
+- agents/_shared/templates/cycle-content.md
+- agents/_shared/templates/cycle-data.md
+- agents/_shared/counters/README.md + cadam.md (last_cycle: 0)
+- agents/_shared/refs/cadam/_index.md (빈 stub 인덱스)
+- agents/data/_config/*.md 8개 (헤더 + TBD)
+- agents/data/initiatives/wf-vi/README.md
+- agents/data/_inbox/adhoc-queue.md
+- agents/{9에이전트}/wiki/index.md + log.md (빈 껍데기)
+- vault 디렉토리 골격 233개 + Obsidian 인식
 
-## 중요: 앞 세션 사고 사실 (단계 4 시작 시 주의)
-
-agents/README.md는 박제 작업 이전부터 존재하는 정본 인덱스 (8개 커밋 이력).
-앞 세션에서 클코가 단계 4 자체 진행 시도하다가 사고 발생:
-- README 자체 발견 → 자체 판단으로 vault_assets 섹션 추가 시도
-- 존재하지 않는 파일(counters/cadam.md, refs/cadam/_index.md)을 인덱스에 박음
-- 사용자가 발견 → 롤백 (git checkout)
-- 클코가 임의로 만들었던 untracked 두 파일도 삭제
-
-현재 git status clean.
-
-## 절대 원칙 (위반 시 사고)
-
-1. 클코 자체 진행 금지 — 모든 파일 작업은 사용자가 박는 명령어 문서로만
-2. agents/README.md는 정본 — 통째 덮어쓰기 금지, 섹션 마커 str_replace로만
-3. 박제 순서 — 존재하지 않는 파일을 인덱스에 박지 않음
-
-## 남은 작업 (단계 4~7)
-
-단계 4 (두 단계 분리 권장):
-- (4-a) counters/cadam.md + refs/cadam/_index.md 신규 생성 → 커밋
-- (4-b) README.md에 vault_assets 섹션 str_replace로 추가 → 커밋
-
-단계 5: data/_config/*.md 8개 (헤더만) + data/initiatives/wf-vi/README.md + data/_inbox/adhoc-queue.md
-단계 6: 9개 에이전트 wiki/index.md + wiki/log.md 초기화
-단계 7: 최종 git push origin main
-
-## 미완성 (CLAUDE.md 헤더로만 박제, 추후 작성)
-- §3.4~§3.10 페이지 타입별 양식
-- §4 4계층 학습 흐름 본문
-- §5 워크플로우 본문
-- §6 학습 추출 가이드 본문
-- §7~§14 보조 규칙 본문
-- sales cycle, cs cycle 양식 (TBD)
+## 미완성 (다음 세션 작업 후보)
+- CLAUDE.md §3.4~§3.10 페이지 타입별 양식
+  (insight/synthesis/playbook/failure/concept/entity/project-ref/scout-candidate)
+- CLAUDE.md §4 4계층 학습 흐름 본문
+- CLAUDE.md §5 워크플로우 본문
+- CLAUDE.md §6 학습 추출 가이드 본문
+- CLAUDE.md §7~§14 보조 규칙 본문 (특히 §11 index.md 형식, §12 log.md 형식)
+- _shared/templates/cycle-sales.md, cycle-cs.md
 - ops/finance/legal/strategy SKILL.md
+- data/_config/*.md 8개 본문 (현재 TBD)
+
+## 다음 세션 진입 시
+1. ~/projects/_meta/agents/CLAUDE.md 읽기
+2. ~/projects/_meta/agents/README.md 읽기 (vault_assets 섹션 포함)
+3. 위 "미완성" 중 하나 선택 → 한 세션 = 한 파트 원칙으로 진행
+
+## 절대 원칙 (유지)
+1. 클코 자체 진행 금지 — 명령어 문서로만
+2. CLAUDE.md / README.md 통째 덮어쓰기 금지, 섹션 마커 str_replace로만
+3. 존재하지 않는 파일을 인덱스에 박지 않음 (박제 순서 엄수)
 
 ## 메모
-- 한 세션 = 한 파트 원칙 (파트5 안에서 마이크로 분할)
 - heredoc 시작 토큰은 작은따옴표로 ('XXX_EOF')
-- 모바일 디렉토리 트리 깨짐 → 첨부 파일 방식 사용
+- 모바일 디렉토리 트리 깨짐 → 첨부 파일 사용
+- 한 세션 = 한 파트 원칙
