@@ -524,14 +524,49 @@ playbooks가 먼저 (행동 원칙이 가설보다 우선), insights가 다음 (
 
 # 9. 사이클 생애주기
 
-> [!warning] 미완성
-> 다음 세션에서 작성 예정.
-> 합의 사항:
-> - 상태: started → in-progress → completed → measured → archived
-> - cycle_kind: regular | batch | audit | adhoc | builder (data 한정 + scout)
-> - 중도 취소: status=cancelled, cancel-reason 필수
-> - 자율 발굴 두 층 구조 (정찰 사이클 + 발굴 후보별 정식 사이클)
-> - initiative 단위 (WF-VI 등 대형 작업)
+## 9.1 목적
+
+사이클이 지금 어느 단계인지 추적하고, 종료·취소·재개를 명확히 한다. 상태 라벨은 §5 워크플로우와 짝으로 움직인다(§9는 라벨, §5는 그 라벨에 도달하기 위한 작업).
+
+## 9.2 상태 흐름
+
+started → in-progress → completed → measured → archived
+| 상태 | 의미 |
+|------|------|
+| `started` | 사이클 시작 선언, 목표·범위 확정 |
+| `in-progress` | 본 작업 진행 중 |
+| `completed` | 본 작업 산출물 완료 |
+| `measured` | §5 측정 단계 완료, 결과값 기록됨 |
+| `archived` | §5의 사이클 종료 절차 모두 완료, 사이클 종결 |
+
+**각 상태 전이는 §5 워크플로우의 해당 단계 완료를 전제로 한다.** 단계별 정의·통과 조건은 §5에서 정한다.
+
+## 9.3 중도 취소
+
+- 어느 상태에서든 사이클을 닫아야 할 때 사용
+- `status = cancelled`로 변경
+- `cancel-reason` **필수** 기록 (다음 사이클이 같은 함정에 빠지지 않도록)
+
+## 9.4 cycle_kind (사이클 종류)
+
+| 종류 | 용도 |
+|------|------|
+| `regular` | 일반 정기 사이클 |
+| `batch` | 다수 항목 일괄 처리 |
+| `audit` | 점검·감사 사이클 |
+| `adhoc` | 일회성 임시 작업 |
+| `builder` | 구축·세팅 사이클 (data 한정 + scout) |
+
+## 9.5 자율 발굴 두 층 구조
+
+- **정찰 사이클**: 발굴 후보 탐색 자체가 목적인 사이클
+- **정식 사이클**: 정찰에서 나온 후보 1건당 1개씩 진행
+
+→ 정찰과 정식을 섞지 않는다. 정찰 결과가 곧장 작업으로 흐르면 사이클 경계가 무너진다.
+
+## 9.6 initiative 단위
+
+WF-VI처럼 여러 사이클이 묶이는 대형 작업은 `initiative`로 묶는다. 각 사이클은 `initiative` 안에서 자기 상태를 따로 추적한다.
 
 ---
 
