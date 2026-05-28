@@ -64,7 +64,6 @@ https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_share
 | 영역 | 카테고리 | 핸드오프 |
 | ---- | -------- | -------- |
 | `meta/agents` | meta | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/meta/agents/handoff-latest.md) |
-| `projects/meta/agents` | projects | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/projects/meta/agents/handoff-latest.md) |
 | `projects/rentailor` | projects | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/projects/rentailor/handoff-latest.md) |
 | `scratch/general` | scratch | [handoff-latest.md](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/handoff/scratch/general/handoff-latest.md) |
 
