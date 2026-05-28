@@ -1,7 +1,7 @@
 ---
 title: 9개 에이전트 시스템 인덱스
 status: in-progress (경계 점검 진행 중)
-last-updated: 2026-05-22
+last-updated: 2026-05-28
 ---
 
 # 9개 에이전트 시스템
@@ -64,6 +64,7 @@ last-updated: 2026-05-22
 |------|---------|------|
 | `agents/README.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/README.md) | 인덱스 — 여기 |
 | `agents/_shared/boundary-rules.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/boundary-rules.md) | 에이전트 간 경계 규칙 (쌍1·쌍2 확정) |
+| `agents/_shared/scout-territories.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/scout-territories.md) | 에이전트별 자율 발굴 영역 매트릭스 (B-J 위탁 흐름) |
 | `agents/_shared/modification-checklist.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/modification-checklist.md) | 수정 시 누락 방지 체크리스트 |
 | `agents/marketing/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/marketing/SKILL.md) | Marketing Agent 정의 |
 | `agents/content/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/content/SKILL.md) | Content Agent 정의 |
