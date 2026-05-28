@@ -49,10 +49,8 @@ echo "날짜 파일: $DATE_FILE"
 
 if [ -n "$HANDOFF_CONTENT" ]; then
   echo "$HANDOFF_CONTENT" > "$DATE_FILE"
-elif [ ! -t 0 ]; then
-  cat > "$DATE_FILE"
 else
-  echo "본문 없음. HANDOFF_CONTENT 변수 또는 파이프 사용."
+  echo "본문 없음. HANDOFF_CONTENT 환경변수에 본문을 넣고 실행하세요."
   exit 1
 fi
 
