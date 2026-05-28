@@ -443,13 +443,55 @@ playbooks가 먼저 (행동 원칙이 가설보다 우선), insights가 다음 (
 
 # 7. 에이전트 간 인사이트 참조
 
-> [!warning] 미완성
-> 다음 세션에서 작성 예정.
-> 합의 사항:
-> - 원본 직접 안 읽고 synthesis/playbook만 참조 (옵션 라)
-> - 예외: 정찰 위탁(B-J) 시 한정 권한
-> - sales 정기 산출물: conversion-report-YYYYMM.md (월 1회)
-> - 자율 발굴 영역 정의는 _shared/scout-territories.md 참조
+## 7.1 목적
+
+에이전트가 다른 에이전트의 정보를 참조해야 할 때, 책임 경계를 명확히 하고 해석 권한이 섞이지 않도록 한다.
+
+## 7.2 원칙: synthesis/playbook만 참조
+
+에이전트 A가 에이전트 B의 데이터를 참조해야 할 때, A는 B의 원본(raw/, cycles/, insights/)을 직접 읽지 않고, B가 정기적으로 박제한 synthesis/playbook 페이지만 읽는다.
+
+이유:
+- 각 에이전트가 자기 영역의 해석 권한 유지
+- 인터페이스가 명확해서 책임 추적 가능
+- B의 원본 구조 변경이 A에 영향을 주지 않음
+
+## 7.3 예외: 정찰 위탁(B-J) 시 한정 권한
+
+content가 다른 에이전트의 정찰을 위탁받는 사이클(트리거 B-J)에 한해, content는 의뢰 에이전트의 raw/cycles 읽기 권한을 가진다.
+
+조건:
+- 위탁 사이클 범위 내에서만 유효
+- 정찰 결과는 의뢰 에이전트 영역이 아닌 content 본인의 J 사이클에 박제
+- 의뢰 에이전트는 정찰 결과를 인용/링크만
+
+## 7.4 sales 정기 산출물
+
+sales는 marketing이 참조할 수 있도록 전환 분석 리포트를 정기 박제한다.
+
+- 파일: sales/cadam/syntheses/synthesis-conversion-report-YYYYMM.md
+- 주기: 월 1회
+- 내용: 주제별 전환율 표, 추천 주제 / 비추천 주제
+
+marketing은 Tier 판정의 Q4(전환력)에서 최신 리포트만 참조한다:
+- 리포트에 추천 주제로 있으면 → Q4 가산점
+- 리포트에 비추천 주제로 있으면 → Q4 감점
+- 리포트에 언급 없으면 → Q4 중립
+- 리포트 부재 또는 30일 이상 경과 → "리포트 부재" 명시, Q4 중립
+
+## 7.5 자율 발굴 영역
+
+각 에이전트의 자율 발굴 영역 매트릭스는 _shared/scout-territories.md에 단일 진실로 박제한다. 각 에이전트 SKILL.md에는 자기 부분만 발췌·참조한다.
+
+## 7.6 후속 작업 (이번 세션 미반영)
+
+다음 두 파일은 §7과 함께 갱신하기로 했으나 별도 작업으로 남긴다:
+- boundary-rules.md: marketing ↔ sales 경계 (노출까지 / 클릭 이후)
+- sales SKILL.md: synthesis-conversion-report-YYYYMM 정기 산출물 추가 (월 1회)
+
+## 7.7 폐기 기록
+
+옵션 가/나/다(다른 합의안)는 폐기됨. 라(synthesis만 참조)만 살아 있음.
 
 ---
 
