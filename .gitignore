@@ -43,3 +43,4 @@ agents/.obsidian/plugins/*/data.json
 
 # macOS
 .DS_Store
+*.bak.*
