@@ -258,10 +258,10 @@ Dataview 쿼리: `file.folder.contains("_skill")` 로 직무 학습 판정.
 - [[_shared/templates/cycle-content]]
 - [[_shared/templates/cycle-data]]
 
-미완성:
-- sales cycle 양식 (TBD)
-- cs cycle 양식 (TBD)
-- ops/finance/legal/strategy (스텁 정의 완료 후)
+- [[_shared/templates/cycle-sales]]
+- [[_shared/templates/cycle-cs]]
+
+ops/finance/legal/strategy cycle 양식은 각 에이전트 스텝 정의 완료 후 추가.
 
 cycle 페이지는 raw/cycles/{프로젝트}/ 에 저장. 사이클 진행 사실 기록이며 불변.
 
