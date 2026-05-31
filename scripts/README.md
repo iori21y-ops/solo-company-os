@@ -1,5 +1,27 @@
 # scripts/
 
+운영 자동화 스크립트 모음.
+
+## server-health-check.sh
+
+서버 상태 자동 점검 스크립트. 매일 07:00 launchd(`com.rentailor.health-check`)가 실행.
+
+**점검 항목 (12개):** 디스크·메모리·claude-broker·OpenClaw·n8n Docker·Ollama·Tailscale·포트(5678/9722)·LaunchAgent·broker 에러로그·rentailor.co.kr·Docker 디스크·대용량 로그
+
+**동작:**
+- 문제 감지 → Claude sonnet이 분석 보고서 생성 → 관리팀장 봇으로 디스코드 전송
+- 각 항목에 복구 명령어 포함 (`→ 복구: ...`)
+- 자동 복구 가능 명령어는 `~/projects/_meta/logs/health-check-fixes.sh`에 별도 저장
+- 디스코드에서 `복구 승인` 입력 시 fixes.sh 자동 실행
+- Claude/봇 실패 시 디스코드 웹훅으로 fallback
+
+**관련 파일:**
+- `~/Library/LaunchAgents/com.rentailor.health-check.plist` — launchd 등록
+- `~/projects/_meta/logs/health-check.log` — 실행 이력
+- `~/projects/_meta/logs/health-check-fixes.sh` — 복구 명령어 목록
+
+---
+
 핸드오프 시스템 자동화 스크립트.
 
 ## new-handoff.sh

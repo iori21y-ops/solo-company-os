@@ -1,0 +1,167 @@
+#!/bin/bash
+# 서버 자동 점검 스크립트 — 문제 있을 때만 디스코드 알림
+# 실행: launchd 매일 07:00
+
+WEBHOOK_URL="https://discordapp.com/api/webhooks/1510306626974777386/GdJ7TVdkbjoaEkSHnGDWPn562D8CiCxR0GA0-joplEWqOeQLibCZWabny0I2Fmy67tkc"
+LOG_FILE="$HOME/projects/_meta/logs/health-check.log"
+TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+PROBLEMS=""
+
+# --- 1. 디스크 용량 (90% 이상 경고) ---
+DISK_USAGE=$(df -H / | awk 'NR==2 {gsub(/%/,""); print $5}')
+if [ "$DISK_USAGE" -ge 90 ]; then
+  PROBLEMS="${PROBLEMS}🔴 디스크 ${DISK_USAGE}% 사용 중\n　→ docker system prune -a 또는 로그 정리 필요\n"
+fi
+
+# --- 2. 메모리 사용률 (90% 이상 경고) ---
+MEM_PRESSURE=$(memory_pressure 2>/dev/null | grep "System-wide memory free percentage" | awk '{print $NF}' | tr -d '%')
+if [ -n "$MEM_PRESSURE" ] && [ "$MEM_PRESSURE" -le 10 ]; then
+  PROBLEMS="${PROBLEMS}🔴 메모리 여유 ${MEM_PRESSURE}%만 남음\n　→ 불필요 프로세스 종료 또는 Ollama 모델 언로드 필요\n"
+fi
+
+# --- 3. claude-broker 프로세스 ---
+if ! pgrep -f "node src/main.js" > /dev/null 2>&1; then
+  PROBLEMS="${PROBLEMS}🔴 claude-broker 프로세스 없음\n　→ 복구: launchctl kickstart gui/501/com.rentailor.claude-broker\n"
+fi
+
+# --- 4. OpenClaw 프로세스 ---
+if ! pgrep -f "openclaw" > /dev/null 2>&1; then
+  PROBLEMS="${PROBLEMS}🔴 OpenClaw(기획팀장) 프로세스 없음\n　→ 복구: launchctl kickstart gui/501/ai.openclaw.gateway\n"
+fi
+
+# --- 5. n8n Docker 컨테이너 ---
+if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qi "n8n"; then
+  PROBLEMS="${PROBLEMS}🔴 n8n Docker 컨테이너 중지됨\n　→ 복구: docker start n8n\n"
+fi
+
+# --- 6. Ollama ---
+if ! pgrep -f "ollama" > /dev/null 2>&1; then
+  PROBLEMS="${PROBLEMS}🟡 Ollama 프로세스 없음\n　→ 복구: ollama serve &\n"
+fi
+
+# --- 7. Tailscale 연결 ---
+TS_STATUS=$(tailscale status 2>/dev/null | head -1)
+if [ $? -ne 0 ] || echo "$TS_STATUS" | grep -qi "stopped\|logged out"; then
+  PROBLEMS="${PROBLEMS}🔴 Tailscale 연결 끊김\n　→ 복구: tailscale up\n"
+fi
+
+# --- 8. 포트 응답 (n8n 5678, Flask 9722) ---
+if ! curl -s -o /dev/null -w '' --max-time 5 http://localhost:5678 > /dev/null 2>&1; then
+  PROBLEMS="${PROBLEMS}🔴 n8n(5678) 포트 무응답\n　→ docker restart n8n 후 재확인\n"
+fi
+if ! curl -s -o /dev/null -w '' --max-time 5 http://localhost:9722 > /dev/null 2>&1; then
+  PROBLEMS="${PROBLEMS}🟡 Flask가격크롤러(9722) 포트 무응답\n　→ 수동 확인: cd ~/projects/cadam && python3 price_crawler.py\n"
+fi
+
+# --- 9. LaunchAgent 상태 ---
+for AGENT in com.rentailor.claude-broker; do
+  if ! launchctl list 2>/dev/null | grep -q "$AGENT"; then
+    PROBLEMS="${PROBLEMS}🔴 LaunchAgent ${AGENT} 미로드\n　→ 복구: launchctl load ~/Library/LaunchAgents/${AGENT}.plist\n"
+  fi
+done
+
+# --- 10. broker 로그 최근 24시간 ERROR ---
+BROKER_LOG="$HOME/.openclaw/workspace/claude-broker/logs"
+if [ -d "$BROKER_LOG" ]; then
+  ERROR_COUNT=$(find "$BROKER_LOG" -name "*.log" -mtime -1 -exec grep -ci "ERROR\|FATAL\|CRASH" {} + 2>/dev/null || echo 0)
+  if [ "$ERROR_COUNT" -gt 0 ] 2>/dev/null; then
+    PROBLEMS="${PROBLEMS}🟡 broker 로그에 ERROR ${ERROR_COUNT}건 (24h)\n　→ 로그 확인: tail -50 ~/.openclaw/workspace/claude-broker/logs/*.log | grep ERROR\n"
+  fi
+fi
+
+# --- 11. rentailor.co.kr 접근 ---
+HTTP_CODE=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 10 https://rentailor.co.kr 2>/dev/null)
+if [ "$HTTP_CODE" != "200" ]; then
+  PROBLEMS="${PROBLEMS}🔴 rentailor.co.kr 응답 ${HTTP_CODE}\n　→ Vercel 대시보드 확인: https://vercel.com/dashboard\n"
+fi
+
+# --- 12. Docker 디스크 사용량 (10GB 이상 경고) ---
+DOCKER_USAGE=$(docker system df --format '{{.Size}}' 2>/dev/null | head -1)
+if echo "$DOCKER_USAGE" | grep -qiE "^[0-9]{2,}(\.[0-9]+)?GB"; then
+  PROBLEMS="${PROBLEMS}🟡 Docker 디스크 ${DOCKER_USAGE} 사용 중\n　→ 정리: docker system prune -a\n"
+fi
+
+# --- 13. 로그 파일 크기 (100MB 이상 경고) ---
+LARGE_LOGS=$(find "$HOME/projects/_meta" "$HOME/.openclaw" -name "*.log" -size +100M 2>/dev/null)
+if [ -n "$LARGE_LOGS" ]; then
+  PROBLEMS="${PROBLEMS}🟡 100MB 초과 로그 파일 발견\n　→ 확인: find ~/projects/_meta ~/.openclaw -name '*.log' -size +100M\n"
+fi
+
+# --- 결과 처리 ---
+RESULTS_FILE="$HOME/projects/_meta/logs/health-check-latest.txt"
+FIXES_FILE="$HOME/projects/_meta/logs/health-check-fixes.sh"
+
+if [ -n "$PROBLEMS" ]; then
+  # 1) 원시 데이터 저장
+  echo -e "TIMESTAMP=$TIMESTAMP\n\n$PROBLEMS" > "$RESULTS_FILE"
+
+  # 2) 복구 명령어만 별도 저장 (승인 시 실행용)
+  echo -e "$PROBLEMS" | grep "→ 복구:" | sed 's/.*→ 복구: //' > "$FIXES_FILE"
+
+  # 3) 봇 토큰 / 채널 준비
+  BOT_TOKEN=$(grep DISCORD_BOT_TOKEN "$HOME/.openclaw/workspace/claude-broker/.env" 2>/dev/null | cut -d= -f2 | tr -d "'" | tr -d '"')
+  CHANNEL_ID=$(grep HEALTH_CHECK_CHANNEL_ID "$HOME/.openclaw/workspace/claude-broker/.env" 2>/dev/null | cut -d= -f2 | tr -d "'" | tr -d '"' | tr -d ' ')
+
+  # 4) Claude에게 분석 요청
+  PROMPT="너는 1인 기업의 서버 관리팀장이다. 아래 서버 점검 결과를 대표에게 보고하는 형식으로 작성해라.
+
+형식:
+📊 **종합 판단** (한줄 — 심각도 상/중/하)
+📋 **항목별 분석** (각 항목: 문제 → 원인 추정 → 서비스 영향 → 권고 조치)
+🔧 **즉시 복구 권고** (자동 복구 가능 항목 목록)
+
+마지막에 반드시 이 문장 추가: '자동 복구를 진행하려면 **복구 승인**이라고 입력해주세요.'
+2000자 이내로 작성해.
+
+점검 시각: $TIMESTAMP
+점검 결과:
+$(echo -e "$PROBLEMS")"
+
+  ANALYSIS=$(/Users/kim/.local/bin/claude -p "$PROMPT" --dangerously-skip-permissions --model sonnet 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+
+  # 5) 분석 결과 디스코드 전송
+  SENT=false
+  if [ -n "$ANALYSIS" ] && [ -n "$BOT_TOKEN" ] && [ -n "$CHANNEL_ID" ]; then
+    TMPFILE=$(mktemp)
+    echo "$ANALYSIS" > "$TMPFILE"
+    PAYLOAD=$(TMPFILE="$TMPFILE" python3 << 'PYEOF'
+import json, os
+with open(os.environ["TMPFILE"]) as f:
+    content = f.read().strip()[:1900]
+print(json.dumps({"content": content}))
+PYEOF
+    )
+    rm -f "$TMPFILE"
+
+    if [ -n "$PAYLOAD" ]; then
+      HTTP=$(curl -s -w '%{http_code}' -o /dev/null \
+        -H "Authorization: Bot $BOT_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$PAYLOAD" \
+        "https://discord.com/api/v10/channels/$CHANNEL_ID/messages")
+      [ "$HTTP" = "200" ] && SENT=true
+    fi
+  fi
+
+  # 6) Claude/봇 실패 시 웹훅 fallback (원시 데이터만)
+  if [ "$SENT" = "false" ]; then
+    TMPFILE=$(mktemp)
+    echo -e "$PROBLEMS" > "$TMPFILE"
+    FALLBACK=$(TMPFILE="$TMPFILE" TS="$TIMESTAMP" python3 << 'PYEOF'
+import json, os
+with open(os.environ["TMPFILE"]) as f:
+    desc = f.read().strip()
+ts = os.environ["TS"]
+msg = f"⚠️ **서버 점검 알림** ({ts})\n\n{desc}"
+print(json.dumps({"content": msg}))
+PYEOF
+    )
+    rm -f "$TMPFILE"
+    curl -s -H "Content-Type: application/json" -d "$FALLBACK" "$WEBHOOK_URL" > /dev/null 2>&1
+  fi
+
+  echo "[$TIMESTAMP] ALERT (bot=$SENT, claude=$( [ -n "$ANALYSIS" ] && echo true || echo false ))" >> "$LOG_FILE"
+else
+  # 정상 → 조용히 로그만
+  echo "[$TIMESTAMP] ALL OK" >> "$LOG_FILE"
+fi

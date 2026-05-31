@@ -87,3 +87,12 @@ boundary-rules.md 쌍4 참조.
 
 작업 양식: `_shared/delegation-template.md` 사용. 정기 실행은 `_shared/workflow-template.md`로 자율 워크플로 설계.
 <!-- SECTION:END name=delegation_grade -->
+
+
+## 산출물 저장 규칙
+- 내 산출물 저장: ~/projects/_meta/agents/{내 에이전트명}/outputs/pending/
+- 파일명: {유형}-{주제}-{YYYYMMDD}.md (예: cardnews-battery-lease-20260531.md)
+- 저장 후 반드시 [ESCALATE]로 사장님에게 검토 요청
+- 승인 → approved/ 이동 | 반려 → rejected/ 이동 (사장님 또는 관리팀장이 처리)
+- 다른 에이전트 산출물 참조: ~/projects/_meta/agents/{에이전트명}/outputs/approved/
+- 작업 전 관련 에이전트의 approved/ 산출물을 확인하고 중복·충돌 방지

@@ -43,3 +43,12 @@ last-updated: 2026-05-25
 - 세금계산서 발행·회계 장부 수정 → blacklist
 - 내부 집계·리포트 생성 → 향후 auto-allowed 검토 가능 (현재는 보류)
 <!-- SECTION:END name=delegation_grade -->
+
+
+## 산출물 저장 규칙
+- 내 산출물 저장: ~/projects/_meta/agents/{내 에이전트명}/outputs/pending/
+- 파일명: {유형}-{주제}-{YYYYMMDD}.md (예: cardnews-battery-lease-20260531.md)
+- 저장 후 반드시 [ESCALATE]로 사장님에게 검토 요청
+- 승인 → approved/ 이동 | 반려 → rejected/ 이동 (사장님 또는 관리팀장이 처리)
+- 다른 에이전트 산출물 참조: ~/projects/_meta/agents/{에이전트명}/outputs/approved/
+- 작업 전 관련 에이전트의 approved/ 산출물을 확인하고 중복·충돌 방지
