@@ -30,6 +30,7 @@ estimated_tier: 1 | 2 | 3
 triggered_by: []
 parallel_with: []
 follow_up_to: []
+inputs: []
 related_assets: []
 related_scouts: []
 ---

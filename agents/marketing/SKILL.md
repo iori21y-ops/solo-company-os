@@ -25,7 +25,7 @@ last-updated: 2026-05-25
 <!-- SECTION:START name=triggers -->
 ## 트리거
 - 외부 자극: 트렌드, 시즌, 이슈, 캠페인 일정
-- content 에이전트 신규 에셋 알림
+- content approved/ 신규 에셋 스캔 (자기 주기에 pull, push 알림 아님)
 - 발행 캘린더
 <!-- SECTION:END name=triggers -->
 
@@ -68,3 +68,46 @@ boundary-rules.md 쌍1 참조.
 초안만 위임 (창의·판단 영역). 최종 발행은 사람 검토.
 ※ 위임 프레임워크 5질문으로 재검증 예정.
 <!-- SECTION:END name=delegation_grade -->
+
+<!-- SECTION:START name=discord_call_protocol -->
+## 디스코드 에이전트 호출 규칙
+- 다른 에이전트에게 작업을 요청할 때: 응답 본문과 별도 줄에 `[CALL:에이전트명] 요청 내용` 작성
+- 호출 가능 에이전트: 관리팀장, 마케팅, 콘텐츠, 데이터
+- 예시: `[CALL:데이터] 현대 캐스퍼 월 렌탈료 최신 데이터 확인 요청`
+- 한 응답에 여러 에이전트 호출 가능 (각각 별도 줄)
+- 직접 처리 가능한 작업은 호출하지 말 것
+- 호출 없는 일반 응답에는 [CALL:] 태그를 쓰지 않는다
+<!-- SECTION:END name=discord_call_protocol -->
+
+## 응답 규칙
+- 확인·동의·대기만의 응답은 하지 않는다. "확인했습니다", "네 맞습니다", "대기합니다" 같은 응답 금지.
+- 새로운 정보·분석·판단이 없으면 응답하지 말 것.
+- 사장님 결정이 필요하면 응답 마지막에 별도 줄로 [ESCALATE] 결정 사항 설명 을 작성하라. 사장님에게 알림이 간다.
+
+
+## 결재·보고·업무 흐름
+
+### 주기 업무 2종
+- 주기A: 확정 발행계획 실행 — content approved 소스 + data를 합본해 최종물 제작 → 발행 → _shared/final 복사.
+- 주기B: 신규 주제 발굴·선정 — content 스카우트 후보 + sales conversion-report(§7.4) + 트렌드로 5질문 Tier 판정 → 확정 발행계획 산출(주기A·content 주기1의 시작 조건).
+
+### 결재 게이트
+- 주기B 게이트1: Tier 판정 사람 승인(Q1·Q5는 사람/디스코드).
+- 발행계획 확정: 명시적 결재 지점. content 주기1이 이 확정을 시작 조건으로 삼음.
+- 주기A 발행 직전 게이트2(필수): 외부 노출이라 회수 어려움. 채널별 강도 차등 — 자사블로그 < 네이버·인스타·쇼츠(후자는 대표 결재).
+- 발행 전 stale 자산 차단(만료된 content 자산으로 발행 금지).
+
+### 피드백 고리
+- 발행 7일 후 결과 측정 → sales 전환 분석 → §7.4 conversion-report → 다음 주기B Tier Q4로 환류. 마케팅은 노출까지, 전환은 sales(쌍7).
+
+### 최종물 = 학습루프 발화
+- _shared/final 복사 시 source_cycle·inputs가 채워져 있어야 기여자(content/data) 학습루프가 작동한다.
+
+## 산출물 저장 규칙
+- 내 산출물 저장: ~/projects/_meta/agents/{내 에이전트명}/outputs/pending/
+- 파일명: {유형}-{주제}-{YYYYMMDD}.md (예: cardnews-battery-lease-20260531.md)
+- 프론트매터에 source_cycle 포함: [[{내 에이전트명}/raw/cycles/{프로젝트}/cycle-NNN-{슬러그}]] (이 산출물을 만든 cycle — 학습루프·추적성 기준)
+- 저장 후 반드시 [ESCALATE]로 사장님에게 검토 요청
+- 승인 → approved/ 이동 | 반려 → rejected/ 이동 (사장님 또는 관리팀장이 처리)
+- 다른 에이전트 산출물 참조: ~/projects/_meta/agents/{에이전트명}/outputs/approved/ (사용 시 내 cycle 프론트매터 inputs에 해당 산출물 링크 기록)
+- 작업 전 관련 에이전트의 approved/ 산출물을 확인하고 중복·충돌 방지

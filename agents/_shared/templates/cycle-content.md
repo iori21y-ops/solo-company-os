@@ -33,6 +33,7 @@ target_consumer: marketing | sales | strategy | direct-publish
 triggered_by: []
 parallel_with: []
 follow_up_to: []
+inputs: []
 parent_scout_cycle: []
 related_candidates: []
 ---

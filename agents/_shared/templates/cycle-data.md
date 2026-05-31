@@ -42,6 +42,7 @@ linked_monitoring_setup: []
 triggered_by: []
 parallel_with: []
 follow_up_to: []
+inputs: []
 ---
 ```
 
