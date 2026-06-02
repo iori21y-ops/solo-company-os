@@ -36,12 +36,12 @@ references:
 | DATA-02 | 사이트 표시 데이터 신선도 | 주 1회 | schedule | `freshness-display-*.md`, 만료 0 | 정의됨·미가동 | 기존 |
 | DATA-03 | 크롤러 수집 결과 검증(엔카·가격·약관·공공API) | 일 1회 | 크롤 후 | 이상 시만 알림 | 운영중 | 기존 |
 | DATA-04 | 외부 시장 데이터 모니터(환율·보조금·정책) | 변동 감지 | 소스 변동 | 변동 시 스팟 전환 | 정의됨·미가동 | 기존 |
-| DATA-05 | 큐레이션 입력용 인사이트 정합성(추출 verdict 게이트) | 일 1회 | GWP-1 추출 후 | `verdict-extraction-*.md`, green만 다운스트림 | 신규 가동 대상 | 데이터레지스트리 A-5 |
+| DATA-05 | 큐레이션 입력용 인사이트 정합성(추출 verdict 게이트) | 일 1회 | GWP-1 추출 후 | `verdict-extraction-*.md`, green만 다운스트림 | 정의됨·미가동 | 데이터레지스트리 A-5 |
 
 ## 콘텐츠 (content) — 검증 데이터→재사용 에셋 가공
 | ID | 업무 | 주기 | 트리거 | 합격/산출 | 상태 | 출처 |
 |----|------|------|--------|-----------|------|------|
-| CONT-01 | 팩트블록 생산 | green 데이터 갱신 시 | DATA-05 green verdict | `content/assets/.../fact-blocks/` | 신규 가동 대상 | 콘텐츠레지스트리 CONT-01 |
+| CONT-01 | 팩트블록 생산 | green 데이터 갱신 시 | DATA-05 green verdict | `content/assets/.../fact-blocks/` | 정의됨·미가동 | 콘텐츠레지스트리 CONT-01 |
 | CONT-02 | data approved 전역 스카우팅(주제 후보) | 자기 주기 | pull | 후보 목록 + 관리팀장 승인 | 정의됨·미가동 | content SKILL 주기2 |
 | CONT-03 | Writer 프롬프트 옵티마이저(학습루프) | 매일 10시 | schedule | prompt_templates 개선 | 이관대상 | GWP-4 |
 | CONT-04 | 검수 프롬프트 옵티마이저 | 매주 월 | schedule | 검수 프롬프트 개선 | 이관대상 | GWP-6 |
