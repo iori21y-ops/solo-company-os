@@ -45,12 +45,25 @@ if [ $? -ne 0 ] || echo "$TS_STATUS" | grep -qi "stopped\|logged out"; then
   PROBLEMS="${PROBLEMS}🔴 Tailscale 연결 끊김\n　→ 복구: tailscale up\n"
 fi
 
-# --- 8. 포트 응답 (n8n 5678, Flask 9722) ---
+# --- 8. 포트 응답 (n8n 5678) ---
 if ! curl -s -o /dev/null -w '' --max-time 5 http://localhost:5678 > /dev/null 2>&1; then
   PROBLEMS="${PROBLEMS}🔴 n8n(5678) 포트 무응답\n　→ docker restart n8n 후 재확인\n"
 fi
-if ! curl -s -o /dev/null -w '' --max-time 5 http://localhost:9722 > /dev/null 2>&1; then
-  PROBLEMS="${PROBLEMS}🟡 Flask가격크롤러(9722) 포트 무응답\n　→ 수동 확인: cd ~/projects/cadam && python3 price_crawler.py\n"
+# --- 8-1. 월간 가격크롤러 수집 성공 검증 (매월 2~3일에만) ---
+#   [2026-06-02 A안] 9722는 매월 1일 1회 실행 후 종료되는 배치 작업이므로 상시 포트 감시 제외.
+#   대신 '이번 달 수집이 성공했는지'를 1일 다음(2~3일)에만 1회 검증한다.
+DOM=$(date '+%d')
+if [ "$DOM" = "02" ] || [ "$DOM" = "03" ]; then
+  CRAWLER_LOG="$HOME/projects/cadam/cadam-n8n/price_crawler/crawler.log"
+  THIS_MONTH=$(date '+%Y-%m')
+  if [ ! -f "$CRAWLER_LOG" ]; then
+    PROBLEMS="${PROBLEMS}🔴 가격크롤러 로그 없음 (이번 달 수집 미실행 의심)\n　→ 수동 실행: bash ~/projects/cadam/cadam-n8n/price_crawler/run_monthly.sh\n"
+  else
+    LOG_MONTH=$(date -r "$CRAWLER_LOG" '+%Y-%m')
+    if [ "$LOG_MONTH" != "$THIS_MONTH" ] || ! tail -5 "$CRAWLER_LOG" | grep -q "월간 가격표 수집 끝"; then
+      PROBLEMS="${PROBLEMS}🔴 이번 달(${THIS_MONTH}) 가격크롤러 월간 수집 실패/누락\n　→ 수동 실행: bash ~/projects/cadam/cadam-n8n/price_crawler/run_monthly.sh\n"
+    fi
+  fi
 fi
 
 # --- 9. LaunchAgent 상태 ---
