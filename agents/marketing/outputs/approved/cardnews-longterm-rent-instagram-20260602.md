@@ -2,14 +2,18 @@
 type: cardnews-instagram
 topic: 장기렌트 3가지 장점
 channel: instagram
-status: pending
+status: approved
 created: 2026-06-02
+approved: 2026-06-02
+approver: 대표님 (마케팅 스레드 / 관리팀장 집행)
+cta: (B) 월 납입금 알아보기
 source_cycle: [[marketing/raw/cycles/cadam/cycle-001-longterm-rent-cardnews-instagram]]
 inputs:
   - ~/projects/_meta/agents/content/outputs/approved/cardnews-longterm-rent-benefits-20260601.md
   - ~/projects/_meta/agents/data/outputs/approved/verdict-hyundai-avante-20260601.md
 stale_check: 두 입력 자산 모두 2026-06-01 생성/검증, expires 없음 → 유효
-gate: 게이트2 결재 대기 (외부 발행 직전)
+gate: 게이트2 통과 (대표 결재 완료 — CTA=B). 발행은 인스타 수동 단계 대기.
+publish_status: 미발행 (인스타 자동발행 미배선 → 수동 발행 필요)
 tier: 1
 target_audience: 장기렌트 첫 상담 고객 (미경험자)
 ---
@@ -76,12 +80,12 @@ target_audience: 장기렌트 첫 상담 고객 (미경험자)
 
 ### SLIDE 5 — 마무리 + CTA
 ```
-지금 딱 맞는 차,
-월 얼마인지 바로 확인해 보세요.
+지금 내 차, 월 납입금 알아보기 →
 
 CADAM — 장기렌트 비교 플랫폼
 🔗 링크는 프로필에
 ```
+*CTA 확정: (B) "월 납입금 알아보기" — 대표 결정 2026-06-02*
 
 ---
 
