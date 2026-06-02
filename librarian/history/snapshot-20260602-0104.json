@@ -1,0 +1,457 @@
+{
+  "meta": {
+    "time": "2026-06-02T01:04:32",
+    "host": "gimgyeongnyeon-ui-Macmini.local",
+    "sensor_version": "1.0"
+  },
+  "disk": {
+    "used_percent": 21,
+    "avail": "68G"
+  },
+  "memory": {
+    "free_percent": 81
+  },
+  "launchd": [
+    {
+      "label": "Label",
+      "pid": "PID",
+      "status": "Status"
+    },
+    {
+      "label": "com.docker.helper",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.user.secondbrain.rss",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.docker-start",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.gpu-agent",
+      "pid": 36187,
+      "status": -15
+    },
+    {
+      "label": "com.raon.agent.touchen.nxkey",
+      "pid": 83662,
+      "status": 0
+    },
+    {
+      "label": "application.com.hnc.Discord.9598087.9598301",
+      "pid": 39170,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.backup-cadam",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.api-hub.gas-stations",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.ollama.ollama",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.api-hub.car-sales",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.api-hub.opinet",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.openssh.ssh-agent",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.backup",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "application.com.docker.docker.2943614.2944212",
+      "pid": 36202,
+      "status": 0
+    },
+    {
+      "label": "application.io.tailscale.ipn.macos.2061215.2061221",
+      "pid": 941,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.api-hub.insurance",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.anthropic.claudefordesktop.ShipIt",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.gpu-agent-stop",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.docker-stop",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "application.com.anthropic.claudefordesktop.9552539.9552545",
+      "pid": 35223,
+      "status": 0
+    },
+    {
+      "label": "com.rentailor.health-check",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.raon.touchen.UserAgent",
+      "pid": 83426,
+      "status": 0
+    },
+    {
+      "label": "kr.co.iniline.crossex-service",
+      "pid": 83402,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.gwp1-pipeline",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.user.secondbrain.sync",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "io.tailscale.ipn.macos.login-item-helper",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.daily-report",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.terms-monitor",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "ai.openclaw.gateway",
+      "pid": 45296,
+      "status": 0
+    },
+    {
+      "label": "com.rentailor.claude-broker",
+      "pid": 44509,
+      "status": -15
+    },
+    {
+      "label": "application.com.google.Chrome.862343.8042147",
+      "pid": 30430,
+      "status": 0
+    },
+    {
+      "label": "application.com.kakao.KakaoTalkMac.758985.758993",
+      "pid": 2531,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.clipserver",
+      "pid": 75518,
+      "status": -15
+    },
+    {
+      "label": "com.cadam.cleanup-logs",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.api-hub.ev-chargers",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.price-crawler",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.encar-crawler-v2",
+      "pid": null,
+      "status": 0
+    },
+    {
+      "label": "org.chromium.chromoting",
+      "pid": 928,
+      "status": 0
+    },
+    {
+      "label": "application.com.if.Amphetamine.859977.859987",
+      "pid": 965,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.md-dashboard",
+      "pid": 53564,
+      "status": -9
+    },
+    {
+      "label": "com.user.secondbrain.ingest",
+      "pid": 45109,
+      "status": 0
+    },
+    {
+      "label": "application.com.electron.ollama.5914460.5914472",
+      "pid": 49873,
+      "status": 0
+    },
+    {
+      "label": "com.cadam.wp-sync",
+      "pid": null,
+      "status": 0
+    }
+  ],
+  "docker": [
+    {
+      "name": "cadam-prompt-bff-1",
+      "status": "Up 2 hours",
+      "image": "node:22-alpine"
+    },
+    {
+      "name": "cadam-n8n-1",
+      "status": "Up 2 hours",
+      "image": "n8nio/n8n:latest"
+    },
+    {
+      "name": "",
+      "status": "Exited (128) 6 weeks ago",
+      "image": "n8nio/n8n:latest"
+    },
+    {
+      "name": "",
+      "status": "Exited (128) 6 weeks ago",
+      "image": "n8nio/n8n:latest"
+    }
+  ],
+  "services": [
+    {
+      "name": "rapportd",
+      "port": 49152,
+      "pid": 656,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "ControlCe",
+      "port": 7000,
+      "pid": 661,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "ControlCe",
+      "port": 5000,
+      "pid": 661,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "IPNExtens",
+      "port": 49156,
+      "pid": 808,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "IPNExtens",
+      "port": 39754,
+      "pid": 808,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "IPNExtens",
+      "port": 55954,
+      "pid": 808,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "ARDAgent",
+      "port": 3283,
+      "pid": 879,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "infographic_server.py",
+      "port": 9723,
+      "pid": 4656,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "ollama",
+      "port": 11434,
+      "pid": 23015,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "http.server:9740",
+      "port": 9740,
+      "pid": 26030,
+      "type": "adhoc",
+      "expected": false,
+      "alive": true
+    },
+    {
+      "name": "server.js",
+      "port": 3199,
+      "pid": 36187,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "com.docke",
+      "port": 3099,
+      "pid": 36223,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "com.docke",
+      "port": 5678,
+      "pid": 36223,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "Discord",
+      "port": 6463,
+      "pid": 39210,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "index.js",
+      "port": 18789,
+      "pid": 45296,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "index.js",
+      "port": 18791,
+      "pid": 45296,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "Ollama",
+      "port": 60368,
+      "pid": 49873,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "api_server.py",
+      "port": 9721,
+      "pid": 50163,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "app.py",
+      "port": 9725,
+      "pid": 53564,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "http.server:8888",
+      "port": 8888,
+      "pid": 72098,
+      "type": "adhoc",
+      "expected": false,
+      "alive": true
+    },
+    {
+      "name": "http.server:9730",
+      "port": 9730,
+      "pid": 82508,
+      "type": "adhoc",
+      "expected": false,
+      "alive": true
+    },
+    {
+      "name": "CrossEXSe",
+      "port": 34581,
+      "pid": 83409,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    },
+    {
+      "name": "sitemap_server.py",
+      "port": 8889,
+      "pid": 96448,
+      "type": "managed",
+      "expected": true,
+      "alive": true
+    }
+  ],
+  "expected_exceptions": [],
+  "backup": {
+    "last_file": "backup.log",
+    "last_time": "2026-06-01T05:00:03",
+    "size_bytes": 8510
+  },
+  "git": {
+    "last_commit": "2026-06-01T21:44:39+09:00",
+    "last_subject": "Session: meta/agents - 스팟결재판-실증완료-종결조건다음"
+  },
+  "remote": {
+    "status": "not_implemented"
+  }
+}

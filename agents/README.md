@@ -1,7 +1,7 @@
 ---
 title: 9개 에이전트 시스템 인덱스
 status: in-progress (경계 점검 진행 중)
-last-updated: 2026-05-28
+last-updated: 2026-06-01
 ---
 
 # 9개 에이전트 시스템
@@ -14,9 +14,9 @@ last-updated: 2026-05-28
 
 | # | 이름 | 한 줄 정의 | 상태 |
 |---|------|----------|------|
-| 1 | marketing | 외부 발행 콘텐츠 제작·발행. 트래픽·전환 유도 | 정의됨 |
-| 2 | content | 데이터를 사람이 보는 에셋으로 가공·비축 (재료 공급자) | 정의됨 |
-| 3 | data | 사실 수집·검증·정합성 유지. DB와 사이트 표시 자산 책임 | 정의됨 |
+| 1 | 마케팅 | 외부 발행 콘텐츠 제작·발행. 트래픽·전환 유도 | 정의됨 |
+| 2 | 컨텐츠 | 데이터를 사람이 보는 에셋으로 가공·비축 | 정의됨 |
+| 3 | 데이터 | 사실 수집·검증·정합성 유지. DB와 사이트 표시 자산 책임 | 정의됨 |
 | 4 | sales | 리드·전환 데이터 분석·룰화. CRM 정합성·딜러 성과·채널 ROI 측정 | 정의됨 |
 | 5 | cs | 고객·딜러 직접 대화. 1차 응대~체결 직전까지. 체결 후는 딜러 책임 | 정의됨 |
 | 6 | ops | 파이프라인·서버·인프라 실행·스케줄·장애복구. 현장 엔지니어 | 정의됨 |
@@ -56,6 +56,7 @@ last-updated: 2026-05-28
 - 수정은 섹션 마커 기반 str_replace로만
 - 매 수정 시 `_shared/modification-checklist.md` 따라 누락 확인
 - 경계 규칙은 양쪽 SKILL.md에 중복 기록 (누락 방지)
+- 결재 요청은 `_shared/approval-card-policy.md` 기준으로 Discord 결재 카드만 사용한다. 실무자→관리팀장 결재도 동일하게 `승인`, `수정`, `반려`, `코멘트` 컨트롤을 포함한다.
 
 <!-- SECTION:START name=files_in_this_area -->
 ## 이 영역의 파일 지도
@@ -66,9 +67,10 @@ last-updated: 2026-05-28
 | `agents/_shared/boundary-rules.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/boundary-rules.md) | 에이전트 간 경계 규칙 (쌍1·쌍2 확정) |
 | `agents/_shared/scout-territories.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/scout-territories.md) | 에이전트별 자율 발굴 영역 매트릭스 (B-J 위탁 흐름) |
 | `agents/_shared/modification-checklist.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/modification-checklist.md) | 수정 시 누락 방지 체크리스트 |
-| `agents/marketing/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/marketing/SKILL.md) | Marketing Agent 정의 |
-| `agents/content/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/content/SKILL.md) | Content Agent 정의 |
-| `agents/data/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/data/SKILL.md) | Data Agent 정의 |
+| `agents/_shared/approval-card-policy.md` | — | Discord 결재 카드 표준 |
+| `agents/marketing/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/marketing/SKILL.md) | 마케팅 정의 |
+| `agents/content/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/content/SKILL.md) | 컨텐츠 정의 |
+| `agents/data/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/data/SKILL.md) | 데이터 정의 |
 | `agents/{sales,cs,ops,finance,legal,strategy}/SKILL.md` | — | 스텁 (정의 대기) |
 <!-- SECTION:END name=files_in_this_area -->
 

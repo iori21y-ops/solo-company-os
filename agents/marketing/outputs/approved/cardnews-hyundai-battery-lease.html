@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>소유 말고 이용. 전기차 금융이 달라지고 있다 — CADAM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+      background: #f0f2f5;
+      color: #1a1a1a;
+      padding: 32px 16px 64px;
+    }
+
+    header {
+      max-width: 720px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+
+    header .badge {
+      display: inline-block;
+      background: #ff6b35;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.4;
+      color: #111;
+    }
+
+    header .meta {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .cards {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* 공통 카드 */
+    .card {
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+      padding: 24px 28px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1.3;
+      color: #111;
+    }
+
+    .card-body {
+      padding: 0 28px 28px;
+    }
+
+    .card-body p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .card-body ul {
+      padding-left: 20px;
+      margin: 10px 0;
+    }
+
+    .card-body ul li {
+      font-size: 15px;
+      line-height: 1.8;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .card-body strong {
+      font-weight: 700;
+      color: #111;
+    }
+
+    /* 구분선 */
+    .divider {
+      height: 1px;
+      background: #f0f0f0;
+      margin: 18px 0;
+    }
+
+    /* 타임라인 테이블 */
+    .timeline-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+    }
+
+    .timeline-table th {
+      background: #f5f5f7;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: #555;
+    }
+
+    .timeline-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+    }
+
+    .timeline-table tr:last-child td { border-bottom: none; }
+
+    .badge-running {
+      display: inline-block;
+      background: #e6f4ea;
+      color: #2d7a3c;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .badge-pilot {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    /* 장점 그리드 */
+    .benefit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .benefit-item {
+      background: #f8f9ff;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .benefit-item .icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+
+    .benefit-item .label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+    }
+
+    .benefit-item .desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* 체크리스트 */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0;
+    }
+
+    .checklist li {
+      display: flex;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: #fafafa;
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #333;
+      align-items: flex-start;
+    }
+
+    .checklist li .ck {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+
+    /* 주의 문구 */
+    .notice {
+      background: #fffbe6;
+      border-left: 3px solid #f5a623;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #7a5c00;
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+
+    /* 비교 박스 */
+    .compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .compare-box {
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .compare-box.old {
+      background: #f5f5f7;
+      color: #555;
+    }
+
+    .compare-box.new {
+      background: #e8f4fd;
+      color: #1565c0;
+    }
+
+    .compare-box .cmp-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      opacity: 0.7;
+    }
+
+    .compare-box .cmp-title {
+      font-weight: 800;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    /* CTA 카드 */
+    .card.cta-card .card-header {
+      background: #1a1a2e;
+    }
+
+    .card.cta-card .card-title {
+      color: #fff;
+    }
+
+    .card.cta-card .card-num {
+      background: #ff6b35;
+    }
+
+    .card.cta-card .card-body {
+      background: #1a1a2e;
+      padding-bottom: 32px;
+    }
+
+    .card.cta-card .card-body p {
+      color: #ccc;
+    }
+
+    .arrow-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 24px 0;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .arrow-box .from {
+      background: #444;
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+
+    .arrow-box .arr {
+      font-size: 24px;
+      color: #ff6b35;
+    }
+
+    .arrow-box .to {
+      background: #ff6b35;
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .cta-btn {
+      display: block;
+      background: #ff6b35;
+      color: #fff;
+      text-align: center;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: default;
+    }
+
+    .cta-btn.secondary {
+      background: #2a2a45;
+      font-size: 13px;
+    }
+
+    .notice.dark {
+      background: #2a2a45;
+      border-left-color: #ff6b35;
+      color: #aaa;
+    }
+
+    /* 마케팅 문안 섹션 */
+    .section-block {
+      max-width: 720px;
+      margin: 40px auto 0;
+    }
+
+    .section-block h2 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .text-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 20px 24px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      font-size: 14px;
+      line-height: 1.8;
+      color: #444;
+    }
+
+    .text-card .tc-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .text-card .tc-main {
+      font-size: 16px;
+      font-weight: 800;
+      color: #111;
+      margin-bottom: 6px;
+    }
+
+    .tags {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      background: #f0f0f0;
+      color: #555;
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    /* 발행 전 확인 */
+    .check-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .check-table th {
+      background: #f5f5f7;
+      padding: 8px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: #555;
+    }
+
+    .check-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* 카드별 색상 */
+    .c1 .card-num { background: #ff6b35; }
+    .c2 .card-num { background: #e53935; }
+    .c3 .card-num { background: #5c6bc0; }
+    .c4 .card-num { background: #1565c0; }
+    .c5 .card-num { background: #2e7d32; }
+    .c6 .card-num { background: #f57c00; }
+
+    .c1 .card-header { border-top: 4px solid #ff6b35; }
+    .c2 .card-header { border-top: 4px solid #e53935; }
+    .c3 .card-header { border-top: 4px solid #5c6bc0; }
+    .c4 .card-header { border-top: 4px solid #1565c0; }
+    .c5 .card-header { border-top: 4px solid #2e7d32; }
+    .c6 .card-header { border-top: 4px solid #f57c00; }
+
+    footer {
+      max-width: 720px;
+      margin: 48px auto 0;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    @media (max-width: 480px) {
+      .benefit-grid { grid-template-columns: 1fr; }
+      .compare { grid-template-columns: 1fr; }
+      .arrow-box { flex-direction: column; }
+      .card-header { padding: 18px 18px 14px; }
+      .card-body { padding: 0 18px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">대표님 최종 승인 전 기준본 · 2026-05-30</div>
+  <h1>소유 말고 이용.<br>전기차 금융이 달라지고 있다</h1>
+  <p class="meta">인스타그램 / 블로그 / 뉴스레터 · 7장 카드뉴스</p>
+</header>
+
+<div class="cards">
+
+  <!-- CARD 1 -->
+  <div class="card c1">
+    <div class="card-header">
+      <div class="card-num">1</div>
+      <div class="card-title">전기차, 아직 망설이고 있나요?</div>
+    </div>
+    <div class="card-body">
+      <p>"좋은 건 알겠는데, 배터리가 걱정돼서요."<br>
+      전기차 구매를 미루는 가장 큰 이유입니다.</p>
+      <p>차 값도 비싸지만, 배터리가 더 문제입니다.<br>
+      지금, 그 구조가 바뀌고 있습니다.</p>
+      <div class="divider"></div>
+      <div style="background:#fff8f5;border-radius:12px;padding:14px 16px;font-size:13px;color:#555;">
+        🖼 <strong>시각화 메모</strong><br>
+        전기차 구매를 망설이는 이유를 설문 스타일 그래픽으로 구성한다. 배터리 비용·교체 우려를 핵심 항목으로 강조.
+      </div>
+      <div class="notice">※ 설문 수치 삽입 시 실제 조사 출처 확인 후 사용할 것</div>
+    </div>
+  </div>
+
+  <!-- CARD 2 -->
+  <div class="card c2">
+    <div class="card-header">
+      <div class="card-num">2</div>
+      <div class="card-title">배터리, 왜 이렇게 부담인가요?</div>
+    </div>
+    <div class="card-body">
+      <p>전기차 배터리는 시간이 지나면 성능이 떨어질 수 있습니다.<br>
+      교체 비용은 차종과 용량에 따라 크게 달라집니다.<br>
+      배터리 상태는 중고 거래 가격에도 영향을 줍니다.</p>
+      <p><strong>잔존가치 불확실성 + 교체 비용 부담</strong><br>
+      = 전기차 금융 리스크의 핵심</p>
+      <div class="divider"></div>
+      <div style="background:#fff5f5;border-radius:12px;padding:14px 16px;font-size:13px;color:#555;">
+        🖼 <strong>시각화 메모</strong><br>
+        배터리 열화 곡선 그래프 + 중고차 가치 하락 이미지 병치
+      </div>
+      <div class="notice">※ "배터리가 차 값의 40~50%" 표현 사용 금지. 특정 모델 기준 출처 확보 시에만 조건부 사용 가능</div>
+    </div>
+  </div>
+
+  <!-- CARD 3 -->
+  <div class="card c3">
+    <div class="card-header">
+      <div class="card-num">3</div>
+      <div class="card-title">배터리, 사지 않아도 됩니다</div>
+    </div>
+    <div class="card-body">
+      <p>차는 이용하고, 배터리는 별도로 관리받는 방식이 등장하고 있습니다.</p>
+      <div class="compare">
+        <div class="compare-box old">
+          <div class="cmp-label">기존 방식</div>
+          <div class="cmp-title">차 + 배터리<br>전체 구매</div>
+          <div style="font-size:12px;margin-top:6px;">배터리 리스크 전부<br>소비자 부담</div>
+        </div>
+        <div class="compare-box new">
+          <div class="cmp-label">배터리 분리형</div>
+          <div class="cmp-title">차 이용 +<br>배터리 금융 계약</div>
+          <div style="font-size:12px;margin-top:6px;">교체·관리는<br>계약 조건에 따라 처리</div>
+        </div>
+      </div>
+      <ul>
+        <li>배터리 소유권을 금융사가 보유</li>
+        <li>소비자는 월정액으로 배터리 이용</li>
+        <li>배터리 교체·성능 관리는 계약 조건에 따라 처리</li>
+      </ul>
+      <div class="notice">※ 계약 조건과 보장 범위는 상품별로 다릅니다. 가입 전 약관 반드시 확인.</div>
+    </div>
+  </div>
+
+  <!-- CARD 4 -->
+  <div class="card c4">
+    <div class="card-header">
+      <div class="card-num">4</div>
+      <div class="card-title">현대캐피탈, 배터리 금융을 단계적으로 확대하다</div>
+    </div>
+    <div class="card-body">
+      <p>현대캐피탈은 전기차 배터리 금융 모델을 단계적으로 운영하고 있습니다.</p>
+      <table class="timeline-table">
+        <thead>
+          <tr>
+            <th>상품</th>
+            <th>시기</th>
+            <th>현황</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>배터리 라이프케어</strong></td>
+            <td>2023년</td>
+            <td><span class="badge-running">운영 중</span></td>
+          </tr>
+          <tr>
+            <td><strong>배터리 케어 리스</strong></td>
+            <td>2024년</td>
+            <td><span class="badge-running">운영 중</span></td>
+          </tr>
+          <tr>
+            <td><strong>배터리 구독 서비스</strong></td>
+            <td>2026년</td>
+            <td><span class="badge-pilot">실증 단계</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px;">"처음 시작"이 아니라 출시 → 확대 → 실증이 단계적으로 이어지는 흐름입니다.</p>
+      <div class="notice">
+        ※ 배터리 구독 서비스(2026)는 실증 단계로 일반 소비자 가입 가능 상품으로 단정하지 않는다.<br>
+        ※ 각 상품의 가입 조건·대상 차종은 현대캐피탈 공식 채널 확인 필요.
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 5 -->
+  <div class="card c5">
+    <div class="card-header">
+      <div class="card-num">5</div>
+      <div class="card-title">소비자 입장에서, 뭐가 좋아지나요?</div>
+    </div>
+    <div class="card-body">
+      <div class="benefit-grid">
+        <div class="benefit-item">
+          <div class="icon">💰</div>
+          <div class="label">초기 부담 감소 가능성</div>
+          <div class="desc">배터리 비용을 한 번에 부담하지 않고 월 단위로 나눌 수 있습니다.</div>
+        </div>
+        <div class="benefit-item">
+          <div class="icon">🔋</div>
+          <div class="label">성능 관리 가능성</div>
+          <div class="desc">계약 조건에 따라 배터리 진단, 교체, 보상 구조가 제공될 수 있습니다.</div>
+        </div>
+        <div class="benefit-item">
+          <div class="icon">📊</div>
+          <div class="label">중고 리스크 완화 가능성</div>
+          <div class="desc">배터리 소유권과 관리 이력이 명확해지면 잔존가치 판단에 도움이 될 수 있습니다.</div>
+        </div>
+        <div class="benefit-item">
+          <div class="icon">🛠</div>
+          <div class="label">유지 관리 간소화</div>
+          <div class="desc">배터리 관리 책임 일부가 금융·제조사 구조 안으로 들어옵니다.</div>
+        </div>
+      </div>
+      <div class="notice">※ 모든 장점은 상품과 계약 조건에 따라 다르게 적용됩니다. "보장"이 아닌 "가능성"임에 유의.</div>
+    </div>
+  </div>
+
+  <!-- CARD 6 -->
+  <div class="card c6">
+    <div class="card-header">
+      <div class="card-num">6</div>
+      <div class="card-title">계약 전, 반드시 확인하세요</div>
+    </div>
+    <div class="card-body">
+      <p>배터리 금융 상품은 조건에 따라 유불리가 달라집니다.</p>
+      <ul class="checklist">
+        <li><span class="ck"></span><div><strong>월 납입금 구조</strong><br>차량 비용과 배터리 이용료가 어떻게 나뉘는가</div></li>
+        <li><span class="ck"></span><div><strong>보장 기준</strong><br>배터리 성능 몇 % 이하일 때 보상 또는 교체되는가</div></li>
+        <li><span class="ck"></span><div><strong>잔존가치 적용 방식</strong><br>만기 반납과 인수 조건은 무엇인가</div></li>
+        <li><span class="ck"></span><div><strong>중도 해지 조건</strong><br>위약금과 정산 방식은 어떻게 되는가</div></li>
+        <li><span class="ck"></span><div><strong>가입 가능 차종</strong><br>현재 적용 가능한 모델은 무엇인가</div></li>
+      </ul>
+      <div class="notice">※ 실제 계약 조건은 현대캐피탈 공식 안내와 약관 기준으로 확인해야 합니다.</div>
+    </div>
+  </div>
+
+  <!-- CARD 7 -->
+  <div class="card cta-card">
+    <div class="card-header">
+      <div class="card-num">7</div>
+      <div class="card-title">소유에서 이용+관리로.<br>전기차 금융이 바뀌고 있습니다</div>
+    </div>
+    <div class="card-body">
+      <p>전기차를 사는 시대에서 쓰고 관리받는 시대로.<br>
+      배터리를 직접 소유하지 않아도 전기차를 이용하는 구조가<br>
+      단계적으로 현실이 되고 있습니다.</p>
+      <p style="color:#aaa;margin-top:8px;">아직 모든 소비자에게 열린 선택지는 아닙니다.<br>하지만 방향은 분명합니다.</p>
+
+      <div class="arrow-box">
+        <div class="from">소유</div>
+        <div class="arr">→</div>
+        <div class="to">이용 + 관리</div>
+      </div>
+
+      <p style="color:#fff;font-weight:800;font-size:16px;text-align:center;margin-bottom:20px;">전기차 구매 전, 배터리 비용 구조부터 확인하세요.</p>
+
+      <div class="cta-buttons">
+        <a class="cta-btn" href="https://cadam.co.kr">배터리 포함 여부까지 한 번에 — CADAM에서 전기차 렌탈 조건 확인하기</a>
+        <a class="cta-btn secondary" href="https://cadam.co.kr">배터리 부담 줄인 전기차 타는 법, CADAM에서 비교해보세요</a>
+      </div>
+
+      <div class="notice dark" style="margin-top:20px;">※ 본 카드뉴스는 공개 정보를 바탕으로 작성한 정보 콘텐츠이며, 특정 상품 가입을 권유하지 않습니다.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 마케팅 문안 -->
+<div class="section-block">
+  <h2>마케팅 문안</h2>
+
+  <div class="text-card">
+    <div class="tc-label">대표 제목</div>
+    <div class="tc-main">소유 말고 이용. 전기차 금융이 달라지고 있다</div>
+  </div>
+
+  <div class="text-card">
+    <div class="tc-label">보조 제목 후보 3</div>
+    <ul style="padding-left:18px;margin-top:6px;">
+      <li style="margin-bottom:6px;">전기차 구매 전 이것부터 — 배터리 비용 구조 완전 정리</li>
+      <li style="margin-bottom:6px;">배터리 값이 무서워서 전기차 못 샀다면</li>
+      <li>전기차, 이제 사는 시대에서 쓰고 관리받는 시대로</li>
+    </ul>
+  </div>
+
+  <div class="text-card">
+    <div class="tc-label">인스타 캡션</div>
+    <p style="margin-top:6px;line-height:1.9;">
+      전기차 살까, 말까 고민하셨나요?<br>
+      배터리 비용이 무서웠다면, 지금 달라지는 흐름을 먼저 보세요.<br><br>
+      현대캐피탈의 배터리 금융 모델부터 장기렌트 조건까지<br>
+      소유보다 이용이 나은 이유, 7장으로 정리했습니다.
+    </p>
+    <div class="tags">
+      <span class="tag">#전기차</span>
+      <span class="tag">#장기렌트</span>
+      <span class="tag">#배터리리스</span>
+      <span class="tag">#전기차금융</span>
+      <span class="tag">#현대캐피탈</span>
+      <span class="tag">#전기차구매</span>
+      <span class="tag">#카담</span>
+    </div>
+  </div>
+
+  <div class="text-card">
+    <div class="tc-label">블로그 도입부</div>
+    <p style="margin-top:6px;line-height:1.9;">
+      전기차를 사고 싶은데 배터리 교체 비용이 걱정되셨나요?<br><br>
+      전기차 가격에서 배터리가 차지하는 비중은 적지 않습니다. 이 부담을 줄이기 위해 자동차 금융 시장이 조용히 변하고 있습니다.<br><br>
+      현대캐피탈은 2023년 배터리 라이프케어 출시를 시작으로, 2024년 배터리 케어 리스, 2026년 배터리 구독 서비스 실증까지 단계적으로 배터리 금융 모델을 확대하고 있습니다.<br><br>
+      전기차 금융이 소유 중심에서 이용+관리 중심으로 이동하는 흐름을 정리합니다.
+    </p>
+  </div>
+
+  <div class="text-card">
+    <div class="tc-label">뉴스레터 소개문</div>
+    <p style="margin-top:6px;line-height:1.9;">
+      <strong>이번 호: 전기차, 사는 시대에서 쓰는 시대로</strong><br><br>
+      "배터리 값이 무서워서 전기차 못 샀다"는 말, 이제 달라질 수 있습니다.<br>
+      현대캐피탈이 단계적으로 확대 중인 배터리 금융 모델과, 소유에서 이용+관리로 이동하는 전기차 시장의 흐름을 7장으로 정리했습니다.<br><br>
+      전기차 구매를 고민 중이라면 이번 카드뉴스부터 확인하세요.
+    </p>
+  </div>
+</div>
+
+<!-- 발행 전 확인 -->
+<div class="section-block">
+  <h2>🔴 발행 전 대표님 확인 사항</h2>
+  <div class="card" style="overflow:visible;">
+    <div class="card-body" style="padding:20px 24px;">
+      <table class="check-table">
+        <thead>
+          <tr>
+            <th>항목</th>
+            <th>내용</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>배터리 구독 2026 실증</td>
+            <td>현대캐피탈 공식 발표 여부 재확인 (파트너사 공개 여부)</td>
+          </tr>
+          <tr>
+            <td>배터리 비용 % 수치</td>
+            <td>특정 수치 명기 시 출처 URL 첨부 필수</td>
+          </tr>
+          <tr>
+            <td>현대캐피탈 단독 언급</td>
+            <td>광고성으로 보이지 않도록 정보 콘텐츠 톤 유지 여부 판단</td>
+          </tr>
+          <tr>
+            <td>CTA 버튼 최종 텍스트</td>
+            <td>7장에 후보 3개 — 대표님이 1개 선택</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>CADAM 내부 기준본 · 배포 전 대표님 최종 승인 필요</p>
+  <p style="margin-top:4px;">생성: 2026-05-30</p>
+</footer>
+
+</body>
+</html>
