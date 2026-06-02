@@ -98,4 +98,5 @@ references:
   - DATA-05(=데이터레지스트리 A-5): Gemini 추출 산출물 verdict, green만 다운스트림.
   - CONT-01(=콘텐츠레지스트리): green 데이터 → fact-block 가공 + 정확성 게이트.
 - **비활성화 기준(블로킹)**: "스펙 작성"이 아니라 "**대체 경로가 실제로 돌아 산출물 생성**"되어야 검증 완료. → DATA-05 verdict 가동 + content가 green으로 1회 실제 생산·결재 통과 후에야 GWP-1 글쓰기 트리거 경로 비활성화를 1건씩 사전확인하에 검토. **현재 GWP-1 라이브 유지.**
+- **트리거 구현(2026-06-02, launchd)**: DATA-05=`com.rentailor.data-a5-extraction`(매일 06:45), CONT-01=`com.rentailor.content-c1-factblock`(매일 07:30). CONT-01은 48h lookback green verdict self-gate+멱등(중복 생산 금지). 데이터팀 A-1~A-3 트리거 패턴 계승. **등록 완료이나 산출 검증 전 = 정의됨·미가동.** 상세: 콘텐츠레지스트리 Part E.
 - **후속(이번 세션 밖)**: GWP-2(글쓰기+검수+발행), GWP-3(재작성), GWP-4/6·WF-7(옵티마이저), GWP-5/VWP-5(주간리포트) 분해.
