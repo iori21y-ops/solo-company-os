@@ -56,7 +56,8 @@ last-updated: 2026-06-01
 - 수정은 섹션 마커 기반 str_replace로만
 - 매 수정 시 `_shared/modification-checklist.md` 따라 누락 확인
 - 경계 규칙은 양쪽 SKILL.md에 중복 기록 (누락 방지)
-- 결재 요청은 `_shared/approval-card-policy.md` 기준으로 Discord 결재 카드만 사용한다. 실무자→관리팀장 결재도 동일하게 `승인`, `수정`, `반려`, `코멘트` 컨트롤을 포함한다.
+- 결재 요청은 `_shared/approval-card-policy.md` 기준으로 Discord 결재 카드만 사용한다. 실무자→관리팀장 결재도 동일하게 `승인`, `승인+코멘트`, `수정`, `반려`, `코멘트` 컨트롤을 포함한다.
+- 결과물이 있는 결재는 파일 첨부 또는 결과물 링크가 카드에 포함되어야 한다.
 
 <!-- SECTION:START name=files_in_this_area -->
 ## 이 영역의 파일 지도
