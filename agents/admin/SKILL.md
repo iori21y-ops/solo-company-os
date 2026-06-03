@@ -83,3 +83,8 @@ Opus 모델 기반으로 판단·조율·품질관리를 담당한다.
 - 승인 → approved/ 이동 | 반려 → rejected/ 이동
 - 다른 에이전트 산출물 참조: ~/projects/_meta/agents/{에이전트명}/outputs/approved/
 - 작업 전 관련 에이전트의 approved/ 산출물을 확인하고 중복·충돌 방지
+
+
+## 업무 칸반 기록 ([TASK])
+> 공유 규칙: [_shared/call-rules.md](../_shared/call-rules.md)의 [TASK] 규칙 참조
+실질 업무 착수 시 `[TASK:진행중] 제목 | 출처 | 우선순위`, 완료 시 `[TASK:완료] 제목`(제목 동일). 순수 보고엔 쓰지 않는다.
