@@ -70,6 +70,19 @@ references:
 | ~~SYS-04~~ | ~~비용 알림(API·클라우드 임계 초과)~~ | — | — | — | **폐기(2026-06-03 대표승인)** — 현 비용은 ChatGPT/Claude 구독 고정비, 감시할 변동분 없음 | — |
 | SYS-04' | 구독 갱신·요금변동 보고 + 에이전트별 세션 토큰크기·대화기록 주입량 추세 주간 요약 | 인상·플랜변경 시 즉시 / 추세 주 1회 | 이벤트+schedule | 변동 시만 보고 + 주간 추세 요약(에이전트별 세션 토큰크기·대화기록 주입량, 자동 집계분만, 수동 기입 칸 없음) | 가동(2026-06-03 대표승인, 지표 ⓑ 교체 2026-06-03) | admin/ops |
 | SYS-05 | 야간 자동화 모니터(Docker/GPU on-off·백업·로그정리) | 매일 | launchd 자동 | 실패 시만 보고 | 운영중(launchd) | launchd |
+| SYS-06 | 파일명 규칙 검사(`{유형}-{주제}-{YYYYMMDD}.md` 위반 목록) | 일 1회 | schedule | 위반 목록만 보고(Rule Enforcer 보조) | 채택·구현대기 | proposal A5(순수스크립트) |
+| SYS-07 | pending 나이 스캔(48h 초과 리스트→ADMIN-04 공급) | 일 1회 | schedule | 초과 파일 목록 | 채택·구현대기 | proposal A6(순수스크립트) |
+| SYS-08 | 깨진 링크·경로 검사(vault 상대링크·approved 참조) | 일 1회 | schedule | 깨짐 목록만 | 채택·구현대기 | proposal A7(순수스크립트) |
+| SYS-09 | 폴더 교차침범 검사(git diff로 남의 outputs/ 수정 탐지) | 일 1회/커밋시 | schedule | 침범 목록 보고(경계규칙 보조) | 채택·구현대기 | proposal A8(순수스크립트) |
+| SYS-10 | 헬스체크 상시화(SYS-01 일1회→시간별 watch, **임계 초과만**) | 시간별 | schedule | 초과 시만 보고+일1회 요약 | 채택·구현대기 | proposal A1 |
+| SYS-11 | 엔드포인트 핑(broker·OpenClaw·md-viewer9724·ollama11434·n8n) | 시간별 | schedule | 다운 시만 보고 | 채택·구현대기 | proposal A2 |
+| SYS-12 | 자원 추세 적재(디스크·메모리 시계열→임계 도달 예측) | 시간별 적재 | schedule | 추세 한 줄+예측 도달 시 보고 | 채택·구현대기 | proposal A3 |
+| SYS-13 | 만료 카운트다운(Tailscale키·API토큰·구독 D-day, SYS-04' 보강) | 일 1회 | schedule | D-day 임박 시만 보고 | 채택·구현대기 | proposal A4 |
+| SYS-14 | 운영메트릭 적재(uptime·실행성공률·토큰량·pending수 시계열) | 일 1회 | schedule | ADMIN-03 익일보고 raw 공급 | 채택·구현대기 | proposal A10 |
+| SYS-15 | 외부소스 변동핑(환율·보조금·정책 페이지 해시 비교) | 시간별 | schedule | 변동 시 **data로 핸드오프**(DATA-04 트리거) | 채택·구현대기 | proposal A9 |
+| SYS-16 | 변이 후보 **보고만**(크롤러 재시도·로그정리·git스냅샷 후보 목록) | 이벤트 | 장애·임계 | **후보 목록만 보고, 실행은 전부 관리팀장 경유(ADMIN-02, 대표승인)** | 채택·구현대기 | proposal B군 |
+
+> **SYS-06~16 채택(2026-06-03 대표 D안 "최대한 활용")**: A1~A10 전 단계 + B군(보고만) 전체. 설계원칙=스크립트가 계산·LLM은 서술만, 예외만 보고. **A5~A8(SYS-06~09)은 LLM 0% 순수 스크립트→최우선 가동.** **B군(SYS-16)은 변이 금지, 후보 목록만 보고하고 실행은 ADMIN-02(대표승인) 경유.** 상세: admin/outputs/approved/proposal-시스템-추가업무-20260603.md.
 
 ## 관리팀장 (admin) — 라우팅·게이트·현황관리·복구판단
 | ID | 업무 | 주기 | 트리거 | 산출 | 상태 | 출처 |
