@@ -56,8 +56,10 @@ last-updated: 2026-06-01
 - 수정은 섹션 마커 기반 str_replace로만
 - 매 수정 시 `_shared/modification-checklist.md` 따라 누락 확인
 - 경계 규칙은 양쪽 SKILL.md에 중복 기록 (누락 방지)
-- 결재 요청은 `_shared/approval-card-policy.md` 기준으로 Discord 결재 카드만 사용한다. 실무자→관리팀장 결재도 동일하게 `승인`, `승인+코멘트`, `수정`, `반려`, `코멘트` 컨트롤을 포함한다.
-- 결과물이 있는 결재는 파일 첨부 또는 결과물 링크가 카드에 포함되어야 한다.
+- 결재는 `_shared/approval-card-policy.md` 기준. **(2026-06-03 개편)** 인터랙티브 버튼 카드 폐지 → **평문 알림 + 모바일 뷰어 링크**, 전용 `#결재함`(1510170922005565470) 단일 집결.
+- 결재 결정은 결재함에서 카드에 **답글 `승인`/`반려 [사유]`** → 브로커가 파일 이동(pending→approved/rejected) + 원채널 담당 에이전트에 통보 → 이어받아 진행. (관리팀장 봇 순수 코드 처리, LLM 0)
+- 결과물은 알림에서 확인 가능해야 한다: vault 파일은 자동으로 md-viewer 링크(`http://macmini.tail466d13.ts.net:9724`)로 변환, 웹/문서는 `--link`. 파일 없이 경로만 올리면 자동 반려.
+- 결재물 자동점검(린트, 0턴) + 로컬AI(qwen3:14b) 요약이 카드에 부가됨.
 
 <!-- SECTION:START name=files_in_this_area -->
 ## 이 영역의 파일 지도
@@ -68,7 +70,7 @@ last-updated: 2026-06-01
 | `agents/_shared/boundary-rules.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/boundary-rules.md) | 에이전트 간 경계 규칙 (쌍1·쌍2 확정) |
 | `agents/_shared/scout-territories.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/scout-territories.md) | 에이전트별 자율 발굴 영역 매트릭스 (B-J 위탁 흐름) |
 | `agents/_shared/modification-checklist.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/_shared/modification-checklist.md) | 수정 시 누락 방지 체크리스트 |
-| `agents/_shared/approval-card-policy.md` | — | Discord 결재 카드 표준 |
+| `agents/_shared/approval-card-policy.md` | — | 결재 표준 (평문 알림+모바일 링크+답글 승인/반려, 버튼 폐지) |
 | `agents/marketing/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/marketing/SKILL.md) | 마케팅 정의 |
 | `agents/content/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/content/SKILL.md) | 컨텐츠 정의 |
 | `agents/data/SKILL.md` | [링크](https://raw.githubusercontent.com/iori21y-ops/solo-company-os/main/agents/data/SKILL.md) | 데이터 정의 |

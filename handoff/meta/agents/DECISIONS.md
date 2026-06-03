@@ -32,3 +32,23 @@
 ### 미결 (운영 후 결정)
 - (B)안 봇 자동 호출 = 헤드리스 = API 과금, 검증 후 승격
 - 비평 게이트 정식 박제 = 별도 파트
+
+## 2026-06-03 — 결재 시스템 전면 개편 + 로컬LLM 단일화
+
+> 파트4의 **인터랙티브 버튼 카드 설계는 폐기**. 버튼이 게이트웨이 재시작 시 "expired"로 죽고 컨텍스트·턴 비용이 컸음. 결재판=파일이동 게이트 원칙(봇 LLM 0)은 유지·강화.
+
+### 결재 흐름 (신)
+- **버튼 폐지 → 평문 알림 + 결재물 링크.** 결정은 결재함에서 카드에 **답글 `승인`/`반려 [사유]`** (관리팀장 봇 순수 코드 처리, LLM 0).
+- **전용 `#결재함`(1510170922005565470) 단일 집결** — [APPROVAL]·[ESCALATE] 모두. `send-approval-card.mjs`가 `--target` 무관하게 강제 라우팅.
+- 답글 승인 시: 카드 `-# [ref] agent|origin|path` 마커 파싱 → 파일이면 pending→approved/rejected 이동 + **원채널 담당 에이전트에 역할멘션 통보 → 이어받아 진행**(round-trip). 의사결정 결재(파일無)는 `decision-*.md` 자동 박제.
+- **자동점검 린트(0턴)**: 파일없음/빈파일=자동반려, frontmatter누락·중복·고위험(.ts/DB/배포)=카드 태그.
+- **로컬AI 요약(비차단)**: 카드 즉시 게시 후 요약을 답글로 첨부. Opus 미사용.
+
+### 모바일 결재물 뷰어 (신규 서비스)
+- `~/projects/_meta/md-viewer/server.mjs` (의존성0 Node http, 포트 9724), launchd `com.rentailor.md-viewer`. Tailscale 전용: `http://macmini.tail466d13.ts.net:9724/`. GitHub(미푸시 404)·PDF(도구없음) 대비 채택.
+
+### 로컬 LLM 단일화
+- 시스템(sysadmin)·결재요약 모두 **`ollama/qwen3:14b`** 단일 → VRAM 스왑 없음. 30b-a3b·8b 삭제(디스크 ~24GB 확보). 32GB라 30b와 14b 공존 불가가 결정 근거.
+
+### SSOT·관련 파일
+- 표준: `_shared/approval-card-policy.md`. 코드: `~/.openclaw/workspace/{tools/send-approval-card.mjs, claude-broker/src/agent.js}`, `~/.openclaw/openclaw.json`(sysadmin model). 워커 SKILL(data/content/marketing)·admin SKILL에 round-trip 계약 반영.
