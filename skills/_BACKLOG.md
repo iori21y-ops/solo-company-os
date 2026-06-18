@@ -7,9 +7,9 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 |---|------|------|------|------|
 | 1 | broker-api | rule | ✅완료 | 본문+포인터 |
 | 2 | verify-distribute | script ⭐ | ✅완료 | 라이브 실증(부모71 PASS) |
-| 3 | supabase-query | script | ⬜미작성 | 키 출처 불명, 보류 |
+| 3 | supabase-query | script | ✅완료 | 가드 7/7 PASS, 실제 쓰기 0 |
 | 4 | handoff-writer | rule | ✅완료 | — |
-| 5 | new-migration | script | ⬜미작성 | DB 스키마 변경, 신중 |
+| 5 | new-migration | script | ✅완료 | 003 패턴, 적용은 사람 수동 |
 | 6 | code-before-acting | rule | ✅완료 | — |
 | 7 | launchd-restart | script | ✅완료 | 테스트 PASS |
 | 8 | databot-alert-debug | script ⭐ | ✅완료 | SKILL 런북+diagnose.sh, 라이브 실증 |
