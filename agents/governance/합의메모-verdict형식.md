@@ -53,7 +53,7 @@ source_cycle: null           # TODO: cycle 구현 후 링크 (다음 파트)
 
 ## MVP 범위
 1유형(visual/referential=wf_vi) · 1차종(아반떼)으로:
-verdict green 산출 → pending → 관리팀장 승인 → approved → content봇이 읽고 초안 1편 → 저장 → 승인 → wp_publish.py 발행.
+verdict green 산출 → pending → 대표님 승인 → approved → content봇이 읽고 초안 1편 → 저장 → 대표님 승인 → wp_publish.py 발행.
 숫자/텍스트/영상 audit-rules는 후속 파트에서 하나씩.
 
 ## 미결 (후속 파트)

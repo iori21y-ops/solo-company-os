@@ -21,7 +21,7 @@ references:
 > **상태 범례**: `운영중`(현재 가동) / `정의됨·미가동`(SKILL에 있으나 미실행) / `신규제안`(추가 권고) / `이관대상`(현 n8n→에이전트 이관 예정, Phase B).
 
 ## 보고 루프 (기존 그대로)
-1. 에이전트가 주기 업무 수행 → 순수 보고는 **채널 직접 게시**(보고 직접화 규칙), 결재 필요 시 `[APPROVAL:관리팀장]`.
+1. 에이전트가 주기 업무 수행 → 순수 보고는 **채널 직접 게시**(보고 직접화 규칙), 결재 필요 시 담당 에이전트가 직접 `[APPROVAL:대표님]`.
 2. 관리팀장이 이 레지스트리의 `상태`·`최근 실행` 칸을 갱신하며 현황 관리.
 3. 사장님 결정 필요 → 관리팀장이 `[ESCALATE]`.
 
@@ -42,7 +42,7 @@ references:
 | ID | 업무 | 주기 | 트리거 | 합격/산출 | 상태 | 출처 |
 |----|------|------|--------|-----------|------|------|
 | CONT-01 | 팩트블록 생산 | green 데이터 갱신 시 | DATA-05 green verdict | `content/assets/.../fact-blocks/` | 정의됨·미가동 | 콘텐츠레지스트리 CONT-01 |
-| CONT-02 | data approved 전역 스카우팅(주제 후보) | 자기 주기 | pull | 후보 목록 + 관리팀장 승인 | 정의됨·미가동 | content SKILL 주기2 |
+| CONT-02 | data approved 전역 스카우팅(주제 후보) | 자기 주기 | pull | 후보 목록 + 대표님 승인 | 정의됨·미가동 | content SKILL 주기2 |
 | CONT-03 | Writer 프롬프트 옵티마이저(학습루프) | 매일 10시 | schedule | prompt_templates 개선 | 이관대상 | GWP-4 |
 | CONT-04 | 검수 프롬프트 옵티마이저 | 매주 월 | schedule | 검수 프롬프트 개선 | 이관대상 | GWP-6 |
 | CONT-05 | 인사이트 머지·FAQ 자동저장 | 매일 06시 | schedule | 고신뢰 인사이트 승격 | 이관대상 | WF-7 |
@@ -69,7 +69,7 @@ references:
 | SYS-03 | 크롤러·파서 스크립트 실행(돌리기) | 스케줄 | launchd | 실행 로그(결과 검증=data) | 운영중 | launchd/n8n |
 | ~~SYS-04~~ | ~~비용 알림(API·클라우드 임계 초과)~~ | — | — | — | **폐기(2026-06-03 대표승인)** — 현 비용은 ChatGPT/Claude 구독 고정비, 감시할 변동분 없음 | — |
 | SYS-04' | 구독 갱신·요금변동 보고 + 에이전트별 세션 토큰크기·대화기록 주입량 추세 주간 요약 | 인상·플랜변경 시 즉시 / 추세 주 1회 | 이벤트+schedule | 변동 시만 보고 + 주간 추세 요약(에이전트별 세션 토큰크기·대화기록 주입량, 자동 집계분만, 수동 기입 칸 없음) | 가동(2026-06-03 대표승인, 지표 ⓑ 교체 2026-06-03) | admin/ops |
-| SYS-05 | 야간 자동화 모니터(Docker/GPU on-off·백업·로그정리) | 매일 | launchd 자동 | 실패 시만 보고 | 운영중(launchd) | launchd |
+| SYS-05 | 야간 자동화 모니터(Docker/GPU on-off·백업·로그정리) | 매일 | launchd 자동 | 실패 시만 보고. **n8n 기동(23:00)·종료(07:00) 자체는 정상 스케줄 — 이슈 보고 대상 아님(2026-06-08 대표 지시).** | 운영중(launchd) | launchd |
 | SYS-06 | 파일명 규칙 검사(`{유형}-{주제}-{YYYYMMDD}.md` 위반 목록) | 일 1회 | schedule | 위반 목록만 보고(Rule Enforcer 보조) | 채택·구현대기 | proposal A5(순수스크립트) |
 | SYS-07 | pending 나이 스캔(48h 초과 리스트→ADMIN-04 공급) | 일 1회 | schedule | 초과 파일 목록 | 채택·구현대기 | proposal A6(순수스크립트) |
 | SYS-08 | 깨진 링크·경로 검사(vault 상대링크·approved 참조) | 일 1회 | schedule | 깨짐 목록만 | 채택·구현대기 | proposal A7(순수스크립트) |
@@ -80,7 +80,7 @@ references:
 | SYS-13 | 만료 카운트다운(Tailscale키·API토큰·구독 D-day, SYS-04' 보강) | 일 1회 | schedule | D-day 임박 시만 보고 | 채택·구현대기 | proposal A4 |
 | SYS-14 | 운영메트릭 적재(uptime·실행성공률·토큰량·pending수 시계열) | 일 1회 | schedule | ADMIN-03 익일보고 raw 공급 | 채택·구현대기 | proposal A10 |
 | SYS-15 | 외부소스 변동핑(환율·보조금·정책 페이지 해시 비교) | 시간별 | schedule | 변동 시 **data로 핸드오프**(DATA-04 트리거) | 채택·구현대기 | proposal A9 |
-| SYS-16 | 변이 후보 **보고만**(크롤러 재시도·로그정리·git스냅샷 후보 목록) | 이벤트 | 장애·임계 | **후보 목록만 보고, 실행은 전부 관리팀장 경유(ADMIN-02, 대표승인)** | 채택·구현대기 | proposal B군 |
+| SYS-16 | 변이 후보 **보고만**(크롤러 재시도·로그정리·git스냅샷 후보 목록) | 이벤트 | 장애·임계 | **후보 목록만 보고, 실행은 담당 에이전트가 대표님에게 직접 상신 후 승인 기준으로 진행** | 채택·구현대기 | proposal B군 |
 
 > **SYS-06~16 채택(2026-06-03 대표 D안 "최대한 활용")**: A1~A10 전 단계 + B군(보고만) 전체. 설계원칙=스크립트가 계산·LLM은 서술만, 예외만 보고. **A5~A8(SYS-06~09)은 LLM 0% 순수 스크립트→최우선 가동.** **B군(SYS-16)은 변이 금지, 후보 목록만 보고하고 실행은 ADMIN-02(대표승인) 경유.** 상세: admin/outputs/approved/proposal-시스템-추가업무-20260603.md.
 
@@ -91,6 +91,7 @@ references:
 | ADMIN-02 | **시스템 보고 수신→판단→대표 승인→복구 집행** | 이벤트 | SYS 보고 | 복구 결정·집행 | 신규제안 | 역할 분리 |
 | ADMIN-03 | 익일 7시 대표 요약 보고 | 매일 07시 | schedule | 결재·발행·이상 요약 | 운영중 | admin SKILL |
 | ADMIN-04 | pending 48h 미처리 에스컬레이트 | 상시 | 스캔 | [ESCALATE] | 정의됨 | admin SKILL |
+| ADMIN-05 | 미결재 알림(pending 1건↑ 시만 전송, 0건 침묵) | 매일 09시 | launchd (com.rentailor.admin-status) | 결재 대기 목록 Discord 알림 | 운영중(2026-06-09 개편) | 대표님 지시: 자동 다이제스트→pending-only 축소 |
 
 ## 미정의 직무 (현재 주기 업무 없음)
 - sales / cs / finance / legal / strategy: 스텁. 정의 완료 시 본 레지스트리에 행 추가.
@@ -116,3 +117,4 @@ references:
 - **비활성화 기준(블로킹)**: "스펙 작성"이 아니라 "**대체 경로가 실제로 돌아 산출물 생성**"되어야 검증 완료. → DATA-05 verdict 가동 + content가 green으로 1회 실제 생산·결재 통과 후에야 GWP-1 글쓰기 트리거 경로 비활성화를 1건씩 사전확인하에 검토. **현재 GWP-1 라이브 유지.**
 - **트리거 구현(2026-06-02, launchd)**: DATA-05=`com.rentailor.data-a5-extraction`(매일 06:45), CONT-01=`com.rentailor.content-c1-factblock`(매일 07:30). CONT-01은 48h lookback green verdict self-gate+멱등(중복 생산 금지). 데이터팀 A-1~A-3 트리거 패턴 계승. **등록 완료이나 산출 검증 전 = 정의됨·미가동.** 상세: 콘텐츠레지스트리 Part E.
 - **후속(이번 세션 밖)**: GWP-2(글쓰기+검수+발행), GWP-3(재작성), GWP-4/6·WF-7(옵티마이저), GWP-5/VWP-5(주간리포트) 분해.
+- **Stale pending 재추출 방침 (2026-06-09 등록)**: `extracted_insights` 테이블에서 `status='pending' AND created_at < NOW() - INTERVAL '30 days'` 조건 행은 GWP-1 다음 배치 실행 시 재추출 대상으로 자동 포함. 별도 플래그 불필요 — 현행 `status='pending'` 값이 재추출 식별자로 충분. (배경: 2026-04-04 생성 market_trend 1건, 67일 경과·미검증 — A-5 범위 밖이므로 즉시 조치 없이 다음 배치에 흡수)
