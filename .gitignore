@@ -44,3 +44,17 @@ agents/.obsidian/plugins/*/data.json
 # macOS
 .DS_Store
 *.bak.*
+
+# ── 정리 1단계 추가 (2026-06-22): 런타임 로그·에이전트 산출물·백업 잔재 ──
+# 로그 (런타임 산출물 — 버전관리 제외)
+*.log
+logs/*.log
+
+# 에이전트 산출물 (approved/pending/rejected 등 대량 생성물)
+agents/*/outputs/
+
+# 콘텐츠 팩트블록 (대량 자동 생성)
+agents/content/assets/cadam/fact-blocks/
+
+# 백업 잔재 (*.bak·*.bak2는 위에서 이미 차단됨, *.bak-fix만 보강)
+*.bak-fix
