@@ -1,5 +1,0 @@
-TIMESTAMP=2026-06-02 07:00:01
-
-🟡 Flask가격크롤러(9722) 포트 무응답
-　→ 수동 확인: cd ~/projects/cadam && python3 price_crawler.py
-
