@@ -6,7 +6,7 @@
 import { createServer } from "node:http";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { resolve, join, basename, sep } from "node:path";
+import { resolve, join, basename, sep, extname } from "node:path";
 
 const ROOT = "/Users/kim/projects/_meta/agents";
 const PORT = Number(process.env.MD_VIEWER_PORT || 9724);
@@ -24,17 +24,35 @@ function isAllowed(req) {
   );
 }
 
-// p(상대경로)를 ROOT 안의 .md 파일로만 안전하게 해석. 경로 탈출·비-md 차단.
-function safeMdPath(p) {
+function safeRootPath(p, allowedExts) {
   if (!p) return null;
   const abs = resolve(ROOT, p);
   if (abs !== ROOT && !abs.startsWith(ROOT + sep)) return null;
-  if (!abs.toLowerCase().endsWith(".md")) return null;
+  if (!allowedExts.has(extname(abs).toLowerCase())) return null;
   // macOS 파일명은 NFD로 저장됨. 입력이 NFC여도 매칭되도록 정규화 폴백.
   for (const cand of [abs, abs.normalize("NFD"), abs.normalize("NFC")]) {
     if (existsSync(cand)) return cand;
   }
   return null;
+}
+
+// p(상대경로)를 ROOT 안의 .md 파일로만 안전하게 해석. 경로 탈출·비-md 차단.
+function safeMdPath(p) {
+  return safeRootPath(p, new Set([".md"]));
+}
+
+function safeAssetPath(p) {
+  return safeRootPath(p, new Set([".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"]));
+}
+
+function assetContentType(abs) {
+  const ext = extname(abs).toLowerCase();
+  if (ext === ".png") return "image/png";
+  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
+  if (ext === ".webp") return "image/webp";
+  if (ext === ".gif") return "image/gif";
+  if (ext === ".svg") return "image/svg+xml";
+  return "application/octet-stream";
 }
 
 function esc(s) {
@@ -50,6 +68,7 @@ function pageShell(title, inner) {
   body{margin:0;background:#0d1117;color:#c9d1d9;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif}
   .wrap{max-width:900px;margin:0 auto;padding:16px}
   .markdown-body{background:#0d1117;color:#c9d1d9;padding:8px}
+  .markdown-body img{max-width:100%;height:auto;border:1px solid #30363d;border-radius:8px;background:#161b22}
   a{color:#58a6ff}
   .top{padding:10px 16px;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0}
   .top a{margin-right:14px;text-decoration:none}
@@ -129,6 +148,14 @@ const server = createServer(async (req, res) => {
       if (!abs) { res.writeHead(404).end("not found"); return; }
       const body = await readFile(abs, "utf-8");
       res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+      res.end(body);
+      return;
+    }
+    if (url.pathname === "/asset") {
+      const abs = safeAssetPath(url.searchParams.get("p"));
+      if (!abs) { res.writeHead(404).end("not found"); return; }
+      const body = await readFile(abs);
+      res.writeHead(200, { "content-type": assetContentType(abs) });
       res.end(body);
       return;
     }

@@ -59,7 +59,7 @@ done < <(find "$TARGET" -type f -name "*.bak*" 2>/dev/null)
 
 echo ""
 if [ "$MODE" = "--run" ]; then
-  echo "=== 완료: $DELETED개 삭제, $SKIPPED개 보존 ==="
+  echo "=== 완료: ${DELETED}개 삭제, ${SKIPPED}개 보존 ==="
 else
-  echo "=== [DRY-RUN] $DELETED개 삭제 예정, $SKIPPED개 보존. 실제 삭제하려면 --run ==="
+  echo "=== [DRY-RUN] ${DELETED}개 삭제 예정, ${SKIPPED}개 보존. 실제 삭제하려면 --run ==="
 fi
