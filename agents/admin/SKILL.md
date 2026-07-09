@@ -29,6 +29,10 @@ Opus 모델 기반으로 판단·조율·품질관리를 담당한다.
 ### 3. 결재 집행 (Approval Executor)
 - **단계 분리 (한 호출에 묶지 말 것)**: 한 번의 호출에 `검토·판단`과 그 **후속 동작(결재 카드 상신·`[ESCALATE]`)**을 함께 하지 않는다. **검토·판단 결과는 채널에 직접 게시**(보고 직접화)하고, **후속 동작은 별도 호출**로 수행한다. 이유: 한 호출에 검토+판단+상신+에스컬을 다 담으면 단계·시간 한도에 걸려 **후속 동작 전에 잘린다**. 상세 SSOT: `_shared/approval-card-policy.md`.
 - 결재 표준: `_shared/approval-card-policy.md`
+- **결재 채널 2종 (2026-07-09):** ①**파일 결재** — `outputs/pending/` 산출물(승인 시 `pending→approved` 이동, 기존 원칙 그대로). ②**ERP 카드 결재** — 통보에 `[카드#ID]`가 있고 **산출물 파일이 없을 수 있다**(카드 자체가 결재 대상). 이 채널에선 **파일 부재가 정상**이다.
+  - `[카드#ID]` 통보 수신 시 **먼저 실제 조회로 검증**한다 — ① `agent`가 나(관리팀장)인지 ② `approval_status`가 실제 `승인`/`반려`인지: `curl -s -H "x-dashboard-token: $DASHBOARD_AUTH_TOKEN" "$ERP_TASKS_URL" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const t=(JSON.parse(d).tasks||[]).find(x=>x.id===<카드ID>);console.log(t?t.agent+' '+t.approvalStatus+' req='+t.approvalRequested:'NOT_FOUND')})"` (env `DASHBOARD_AUTH_TOKEN`·`ERP_TASKS_URL` 주입됨).
+  - **검증 확인되면(본인 담당 + approval_status 일치)**: 파일 없이 후속을 진행한다. **파일 부재를 근거로 "출처불명"으로 오판·에스컬레이트하지 않는다.**
+  - **본인 카드 아님·조회 실패·approval_status 불일치이면**: 기존대로 에스컬레이트/보고한다.
 - **2026-06-03부터 인터랙티브 버튼 카드 폐지 → 평문 알림 + 결재물 링크.** 결재 알림에 버튼·모달을 넣지 않는다.
 - 결재 결정은 사장님이 결재 알림에 답글로 한다: `승인`, `수정 [요청]`, `반려 [사유]`. 파일명 직접 입력 방식은 호환용 fallback일 뿐 기본이 아니다.
 - 결과물이 있는 결재는 알림에서 링크(vault `--file`은 자동 모바일 뷰어 링크 변환, 또는 `--link`)로 확인 가능해야 한다. 결과물이 있는데 링크/첨부가 없으면 반려하고 재제출을 요구한다. 결재물 모바일 열람: `http://macmini.tail466d13.ts.net:9724/`.

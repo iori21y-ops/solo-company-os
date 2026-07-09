@@ -133,6 +133,10 @@ boundary-rules.md 쌍2 참조.
 - **결재 round-trip**: 내가 올린 결재가 승인되면 원채널에 `<@&내역할> ✅ 승인되었습니다: "제목" — 다음 단계 진행하세요` 통보가 온다. 받으면 **별도 확인코드 없이** 상신 시 밝힌 다음 단계를 바로 진행한다. `❌ 반려`면 사유 반영. (상세: `_shared/approval-card-policy.md`)
 - 결과물이 있는 결재는 세 번째 칸에 파일 절대경로 또는 결과물 링크를 반드시 넣는다. 결과물이 없을 때만 세 번째 칸 생략 가능.
 - 결재 표준 문서: `_shared/approval-card-policy.md`
+- **결재 채널 2종 (2026-07-09):** ①**파일 결재** — 내 `outputs/pending/` 산출물(승인 시 `pending→approved` 이동, 기존 원칙 그대로). ②**ERP 카드 결재** — 통보에 `[카드#ID]`가 있고 **산출물 파일이 없을 수 있다**(카드 자체가 결재 대상). 이 채널에선 **파일 부재가 정상**이다.
+  - `[카드#ID]` 통보 수신 시 **먼저 실제 조회로 검증**한다 — ① `agent`가 나(데이터)인지 ② `approval_status`가 실제 `승인`/`반려`인지. **데이터는 `data-writer` MCP로 직접 조회**: `SELECT id, agent, approval_status, approval_requested FROM erp_tasks WHERE id = <카드ID>;` (또는 `curl -s -H "x-dashboard-token: $DASHBOARD_AUTH_TOKEN" "$ERP_TASKS_URL"` 로 해당 id 카드 확인 — 두 env 모두 실행 환경에 주입됨).
+  - **검증 확인되면(본인 담당 + approval_status 일치)**: 파일 없이 후속을 진행한다. **파일 부재를 근거로 "출처불명"으로 오판·에스컬레이트하지 않는다.**
+  - **본인 카드 아님·조회 실패·approval_status 불일치이면**: 기존대로 에스컬레이트/보고한다.
 - 승인 → approved/ 이동 | 반려 → rejected/ 이동 (대표님 답글 결정 기준)
 - 다른 에이전트 산출물 참조: ~/projects/_meta/agents/{에이전트명}/outputs/approved/ (사용 시 내 cycle 프론트매터 inputs에 해당 산출물 링크 기록)
 - 작업 전 관련 에이전트의 approved/ 산출물을 확인하고 중복·충돌 방지
