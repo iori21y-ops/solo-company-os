@@ -1,0 +1,7506 @@
+{
+  "_meta": {
+    "generated_for": "rentailor (cadam-web + cadam-erp) 사이트맵 — 조사 전용",
+    "generated_at": "2026-07-10",
+    "repos": {
+      "cadam-web": "고객 웹 (Next.js 16, Vercel)",
+      "cadam-erp": "내부 ERP 대시보드 (Next.js, :3001)"
+    },
+    "counts": {
+      "nodes_total": 115,
+      "by_group": {
+        "customer": 52,
+        "erp": 56,
+        "infra": 7
+      },
+      "edges_cross": 31,
+      "findings": 8,
+      "api_web": 59,
+      "api_erp": 92
+    },
+    "conventions": {
+      "id": "web:<운영URL> / erp:<경로> / infra:<시스템>. (redesign)/*-preview 는 FLIP 운영 URL로 정규화됨.",
+      "group": "customer=고객웹 공개면, erp=운영/관리면(web /admin 포함), infra=외부·백엔드 시스템",
+      "note_기호": "⚠ = 발견된 문제/불일치. 상세 교차분석은 findings 배열 참조."
+    }
+  },
+  "findings": [
+    {
+      "id": "F1-recalls-이원화",
+      "severity": "high",
+      "summary": "'리콜' 데이터가 두 출처로 이원화",
+      "detail": "ERP /api/recalls 는 supabase `recalls` 테이블을, 고객웹 /api/recalls 는 `recall_slugs` 테이블을 읽음. 같은 개념·다른 테이블 → 값 불일치 위험.",
+      "nodes": [
+        "erp:/recalls",
+        "erp:/api/recalls",
+        "web:/api/recalls",
+        "web:/info/ev-chargers"
+      ]
+    },
+    {
+      "id": "F2-관리자-이중화",
+      "severity": "high",
+      "summary": "관리자/운영 화면이 두 앱에 중복 존재",
+      "detail": "cadam-web /admin/* (12페이지, Supabase Auth) 와 별도 앱 cadam-erp(44페이지)가 같은 Supabase 위에서 consultations·contracts·members·promotions 등을 각각 편집. 어느 쪽이 정본인지 불명확.",
+      "nodes": [
+        "web:/admin",
+        "erp:/"
+      ]
+    },
+    {
+      "id": "F3-리디자인-셰도우",
+      "severity": "med",
+      "summary": "운영 URL 19개가 리디자인(-preview)을 서빙 → 구 라우트 11개 미사용 잔존",
+      "detail": "next.config FLIP(beforeFiles 리라이트)로 /·/diagnosis·/cars/[slug]·/info·/promotions 등이 -preview 콘텐츠를 서빙. 대응하는 구 src/app/*/page.tsx 11개는 미서빙 코드로 남음(정리대상). 프리뷰 3개(home-preview·simulator-compare-preview·support-preview)는 고아.",
+      "nodes": [
+        "web:/diagnosis",
+        "web:/cars/[slug]",
+        "web:/info",
+        "web:/promotions"
+      ]
+    },
+    {
+      "id": "F4-단가생성-이원화",
+      "severity": "med",
+      "summary": "견적 단가 생성 로직 중복",
+      "detail": "web /api/generate-pricing 와 cadam-pipeline generate_pricing.py 가 pricing/vehicle_trims/vehicles 기반 단가 생성 로직을 각각 보유.",
+      "nodes": [
+        "web:/api/generate-pricing",
+        "infra:cadam-pipeline"
+      ]
+    },
+    {
+      "id": "F5-공유테이블",
+      "severity": "med",
+      "summary": "양쪽 앱이 동시 read/write 하는 공유 테이블",
+      "detail": "consultations, customer_contracts, members/member_consents, reviews, promotions, points(point_transactions/point_rules/point_redeem_policy) 를 web·erp 가 공유. 스키마 변경 시 양쪽 동기 필요.",
+      "nodes": [
+        "web:/quote",
+        "erp:/consultations",
+        "erp:/members",
+        "erp:/points"
+      ]
+    },
+    {
+      "id": "F6-리드폼-단일깔때기",
+      "severity": "low",
+      "summary": "모든 고객 리드폼이 /api/consultation→consultations 로 수렴",
+      "detail": "/direct·/calc·/market/sell-price·simulator(compare/cost/tax) 등 리드 유입 폼이 단일 /api/consultation 으로 저장. consultations 에 유입경로 구분 필드 확인 필요.",
+      "nodes": [
+        "web:/direct",
+        "web:/calc",
+        "web:/market/sell-price",
+        "web:/api/consultation"
+      ]
+    },
+    {
+      "id": "F7-중복-고객라우트",
+      "severity": "low",
+      "summary": "중복/미배선 고객 라우트",
+      "detail": "'내 차 시세' 2개(/sell vs /market/sell-price). '결제방식 비교'는 /simulator/compare→/diagnosis/compare 301로 통합됨. /booking·/consult-intake·/contract-care·/garage 는 UI만 있고 백엔드 미연결(프로토타입).",
+      "nodes": [
+        "web:/sell",
+        "web:/market/sell-price",
+        "web:/booking",
+        "web:/garage"
+      ]
+    },
+    {
+      "id": "F8-erp-미연결-표면",
+      "severity": "low",
+      "summary": "ERP 일부 페이지·라우트가 스텁/미연결",
+      "detail": "ERP /sheets(Google Sheets 미배선, /api/sheets 는 pending 반환), /settings/secrets(로컬 JSON, DB 없음), /clips(정적 셸). nav-config 의 /audit 링크는 실제 페이지 존재. /api/reports 는 호출 페이지 미검출.",
+      "nodes": [
+        "erp:/sheets",
+        "erp:/settings/secrets",
+        "erp:/clips"
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "web:/blog/[slug]",
+      "group": "customer",
+      "name": "블로그 글 상세",
+      "role": "워드프레스에서 가져온 블로그/카드뉴스 글 하나를 보여주는 페이지",
+      "links_to": [
+        "web:/diagnosis",
+        "web:/blog/[slug]"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "fetchWpPostBySlug / fetchWpPostsByCategory(3) (WordPress REST, NEXT_PUBLIC_WP_API_URL)"
+        }
+      ],
+      "features": [
+        {
+          "name": "WordPress 연동",
+          "status": "live"
+        },
+        {
+          "name": "카드뉴스 이전/다음 스와이프(CardNavSwipe, category=3만)",
+          "status": "live"
+        }
+      ],
+      "notes": "revalidate 60초 ISR. 카드뉴스(카테고리 id 3) 글만 이전/다음 네비 표시. 하단 CTA는 /diagnosis 고정."
+    },
+    {
+      "id": "web:/booking",
+      "group": "customer",
+      "name": "상담 예약",
+      "role": "상담 방식·날짜·시간을 골라 예약하는 화면",
+      "links_to": [
+        "web:/mypage",
+        "web:/"
+      ],
+      "data_sources": [
+        {
+          "type": "hardcoded",
+          "ref": "RT_BK_TIMES 시간 배열 + rtBookingDays()로 생성한 14일치 날짜"
+        }
+      ],
+      "features": [
+        {
+          "name": "상담 예약 제출",
+          "status": "todo"
+        }
+      ],
+      "notes": "제출이 목업임 — 실제 POST 없이 완료 화면만 표시(코드 주석에 '실 POST 연동 갭' 명시). 예약 슬롯 마감(rtBkTaken)은 해시 기반 가짜 데이터. 매니저 '박지훈' 하드코딩."
+    },
+    {
+      "id": "web:/calc",
+      "group": "customer",
+      "name": "비용·세금 계산기",
+      "role": "자차 구매 vs 장기렌트 총비용 비교 + 취득세·자동차세 계산기",
+      "links_to": [
+        "web:/info",
+        "web:/privacy"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "RT_CATALOG (@/lib/rentailor/catalog, 81종)"
+        },
+        {
+          "type": "hardcoded",
+          "ref": "계산 공식·상수 인라인(ccResidual/acqTax/autoTaxYear/ownCost 등)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (RtConsultSheet 상담 제출)"
+        }
+      ],
+      "features": [
+        {
+          "name": "비용 시뮬레이션·세금 계산기(2탭)",
+          "status": "live"
+        },
+        {
+          "name": "이해도별 용어설명(RtTermDefs)",
+          "status": "live"
+        },
+        {
+          "name": "상담 신청 시트(→/api/consultation)",
+          "status": "live"
+        }
+      ],
+      "notes": "신차가는 catalog의 월렌트료(from)×45로 역추정하는 근사값(코드 주석·화면 '추정' 고지). 상단 뒤로가기 backHref=/info."
+    },
+    {
+      "id": "web:/clips",
+      "group": "customer",
+      "name": "클립(쇼츠) 피드",
+      "role": "장기렌트 상식을 세로 쇼츠 형태로 넘겨보는 몰입형 피드",
+      "links_to": [
+        "web:/info",
+        "web:/info/[id]",
+        "web:/privacy"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "CLIPS_SEED / CLIP_CATS (./clips-data, 7종)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (RtConsultSheet 상담 제출)"
+        }
+      ],
+      "features": [
+        {
+          "name": "쇼츠 세로 피드·저장(localStorage)",
+          "status": "partial"
+        },
+        {
+          "name": "상담 신청 시트(→/api/consultation)",
+          "status": "live"
+        }
+      ],
+      "notes": "실 영상 소스 없음 — hue 그라데이션 플레이스홀더(코드 주석 '갭' 명시). '전문보기'가 /info/{clip-id}로 가지만 시드 id가 info_articles에 없어 현재 404(주석 확인). 라이브 /api/info-articles clip은 tips/lead 미제공이라 프로토타입 시드 유지."
+    },
+    {
+      "id": "web:/compare/terms",
+      "group": "customer",
+      "name": "약관 핵심조항 비교",
+      "role": "주요 장기렌터카 약관의 위약금·초과주행료·승계수수료를 원문 기준으로 비교하는 표",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "terms_documents"
+        },
+        {
+          "type": "supabase",
+          "ref": "terms_key_conditions"
+        },
+        {
+          "type": "supabase",
+          "ref": "terms_companies"
+        },
+        {
+          "type": "static",
+          "ref": "TERMS_FIELD_CONFIG (./types)"
+        }
+      ],
+      "features": [
+        {
+          "name": "약관 비교표(TermsCompareClient)",
+          "status": "live"
+        }
+      ],
+      "notes": "service_role 사용(RLS 우회) — 공개 불변식으로 terms_type='장기렌터카' AND is_verified=true 두 필터 필수. FK 없어 분리조회 후 JS 조인. safeQuote()로 잘린 인용문은 숨기고 조항만 노출. revalidate 3600. 내부 링크 없음(확인)."
+    },
+    {
+      "id": "web:/consult-intake",
+      "group": "customer",
+      "name": "상담 준비(인테이크)",
+      "role": "상담 전 견적 희망정보 9단계 입력과 심사서류 OCR·자동 마스킹 준비 화면",
+      "links_to": [
+        "web:/",
+        "web:/diagnosis",
+        "web:/popular-estimates",
+        "web:/info",
+        "web:/mypage"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "RT_CATALOG (best 6종 슬라이스, @/lib/rentailor/catalog)"
+        },
+        {
+          "type": "hardcoded",
+          "ref": "CI_PRODUCTS/CI_MONTHS/CI_KM/CI_DOC_TYPES 등 인라인 시드"
+        }
+      ],
+      "features": [
+        {
+          "name": "견적 희망정보 9단계 스텝",
+          "status": "todo"
+        },
+        {
+          "name": "심사서류 OCR·개인정보 자동 마스킹",
+          "status": "todo"
+        }
+      ],
+      "notes": "제출·OCR 모두 목업 — localStorage['rt_consult_intake'] 저장만, 실 API·실 OCR 없음(주석 '실 API 연동 갭', OCR은 setTimeout 가짜 인식). 마스킹 로직은 실제 동작. links_to는 하단 RtTabBar 탭 대상('차량' 탭=/popular-estimates). RtTopNav는 router.back()."
+    },
+    {
+      "id": "web:/contract-care",
+      "group": "customer",
+      "name": "계약 케어",
+      "role": "계약 기간 중·만기 고객용 중도해지료·초과운행료·인수가 계산과 캐피탈 연락 안내",
+      "links_to": [
+        "web:/points",
+        "web:/mypage",
+        "web:/",
+        "web:/diagnosis",
+        "web:/popular-estimates",
+        "web:/info"
+      ],
+      "data_sources": [
+        {
+          "type": "hardcoded",
+          "ref": "MY_CONTRACTS 계약 시드 3건 + CC_CAPITAL 캐피탈 시드"
+        },
+        {
+          "type": "api",
+          "ref": "/api/capital-directory (실데이터 있으면 CC_OVERLAY로 교체, 빈 테이블이면 폴백)"
+        }
+      ],
+      "features": [
+        {
+          "name": "중도해지료·초과운행료·만기 인수가 가상계산",
+          "status": "partial"
+        },
+        {
+          "name": "캐피탈 연락·서류 안내(capital_directory 오버레이)",
+          "status": "partial"
+        },
+        {
+          "name": "계약서 OCR 자동입력",
+          "status": "todo"
+        },
+        {
+          "name": "포인트 지원 연동(→/points)",
+          "status": "partial"
+        }
+      ],
+      "notes": "회원 게이트 없음 — 계약 데이터가 하드코딩 시드(회원/contract_vehicles 미연동, 코드 '★갭'). 모든 계산은 '가상 예상값'. capital_directory는 빈 테이블이면 CC_CAPITAL 하드코딩 폴백. D-day 기준일 2026.5.23 데모 고정(실연동 시 Date.now). OCR은 setTimeout 목업. 편집값은 localStorage['rt_cc_override']. links_to는 RtTabBar 탭 + router.push('/points')."
+    },
+    {
+      "id": "web:/diagnosis/calculator",
+      "group": "customer",
+      "name": "월 납입금 계산기",
+      "role": "인기 차종 선택 후 할부·리스·렌트 월납입금 즉석 계산",
+      "links_to": [
+        "web:/diagnosis"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "VEHICLES (@/data/diagnosis-vehicles)"
+        },
+        {
+          "type": "static",
+          "ref": "DEFAULT_PRODUCTS / PRODUCT_KEYS (@/data/diagnosis-products)"
+        },
+        {
+          "type": "static",
+          "ref": "RATES / RENT_INSURANCE_RATE (@/lib/calc-monthly)"
+        }
+      ],
+      "features": [
+        {
+          "name": "월 납입금 계산 (calcMonthly)",
+          "status": "live"
+        },
+        {
+          "name": "무료 견적 상담 시트",
+          "status": "live"
+        }
+      ],
+      "notes": "어느 진단 페이지에서도 링크되지 않는 고아(orphan) 페이지로 보임. FEATURED 차종 9종을 VEHICLES에서 이름 필터링."
+    },
+    {
+      "id": "web:/diagnosis/models/[slug]",
+      "group": "customer",
+      "name": "차종별 총비용 랜딩",
+      "role": "차종별 5년 총비용·장기렌트 예상료 SEO 랜딩(서버 렌더)",
+      "links_to": [
+        "web:/diagnosis/report",
+        "web:/diagnosis/models/[slug]"
+      ],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "vehicle_msrp"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLE_LIST / getVehicleBySlug (@/constants/vehicles)"
+        },
+        {
+          "type": "static",
+          "ref": "calcMonthly (@/lib/calc-monthly)"
+        }
+      ],
+      "features": [
+        {
+          "name": "트림별 신차가·예상 렌탈료 표",
+          "status": "live"
+        },
+        {
+          "name": "5년 장기렌트 총비용 요약",
+          "status": "live"
+        },
+        {
+          "name": "같은 브랜드 관련 차량 링크",
+          "status": "live"
+        }
+      ],
+      "notes": "유일한 서버 컴포넌트(generateStaticParams + revalidate 3600). createServiceRoleSupabaseClient로 vehicle_msrp 조회. '무료 진단 시작하기'·헤더 '직접 진단'은 /diagnosis/report 연결."
+    },
+    {
+      "id": "web:/diagnosis/vehicle/option",
+      "group": "customer",
+      "name": "옵션·트림 추천",
+      "role": "선택 차종(?car=)에 대한 옵션 설문 기반 트림 추천",
+      "links_to": [
+        "web:/diagnosis/vehicle",
+        "web:/diagnosis"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "OPTION_QUESTIONS (@/data/diagnosis-option)"
+        },
+        {
+          "type": "static",
+          "ref": "TRIMS / VEHICLES (@/data/diagnosis-vehicles)"
+        },
+        {
+          "type": "static",
+          "ref": "DEFAULT_PRODUCTS / PRODUCT_KEYS (@/data/diagnosis-products)"
+        },
+        {
+          "type": "static",
+          "ref": "scoreByTags (@/lib/flow-engine)"
+        }
+      ],
+      "features": [
+        {
+          "name": "옵션 설문 → 트림 추천 (scoreByTags)",
+          "status": "live"
+        },
+        {
+          "name": "전체 트림 비교표",
+          "status": "live"
+        },
+        {
+          "name": "결과 링크 복사 공유 (navigator.clipboard)",
+          "status": "live"
+        }
+      ],
+      "notes": "?car= 쿼리로 차종을 받으나 이 경로로 보내는 링크가 확인되지 않음 → 진입 경로 불명(미검증). 첫 문항 이전 버튼에서 /diagnosis/vehicle 복귀, 완료 후 /diagnosis 이동."
+    },
+    {
+      "id": "web:/direct",
+      "group": "customer",
+      "name": "다이렉트 상담 폼",
+      "role": "브랜드·차종·조건·연락처를 3단계로 입력해 장기렌트 상담을 신청하는 간편 폼",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "VEHICLE_LIST (@/constants/vehicles)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (POST)"
+        }
+      ],
+      "features": [
+        {
+          "name": "3단계 상담 신청 폼(차종→조건→연락처)",
+          "status": "live"
+        },
+        {
+          "name": "상담 신청 제출(/api/consultation)",
+          "status": "live"
+        }
+      ],
+      "notes": "내부 페이지 링크 없음(전부 스텝 전환 버튼). source 필드에 'direct' 태그로 전송."
+    },
+    {
+      "id": "web:/direct-care",
+      "group": "customer",
+      "name": "신청 방법 안내(다이렉트 vs 케어)",
+      "role": "수수료 0원 셀프 다이렉트와 매니저 상담 케어 중 신청 방법을 고르는 안내 페이지",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "store",
+          "ref": "localStorage rt_service_fee (수수료율, 기본 1.0)"
+        }
+      ],
+      "features": [
+        {
+          "name": "상담 케어 신청 시트(RtConsultSheet)",
+          "status": "live"
+        },
+        {
+          "name": "다이렉트 페이지 이동(제휴사 capital_directory.direct_url 연동)",
+          "status": "todo"
+        }
+      ],
+      "notes": "'다이렉트 페이지로' 버튼은 href='#' + alert() 목업으로 실연동 미완. RtChrome(RtTopNav/RtTabBar/RtFooter) 네비게이션은 이 파일에서 미추적."
+    },
+    {
+      "id": "web:/garage",
+      "group": "customer",
+      "name": "내 차고(계약 차량 케어 허브)",
+      "role": "계약·보유 차량의 리콜·정기검사·자동차세·보험·소모품 교체 시기를 안내하는 케어 허브",
+      "links_to": [
+        "web:/mypage"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/garage (회원 contract_vehicles)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/recalls?slug= (recalls 테이블, data.go.kr)"
+        },
+        {
+          "type": "hardcoded",
+          "ref": "MY_CONTRACTS / GARAGE_VEHICLE / GARAGE_PLATE_LOOKUP / GARAGE_PARTS 시드"
+        },
+        {
+          "type": "static",
+          "ref": "rtFindCar (@/lib/rentailor/catalog)"
+        },
+        {
+          "type": "store",
+          "ref": "localStorage rt_garage_reg (번호조회 등록 차량)"
+        }
+      ],
+      "features": [
+        {
+          "name": "리콜 실연동(/api/recalls, VIN 기준)",
+          "status": "live"
+        },
+        {
+          "name": "회원 계약차량 로드(/api/garage → contract_vehicles)",
+          "status": "partial"
+        },
+        {
+          "name": "차량번호 조회(국토부 자동차종합정보)",
+          "status": "todo"
+        },
+        {
+          "name": "정기검사·자동차세·보험·정비소 예약 안내",
+          "status": "todo"
+        }
+      ],
+      "notes": "회원 게이트 없음 — 비회원/실패 시 MY_CONTRACTS 시드로 UI 시연(★갭). 번호조회는 GARAGE_PLATE_LOOKUP 목업(실연동: 국토부 OpenAPI). 검사/세금/보험/정비소 액션은 전부 토스트 '연동 예정'. /mypage 이동은 window.location.href."
+    },
+    {
+      "id": "web:/guide",
+      "group": "customer",
+      "name": "장기렌트 가이드 허브",
+      "role": "카테고리별로 묶은 장기렌트 가이드 글 목록",
+      "links_to": [
+        "web:/guide/[slug]"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "getAllGuides() — content/guide/*.md (gray-matter, 로컬 마크다운)"
+        }
+      ],
+      "features": [
+        {
+          "name": "가이드 목록 카테고리 그룹화",
+          "status": "live"
+        }
+      ],
+      "notes": "Supabase/WordPress 아님 — 로컬 마크다운 파일(content/guide) 기반. 카테고리 라벨은 GUIDE_CATEGORY_LABELS 매핑."
+    },
+    {
+      "id": "web:/guide/[slug]",
+      "group": "customer",
+      "name": "가이드 상세",
+      "role": "개별 장기렌트 가이드 글을 마크다운으로 렌더링하는 상세 페이지",
+      "links_to": [
+        "web:/guide",
+        "web:/diagnosis"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "getGuideBySlug() — content/guide/*.md (로컬 마크다운)"
+        }
+      ],
+      "features": [
+        {
+          "name": "마크다운 본문 렌더(react-markdown + remark-gfm)",
+          "status": "live"
+        },
+        {
+          "name": "정적 생성(generateStaticParams)",
+          "status": "live"
+        },
+        {
+          "name": "진단 유도 CTA(/diagnosis)",
+          "status": "live"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web:/guide-new",
+      "group": "customer",
+      "name": "렌트 가이드북(커리큘럼)",
+      "role": "입문→실전→심화 단계별 챕터로 진도를 관리하는 학습형 가이드북(신 디자인)",
+      "links_to": [
+        "web:/info",
+        "web:/info/[id]"
+      ],
+      "data_sources": [
+        {
+          "type": "hardcoded",
+          "ref": "GUIDE_LESSONS / GUIDE_LEVELS 시드"
+        },
+        {
+          "type": "store",
+          "ref": "localStorage rt-guide-progress (완료 진도)"
+        }
+      ],
+      "features": [
+        {
+          "name": "레벨별 진도 추적·완료 체크",
+          "status": "live"
+        },
+        {
+          "name": "상담 시트(RtConsultSheet)",
+          "status": "live"
+        },
+        {
+          "name": "레슨→운영 info_articles 라이브 연결",
+          "status": "todo"
+        }
+      ],
+      "notes": "★갭: 프로토타입 레슨 id(first-7 등)가 운영 info_articles id 체계와 달라 /info/{id} 링크가 실제 글로 연결되지 않을 수 있음(라이브 API 미연결). 기존 /guide(구 디자인)와 별도 라우트로 공존, 컷오버 미정."
+    },
+    {
+      "id": "web:/info/clips",
+      "group": "customer",
+      "name": "클립 (영상/쇼츠)",
+      "role": "장기렌터카 관련 유용한 영상·블로그 글을 모아 보여주는 정보 페이지",
+      "links_to": [
+        "web:/info/[id]"
+      ],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "info_articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicles"
+        },
+        {
+          "type": "supabase",
+          "ref": "pricing"
+        },
+        {
+          "type": "api",
+          "ref": "fetchWpPosts (@/lib/wp-client, WordPress REST)"
+        }
+      ],
+      "features": [
+        {
+          "name": "WordPress 글 연동",
+          "status": "live"
+        },
+        {
+          "name": "차종별 최저 월렌트료 표시",
+          "status": "live"
+        }
+      ],
+      "notes": "서버컴포넌트(revalidate 60). InfoClips 클라이언트 컴포넌트에 initialArticles·prices 전달. 본문 있는 글은 내부 /info/{id}로, 없으면 외부 link_url로 링크(동적). wp 글과 supabase 글을 합쳐 발행일 내림차순 정렬."
+    },
+    {
+      "id": "web:/info/ev-chargers",
+      "group": "customer",
+      "name": "전기차 충전소 (리다이렉트)",
+      "role": "전기차 충전소 경로를 지도 페이지로 넘기는 리다이렉트 전용 페이지",
+      "links_to": [
+        "web:/info/map"
+      ],
+      "data_sources": [],
+      "features": [
+        {
+          "name": "리다이렉트",
+          "status": "live"
+        }
+      ],
+      "notes": "page.tsx는 redirect('/info/map')만 수행. 실제 콘텐츠 없음."
+    },
+    {
+      "id": "web:/info/map",
+      "group": "customer",
+      "name": "내 주변 찾기 지도",
+      "role": "전기차 충전소·주유소·정비소를 한 지도에서 위치 기반으로 검색하는 페이지",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/ev-chargers"
+        },
+        {
+          "type": "api",
+          "ref": "/api/gas-stations"
+        },
+        {
+          "type": "api",
+          "ref": "/api/repair-shops"
+        }
+      ],
+      "features": [
+        {
+          "name": "카카오맵 SDK 지도",
+          "status": "live"
+        },
+        {
+          "name": "내 위치(브라우저 Geolocation)",
+          "status": "live"
+        },
+        {
+          "name": "마커 클러스터링",
+          "status": "live"
+        },
+        {
+          "name": "주유소 화면 최저가 계산",
+          "status": "live"
+        }
+      ],
+      "notes": "page.tsx는 KakaoMapLazy → KakaoMap 렌더. useKakaoLoader 훅으로 카카오 SDK 로드. 지도 화면 이동(bounds)마다 탭에 따라 3개 API 중 하나를 lat/lng 범위 파라미터로 fetch. 데이터 출처: 환경부 충전소·카카오 로컬/오피넷·공공데이터포털 정비업체."
+    },
+    {
+      "id": "web:/market/sell-price",
+      "group": "customer",
+      "name": "내 차 시세 조회(마켓)",
+      "role": "브랜드·모델·연식·주행거리로 중고차 예상 시세를 조회하고 매각 상담 리드를 수집하는 페이지",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/vehicle-msrp/brands"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicle-msrp/models"
+        },
+        {
+          "type": "api",
+          "ref": "/api/used-prices"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicle-msrp"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation"
+        }
+      ],
+      "features": [
+        {
+          "name": "중고차 시세 조회(엔카 실거래 기준)",
+          "status": "live"
+        },
+        {
+          "name": "신차가 대비 잔존율 표시",
+          "status": "live"
+        },
+        {
+          "name": "매각 상담 리드 수집(POST /api/consultation)",
+          "status": "live"
+        }
+      ],
+      "notes": "전체가 'use client' 단일 페이지 컴포넌트. 리드는 financeSummary에 시세 요약 담아 stepCompleted:3으로 /api/consultation POST."
+    },
+    {
+      "id": "web:/points",
+      "group": "customer",
+      "name": "회원 포인트",
+      "role": "적립 포인트 원장을 보고, 계약비용(면책금 등)을 포인트로 지원받아 카카오페이 캐시백을 신청하는 회원 페이지",
+      "links_to": [
+        "web:/mypage"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/points"
+        },
+        {
+          "type": "static",
+          "ref": "PT_REDEEM_POLICY / ptLoad / ptAddRedeem (@/lib/rentailor/points)"
+        }
+      ],
+      "features": [
+        {
+          "name": "포인트 원장 조회",
+          "status": "partial"
+        },
+        {
+          "name": "포인트로 계약비용 지원 신청(redeem)",
+          "status": "partial"
+        },
+        {
+          "name": "소멸 예정 배너",
+          "status": "live"
+        }
+      ],
+      "notes": "회원 로그인 시 /api/points 실원장·잔액 바인딩, 비회원(OTP 미활성)·fetch 실패 시 시드+localStorage 폴백이라 원장 조회는 partial. 파일 주석상 redeem 영속화(POST)·카카오페이 지급 API 미연동으로 redeem은 현재 로컬 시연 → partial. 링크는 RtTopNav backHref='/mypage', RtTabBar active='mypage'. mission-progress.ts는 이 페이지에서 직접 import 안 함(rentailor/points 사용)."
+    },
+    {
+      "id": "web:/quote",
+      "group": "customer",
+      "name": "견적 신청",
+      "role": "AI 진단 결과를 이어받아 계약조건·연락처를 받는 견적 신청 스텝 플로우",
+      "links_to": [
+        "web:/result",
+        "web:/privacy"
+      ],
+      "data_sources": [
+        {
+          "type": "store",
+          "ref": "quoteStore (Zustand)"
+        },
+        {
+          "type": "static",
+          "ref": "loadProgress (mission-progress, localStorage)"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLES (@/data/diagnosis-vehicles)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (POST)"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations (via /api/consultation)"
+        }
+      ],
+      "features": [
+        {
+          "name": "스텝 플로우(기간·결제·연락처)",
+          "status": "live"
+        },
+        {
+          "name": "진단결과 자동 프리필(prefillFromDiagnosis)",
+          "status": "live"
+        },
+        {
+          "name": "이탈 방지 모달(LeaveModal)",
+          "status": "live"
+        },
+        {
+          "name": "연락처 방식 선택(전화·이메일·카카오·건너뛰기)",
+          "status": "live"
+        }
+      ],
+      "notes": "페이지 자체는 데이터를 직접 저장하지 않음 — 자식 Step6Contact가 /api/consultation(POST)으로 제출하며 서버가 consultations 테이블에 INSERT. 응답의 estimatedMin/Max를 quoteStore에 저장해 /result에서 표시. /api/consultation은 estimatePricing.getRentEstimateManwon(→pricing 테이블)로 예상가 계산."
+    },
+    {
+      "id": "web:/result",
+      "group": "customer",
+      "name": "견적 신청 완료 · AI 종합 진단 결과",
+      "role": "신청 완료 후 예상 월납입·추천 차종/이용방법·월납 시뮬레이션을 보여주는 결과 페이지",
+      "links_to": [
+        "web:/quote",
+        "web:/diagnosis/vehicle",
+        "web:/diagnosis/finance"
+      ],
+      "data_sources": [
+        {
+          "type": "store",
+          "ref": "quoteStore (estimatedMin/Max 등)"
+        },
+        {
+          "type": "static",
+          "ref": "loadProgress (mission-progress, localStorage)"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLES, TRIMS (@/data/diagnosis-vehicles)"
+        },
+        {
+          "type": "static",
+          "ref": "DEFAULT_PRODUCTS, PRODUCT_KEYS (@/data/diagnosis-products)"
+        },
+        {
+          "type": "static",
+          "ref": "calcMonthly (@/lib/calc-monthly)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/fuel-prices (GET, 유류비)"
+        }
+      ],
+      "features": [
+        {
+          "name": "예상 월납입금 표시(estimatedMin~Max)",
+          "status": "live"
+        },
+        {
+          "name": "상품별 월비용 동적계산(calcMonthly)",
+          "status": "live"
+        },
+        {
+          "name": "월납입 시뮬레이터(SimulationCalculator)",
+          "status": "live"
+        },
+        {
+          "name": "유류비 조회(/api/fuel-prices)",
+          "status": "live"
+        }
+      ],
+      "notes": "quoteStore가 비어있으면(name·phone 없음) /quote로 리다이렉트. 예상 월납입금은 이 페이지가 계산하지 않고 /api/consultation 응답값을 store에서 읽어 표시. 유류비 코드에 hybrid·gasoline 분기가 둘 다 json.gasoline을 쓰는 사실상 무의미한 삼항식 존재(미검증 결함)."
+    },
+    {
+      "id": "web:/sell",
+      "group": "customer",
+      "name": "내차 시세 조회",
+      "role": "브랜드·모델·연식·주행·상태 입력으로 예상 매입가·시세분포·전환 인수가를 계산해 주는 중고차 시세 플로우",
+      "links_to": [
+        "web:/info"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "RT_CATALOG (@/lib/rentailor/catalog)"
+        },
+        {
+          "type": "static",
+          "ref": "SL_YEARS/SL_MILE/SL_COND/SL_BAND, sellCalc (./data)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/used-prices (GET, 엔카 실거래가)"
+        }
+      ],
+      "features": [
+        {
+          "name": "폼→결과 2단계 시세 조회",
+          "status": "live"
+        },
+        {
+          "name": "엔카 실거래가 조회 + 추정 폴백",
+          "status": "live"
+        },
+        {
+          "name": "채널별 매입가 비교(직거래·딜러·전환인수)",
+          "status": "live"
+        },
+        {
+          "name": "장기렌트 전환 상담시트(RtConsultSheet)",
+          "status": "live"
+        }
+      ],
+      "notes": "_design_ref/sell-app.jsx 이식본. /api/used-prices 응답 있으면 실데이터, 없으면 sellCalc 통계 추정으로 폴백. 상단 백링크만 내부라우트(/info). 상담은 시트 오버레이(별도 라우트 아님). /market/sell-price와 기능 중복 라우트."
+    },
+    {
+      "id": "web:/value",
+      "group": "customer",
+      "name": "차량 가치 분석",
+      "role": "추천/조회로 넘어온 신차 1대(?id=)의 감가추이·잔존가치·매각채널을 분석하는 리포트 페이지",
+      "links_to": [
+        "web:/info"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "RT_CATALOG, FUEL (@/lib/rentailor/catalog)"
+        },
+        {
+          "type": "static",
+          "ref": "newCarCalc (./data)"
+        }
+      ],
+      "features": [
+        {
+          "name": "감가추이 곡선·잔존가치 리포트",
+          "status": "live"
+        },
+        {
+          "name": "3년 뒤 매각채널 비교",
+          "status": "live"
+        },
+        {
+          "name": "장기렌트 전환 상담시트(RtConsultSheet)",
+          "status": "live"
+        }
+      ],
+      "notes": "_design_ref/value-app.jsx 이식본. 입력폼 없음 — URL ?id=로 차량 지정, 없으면 grandeur 기본. API 호출 없이 카탈로그+newCarCalc 순수 계산(엔카 실시세 미연동, 통계 추정). 사업자 안내는 원본 personalize(sole/corp 한정)를 벗어나 항상 노출되는 갭 존재(코드 주석 명시)."
+    },
+    {
+      "id": "web:/simulator",
+      "group": "customer",
+      "name": "무료 진단 허브",
+      "role": "결제방식 비교·시세·절세·유지비 4개 진단으로 가는 카드 링크 허브",
+      "links_to": [
+        "web:/simulator/compare",
+        "web:/market/sell-price",
+        "web:/simulator/tax",
+        "web:/simulator/cost"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "CARDS (파일 내 하드코딩 배열)"
+        }
+      ],
+      "features": [
+        {
+          "name": "4개 진단 카드 링크",
+          "status": "live"
+        }
+      ],
+      "notes": "서버 컴포넌트, 데이터 조회 없음. '내 차 시세 조회' 카드는 /sell이 아니라 /market/sell-price로 링크(별도 라우트)."
+    },
+    {
+      "id": "web:/simulator/compare",
+      "group": "customer",
+      "name": "결제방식 비교(시뮬레이터)",
+      "role": "고객·차량·사용패턴 3그룹 입력으로 할부·리스·렌트 총비용을 순위화해 비교하는 시뮬레이터",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "calculateComparison (@/lib/domain/comparison-engine)"
+        },
+        {
+          "type": "static",
+          "ref": "scoreDecision (@/lib/domain/decision-scorer)"
+        },
+        {
+          "type": "static",
+          "ref": "getVehicleCC (@/lib/domain/vehicle-cc-map)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicle-msrp/brands (GET)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicle-msrp/models (GET)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicle-msrp (GET, 트림·MSRP)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/used-prices (GET, 중고시세)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/rental-price (POST, 렌탈료 시장가)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (POST, 리드폼)"
+        }
+      ],
+      "features": [
+        {
+          "name": "3그룹 스텝 폼·차량 딥링크(?brand&model)",
+          "status": "live"
+        },
+        {
+          "name": "할부/리스/렌트 총비용 순위 비교",
+          "status": "live"
+        },
+        {
+          "name": "엔카 실시세 반영(있을 때)",
+          "status": "live"
+        },
+        {
+          "name": "리드폼(무료 견적 비교 신청)",
+          "status": "live"
+        }
+      ],
+      "notes": "리드폼은 /api/consultation(POST, financeSummary '[비교시뮬레이터]…', stepCompleted 6)로 consultations INSERT. 결과 카드 1위의 다이렉트 링크는 SK/롯데/KB/현대캐피탈 외부 URL(내부 라우트 아님). 내부 페이지 내비게이션 링크 없음. | next.config: /simulator/compare → /diagnosis/compare 301 통합(중복 라우트 정리됨)."
+    },
+    {
+      "id": "web:/simulator/cost",
+      "group": "customer",
+      "name": "내 차 유지비 진단",
+      "role": "연식·가격·주행·할부·보험 5문항으로 숨은 유지비를 계산하고 장기렌트와 비교하는 진단",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "calcCost (@/lib/domain/cost-calculator)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (POST, 리드폼)"
+        }
+      ],
+      "features": [
+        {
+          "name": "5스텝 유지비 진단·항목별 바차트",
+          "status": "live"
+        },
+        {
+          "name": "내 차 vs 장기렌트 비교·판정",
+          "status": "live"
+        },
+        {
+          "name": "블러 잠금 후 리드폼",
+          "status": "live"
+        }
+      ],
+      "notes": "리드폼 /api/consultation(POST, financeSummary '[유지비진단]…', stepCompleted 6) → consultations INSERT. 정밀분석 영역은 블러 처리된 더미(잠금 유도용). 내부 라우트 링크 없음."
+    },
+    {
+      "id": "web:/simulator/tax",
+      "group": "customer",
+      "name": "사업자 절세 진단",
+      "role": "사업자유형·업종·매출·차량현황·예산 5문항으로 장기렌트 연간 절세액을 추정하는 진단",
+      "links_to": [
+        "web:/privacy"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "calculateTaxSaving (@/lib/domain/tax-calculator)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation (POST, 리드폼)"
+        }
+      ],
+      "features": [
+        {
+          "name": "5스텝 절세 진단·항목별 분석",
+          "status": "live"
+        },
+        {
+          "name": "블러 잠금 상세분석 + 리드폼",
+          "status": "live"
+        }
+      ],
+      "notes": "리드폼 /api/consultation(POST, financeSummary '[세무진단]…', financeAnswers·monthlyBudget 포함, stepCompleted 6) → consultations INSERT. 상세분석은 블러 더미(FakeAnalysisRow). /privacy 새탭 링크."
+    },
+    {
+      "id": "web:/upload/[token]",
+      "group": "customer",
+      "name": "고객 서류 제출 (PIPA 2단계)",
+      "role": "HMAC 토큰 링크로 계약 고객이 필요 서류를 직접 업로드하는 비색인 공개 페이지",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "verifyUploadToken (@/lib/contract-upload-token)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/upload/[token] (GET 체크리스트 / POST multipart 업로드)"
+        },
+        {
+          "type": "supabase",
+          "ref": "customer_contracts (읽기)"
+        },
+        {
+          "type": "supabase",
+          "ref": "contract_documents (읽기·INSERT)"
+        },
+        {
+          "type": "supabase",
+          "ref": "Storage 버킷 contract-docs (비공개)"
+        }
+      ],
+      "features": [
+        {
+          "name": "토큰 검증 게이트(만료·위조 시 안내화면)",
+          "status": "live"
+        },
+        {
+          "name": "서류 체크리스트·파일 업로드(PDF/JPG/PNG/WEBP, 10MB)",
+          "status": "live"
+        }
+      ],
+      "notes": "토큰 = contractId.exp.hmac(sha256) stateless — 신규 테이블/컬럼 0개. 서버에서만 검증(CONTRACT_UPLOAD_TOKEN_SECRET 필수, 폴백 없음 → 미설정 시 throw), TTL 7일. 발급=cadam-erp, 검증=web(양 리포 동일 파일·동일 시크릿). service_role로 contract-docs 버킷 업로드 후 contract_documents INSERT(status 'submitted'). GET은 다운로드URL 미발급(PII 재열람 차단). robots noindex."
+    },
+    {
+      "id": "web:/",
+      "group": "customer",
+      "name": "홈(시네마틱)",
+      "role": "메인 홈 — FLIP 리라이트로 '/' 에 서빙되는 실서비스 홈",
+      "links_to": [
+        "web:/diagnosis",
+        "web:/popular-estimates",
+        "web:/info",
+        "web:/mypage",
+        "web:/promotions",
+        "web:/reviews",
+        "web:/community"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/home-cms"
+        },
+        {
+          "type": "api",
+          "ref": "/api/info-articles"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "홈 CMS 렌더",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. next.config FLIP: '/' → /home-cinematic-preview 내부 리라이트(URL은 '/' 유지). 전역 NavBar/Footer 는 이 경로에서 숨김 — 실제 고객 네비는 RtChrome.tsx 의 RtTabBar(공유 하단탭: 홈/AI진단→/diagnosis / 차량→/popular-estimates / 정보→/info / 마이→/mypage). 이 탭바가 모든 라이브 프리뷰 페이지의 공통 링크 소스."
+    },
+    {
+      "id": "web:/popular-estimates",
+      "group": "customer",
+      "name": "인기차종 견적",
+      "role": "인기 차종 월 렌트료 목록 — /popular-estimates 에 서빙",
+      "links_to": [
+        "web:/cars/[slug]"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/catalog-pricing"
+        },
+        {
+          "type": "api",
+          "ref": "/api/catalog-specs"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "인기차종 가격표",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /popular-estimates → /popular-estimates-preview."
+    },
+    {
+      "id": "web:/cars/[slug]/options",
+      "group": "customer",
+      "name": "차량 옵션",
+      "role": "차량 트림/옵션 선택 — /cars/:slug/options 에 서빙",
+      "links_to": [
+        "web:/cars/[slug]",
+        "web:/direct"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "@/lib/rentailor/catalog (정적 카탈로그 모듈)"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicles"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicle_trims"
+        },
+        {
+          "type": "supabase",
+          "ref": "trim_options"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLE_LIST / getVehicleBySlug (@/constants/vehicles)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "옵션 선택",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /cars/:slug/options → /car-options-preview/:slug. 데이터는 정적 catalog.ts. | ⚠ 셰도우: 구 라우트 src/app/cars/[slug]/options/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: service_role 클라이언트 사용(RLS 우회). DB에 vehicles 레코드 없으면 빈 데이터로 '준비 중' 표시. revalidate 60.)"
+    },
+    {
+      "id": "web:/cars/[slug]",
+      "group": "customer",
+      "name": "차량 상세",
+      "role": "차량 상세·제원·가격 — /cars/:slug 에 서빙",
+      "links_to": [
+        "web:/cars/[slug]/options",
+        "web:/diagnosis/compare",
+        "web:/guide/[slug]"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/catalog-pricing"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicle-spec"
+        },
+        {
+          "type": "api",
+          "ref": "/api/info-articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicles"
+        },
+        {
+          "type": "supabase",
+          "ref": "pricing"
+        },
+        {
+          "type": "supabase",
+          "ref": "info_articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicle_trims"
+        },
+        {
+          "type": "supabase",
+          "ref": "trim_options"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLE_LIST / getVehicleBySlug (@/constants/vehicles)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "차량 상세",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /cars/:slug → /cars-detail-preview/:slug. | ⚠ 셰도우: 구 라우트 src/app/cars/[slug]/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 서버 컴포넌트, revalidate 60. anon 서버 클라이언트 사용. 360 스핀은 vehicle.has360Spin true일 때만(대부분 false) → 실질적으로 partial. CarArticles의 링크(article.link_url)는 외부 URL이라 내부 링크 아님. CarCtaSection의 카카오/전화는 외부. RelatedCars는 다른 /cars/[slug]로 이동.)"
+    },
+    {
+      "id": "web:/diagnosis/vehicle",
+      "group": "customer",
+      "name": "진단-차량선택",
+      "role": "진단 1단계 차량 선택 — /diagnosis/vehicle 에 서빙",
+      "links_to": [
+        "web:/diagnosis/finance",
+        "web:/cars/[slug]",
+        "web:/simulator/compare"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "@/lib/rentailor/catalog"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicles (is_active·is_diagnosis 필터, 브라우저 anon 클라이언트)"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLES (@/data/diagnosis-vehicles, DB 실패 시 폴백)"
+        },
+        {
+          "type": "static",
+          "ref": "TRIMS (@/data/diagnosis-vehicles)"
+        },
+        {
+          "type": "static",
+          "ref": "DEFAULT_VEHICLE_BASIC / DEFAULT_VEHICLE_DETAIL (@/data/diagnosis-vehicle)"
+        },
+        {
+          "type": "static",
+          "ref": "DEFAULT_PRODUCTS / PRODUCT_KEYS (@/data/diagnosis-products)"
+        },
+        {
+          "type": "static",
+          "ref": "VEHICLE_LIST (@/constants/vehicles, slug 매칭)"
+        },
+        {
+          "type": "store",
+          "ref": "quoteStore + mission-progress localStorage"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "차량 선택",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /diagnosis/vehicle → /diagnosis-vehicle-preview. | ⚠ 셰도우: 구 라우트 src/app/diagnosis/vehicle/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 차종 데이터는 Supabase 'vehicles' 우선, 응답 없으면 정적 VEHICLES 폴백. '상세→'는 /cars/[slug], '비교→'는 /simulator/compare. /diagnosis/vehicle/option 으로의 링크 없음(option 진입 경로 불명, 미검증).)"
+    },
+    {
+      "id": "web:/diagnosis/finance",
+      "group": "customer",
+      "name": "진단-금융조건",
+      "role": "진단 2단계 금융 조건 입력 — /diagnosis/finance 에 서빙",
+      "links_to": [
+        "web:/diagnosis/compare",
+        "web:/simulator/compare"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "@/lib/rentailor/catalog + 클라이언트 계산"
+        },
+        {
+          "type": "static",
+          "ref": "FINANCE_BASIC / FINANCE_DETAIL (@/data/diagnosis-finance)"
+        },
+        {
+          "type": "static",
+          "ref": "RENT_FIT_TIERS (@/data/diagnosis-products)"
+        },
+        {
+          "type": "static",
+          "ref": "calculateRentFit / getRentKeyFactors (@/lib/flow-engine)"
+        },
+        {
+          "type": "store",
+          "ref": "quoteStore(prefillFromDiagnosis) + mission-progress localStorage"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "금융 조건 입력",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /diagnosis/finance → /diagnosis-finance-preview. | ⚠ 셰도우: 구 라우트 src/app/diagnosis/finance/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 홈으로 버튼은 '/'로 이동(/diagnosis 아님). '비교하기' CTA는 /simulator/compare — /diagnosis/compare와 별개 경로.)"
+    },
+    {
+      "id": "web:/diagnosis/compare",
+      "group": "customer",
+      "name": "진단-비교",
+      "role": "진단 3단계 상품 비교 — /diagnosis/compare 에 서빙",
+      "links_to": [
+        "web:/diagnosis/report"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "@/lib/rentailor/catalog + 클라이언트 계산"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicles/brands"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicles/models"
+        },
+        {
+          "type": "api",
+          "ref": "/api/vehicles/trims"
+        },
+        {
+          "type": "api",
+          "ref": "/api/used-prices"
+        },
+        {
+          "type": "api",
+          "ref": "/api/insurance-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/accident-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/victim-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation"
+        },
+        {
+          "type": "static",
+          "ref": "LEGAL_REFS (@/data/legal-references)"
+        },
+        {
+          "type": "store",
+          "ref": "localStorage 'rentailor:compare:v1'"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "상품 비교",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /diagnosis/compare → /diagnosis-compare-preview. (구 /simulator/compare 는 여기로 301.) | ⚠ 셰도우: 구 라우트 src/app/diagnosis/compare/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 2316줄 대용량(1055줄까지 정독, API는 grep 전수확인). 내부 진단 링크 없음(외부 캐피탈사 링크만). finance·vehicle 결과의 '비교' CTA는 여기가 아닌 /simulator/compare로 감 — 비교 경로 이원화 불일치.)"
+    },
+    {
+      "id": "web:/diagnosis/report",
+      "group": "customer",
+      "name": "진단-리포트",
+      "role": "진단 결과 리포트 — /diagnosis/report 에 서빙",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "@/lib/rentailor/catalog + 클라이언트 계산"
+        },
+        {
+          "type": "api",
+          "ref": "/api/used-prices (fetchDbPrices 경유)"
+        },
+        {
+          "type": "api",
+          "ref": "/api/insurance-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/accident-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/victim-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/ev-charger-stats"
+        },
+        {
+          "type": "api",
+          "ref": "/api/fuel-prices"
+        },
+        {
+          "type": "store",
+          "ref": "quoteStore (setCarBrand/Model/Trim/ReportSummary)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "결과 리포트",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /diagnosis/report → /diagnosis-report-preview. | ⚠ 셰도우: 구 라우트 src/app/diagnosis/report/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: Phase 2(차량번호→car365 API 자동매칭)는 주석상 TODO 미구현. 내부 라우트 링크 없음(ConsultationSheet/견적 스토어로 처리).)"
+    },
+    {
+      "id": "web:/diagnosis",
+      "group": "customer",
+      "name": "AI 진단 시작",
+      "role": "금융 진단 플로우 진입 — /diagnosis 에 서빙",
+      "links_to": [
+        "web:/diagnosis/vehicle",
+        "web:/diagnosis/finance",
+        "web:/diagnosis/compare",
+        "web:/diagnosis/report"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "@/lib/rentailor/catalog + 클라이언트 플로우 상태"
+        },
+        {
+          "type": "static",
+          "ref": "HERO_SERVICE / SERVICES / BADGES (파일 내 하드코딩 배열)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "진단 플로우",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /diagnosis → /diagnosis-preview. 다단계 진단(vehicle→finance→compare→report)의 진입점. | ⚠ 셰도우: 구 라우트 src/app/diagnosis/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 홈에 /diagnosis/calculator 링크 없음(calculator 도달 불가). '감가상각 분석' 카드는 /diagnosis/report 로 이동.)"
+    },
+    {
+      "id": "web:/info/[id]",
+      "group": "customer",
+      "name": "가이드 상세",
+      "role": "정보 아티클 상세 — /info/:id 에 서빙",
+      "links_to": [
+        "web:/info",
+        "web:/diagnosis"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/info-articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "info_articles"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "아티클 상세",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /info/:id → /info-preview/:id. | ⚠ 셰도우: 구 라우트 src/app/info/[id]/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: is_active=true 단건 조회. content 없으면 redirect(link_url). revalidate=60. NEXT_PUBLIC_SITE_URL로 canonical 생성.)"
+    },
+    {
+      "id": "web:/info",
+      "group": "customer",
+      "name": "렌트 가이드 목록",
+      "role": "정보/가이드 아티클 목록 — /info 에 서빙",
+      "links_to": [
+        "web:/info/[id]",
+        "web:/blog/[slug]"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/info-articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "info_articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicles"
+        },
+        {
+          "type": "supabase",
+          "ref": "pricing"
+        },
+        {
+          "type": "api",
+          "ref": "fetchWpPosts (WordPress REST, NEXT_PUBLIC_WP_API_URL /posts)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "아티클 목록",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /info → /info-preview. Footer '렌트 가이드' 링크의 도착지. | ⚠ 셰도우: 구 라우트 src/app/info/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: InfoArticles 클라이언트 컴포넌트로 렌더. 본문(content) 있는 글은 /info/{id}, WP 글은 linkUrl=/blog/{slug}로 링크. revalidate=60. Supabase 조회 실패 시 빈 배열 폴백.)"
+    },
+    {
+      "id": "web:/promotions",
+      "group": "customer",
+      "name": "프로모션",
+      "role": "프로모션 목록 — /promotions 에 서빙",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/promotions"
+        },
+        {
+          "type": "supabase",
+          "ref": "promotions"
+        },
+        {
+          "type": "static",
+          "ref": "BRAND (@/constants/brand)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "프로모션 목록",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /promotions → /promotions-preview. | ⚠ 셰도우: 구 라우트 src/app/promotions/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 서버컴포넌트(revalidate 600). promotions 테이블에서 is_active=true·display_order 정렬 후 start_date/end_date로 오늘 날짜 범위 필터. 카드 링크는 각 행 link_url(동적). QuoteButton은 견적 진입 유도(라우트 미검증).)"
+    },
+    {
+      "id": "web:/terms",
+      "group": "customer",
+      "name": "이용약관",
+      "role": "이용약관 정적 페이지 — /terms 에 서빙",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "정적 약관 본문(하드코딩)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "약관 본문",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /terms → /terms-preview. 외부 데이터 없음."
+    },
+    {
+      "id": "web:/privacy",
+      "group": "customer",
+      "name": "개인정보처리방침",
+      "role": "개인정보 처리방침 정적 페이지 — /privacy 에 서빙",
+      "links_to": [
+        "web:/"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "정적 방침 본문(하드코딩)"
+        },
+        {
+          "type": "static",
+          "ref": "BRAND (@/constants/brand)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "방침 본문",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /privacy → /privacy-preview. Footer '개인정보 처리방침' 링크 도착지. | ⚠ 셰도우: 구 라우트 src/app/privacy/page.tsx 가 FLIP로 미서빙(리디자인 프리뷰가 실제 서빙) — 미사용 코드, 정리대상. (구버전 메모: 완전 정적. 시행일·소유자 이메일(cadam21y@gmail.com) 파일 내 하드코딩. 하단 '견적 화면으로 돌아가기' Link href='/'.)"
+    },
+    {
+      "id": "web:/login",
+      "group": "customer",
+      "name": "회원 로그인",
+      "role": "고객 회원 로그인(OTP/카카오) — /login 에 서빙",
+      "links_to": [
+        "web:/mypage"
+      ],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "member-auth (OTP/kakao) + localStorage 세션"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "OTP/카카오 로그인",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /login → /login-preview. 관리자 /admin/login 과 별개인 고객 로그인."
+    },
+    {
+      "id": "web:/mypage",
+      "group": "customer",
+      "name": "마이페이지",
+      "role": "회원 계약·찜·알림·포인트 — /mypage 에 서빙",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/members/mypage"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/contracts"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/favorites"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/notifications"
+        },
+        {
+          "type": "api",
+          "ref": "/api/points"
+        },
+        {
+          "type": "api",
+          "ref": "/api/catalog-pricing"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "회원 대시보드",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /mypage → /mypage-preview."
+    },
+    {
+      "id": "web:/reviews/write",
+      "group": "customer",
+      "name": "후기 작성",
+      "role": "후기 작성 폼 — /reviews/write 에 서빙",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/reviews"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "후기 작성",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /reviews/write → /reviews-write-preview."
+    },
+    {
+      "id": "web:/reviews",
+      "group": "customer",
+      "name": "이용후기 목록",
+      "role": "고객 후기 목록 — /reviews 에 서빙",
+      "links_to": [
+        "web:/reviews/write"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/reviews"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "후기 목록",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /reviews → /reviews-preview."
+    },
+    {
+      "id": "web:/community",
+      "group": "customer",
+      "name": "커뮤니티",
+      "role": "Q&A 커뮤니티 글/답변/반응 — /community 에 서빙",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/community/posts"
+        },
+        {
+          "type": "api",
+          "ref": "/api/community/answers"
+        },
+        {
+          "type": "api",
+          "ref": "/api/community/reactions"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "live"
+        },
+        {
+          "name": "글/답변/반응",
+          "status": "live"
+        }
+      ],
+      "notes": "실서비스 라이브. FLIP: /community → /community-preview."
+    },
+    {
+      "id": "web:/support-preview",
+      "group": "customer",
+      "name": "고객지원(구)",
+      "role": "고객지원/FAQ 시안 — 미배선 고아",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "static",
+          "ref": "정적 콘텐츠(하드코딩)"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "preview"
+        }
+      ],
+      "notes": "실서비스 미연결(스테이징 리디자인 프리뷰). FLIP 배열에 없음 → 운영 라우트 미배선 고아. 직접 /support-preview 접근만 가능. | ⚠ 고아: 대응 운영 라우트 없음(미서빙 스테이징)."
+    },
+    {
+      "id": "web:/home-preview",
+      "group": "customer",
+      "name": "홈(구 프리뷰)",
+      "role": "구 리디자인 홈 시안 — 미배선 고아",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/catalog-specs"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultation"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "preview"
+        }
+      ],
+      "notes": "실서비스 미연결(스테이징 리디자인 프리뷰). FLIP 배열에 없음 → home-cinematic-preview 로 대체된 구 시안. 직접 /home-preview 접근만 가능(운영 라우트 없음). | ⚠ 고아: home-cinematic-preview 에 밀린 구 홈 리디자인. FLIP 미연결(실서빙 아님)."
+    },
+    {
+      "id": "web:/simulator-compare-preview",
+      "group": "customer",
+      "name": "시뮬레이터 비교(구)",
+      "role": "구 시뮬레이터 비교 시안 — 미배선 고아",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/catalog-specs"
+        }
+      ],
+      "features": [
+        {
+          "name": "페이지",
+          "status": "preview"
+        }
+      ],
+      "notes": "실서비스 미연결(스테이징 리디자인 프리뷰). FLIP 배열에 없음. /simulator/compare 는 /diagnosis/compare 로 301 → diagnosis-compare-preview 가 대체. 이 프리뷰는 운영 미배선. | ⚠ 고아: /simulator/compare 는 /diagnosis/compare 로 301. 이 프리뷰는 미서빙."
+    },
+    {
+      "id": "web:/admin",
+      "group": "erp",
+      "name": "관리자 대시보드",
+      "role": "관리자 홈 — 상담 콜백 대기·요약 지표 표시",
+      "links_to": [
+        "web:/admin/consultations",
+        "web:/admin/contracts",
+        "web:/admin/info",
+        "web:/admin/promotions",
+        "web:/admin/prices",
+        "web:/admin/finance",
+        "web:/admin/diagnosis",
+        "web:/admin/images",
+        "web:/admin/ai"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/admin/dashboard"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/callbacks"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        }
+      ],
+      "features": [
+        {
+          "name": "요약 지표",
+          "status": "live"
+        },
+        {
+          "name": "콜백 대기 목록",
+          "status": "live"
+        }
+      ],
+      "notes": "Supabase Auth 세션 없으면 /admin/login 으로 강제 리다이렉트(admin/layout.tsx). | ⚠ 관리자 화면 이중화: 이 web /admin/* 와 별도 앱 cadam-erp 가 같은 Supabase 위 중복 운영 표면."
+    },
+    {
+      "id": "web:/admin/login",
+      "group": "erp",
+      "name": "관리자 로그인",
+      "role": "Supabase Auth 이메일·비밀번호 로그인",
+      "links_to": [
+        "web:/admin"
+      ],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "auth.signInWithPassword (createBrowserSupabaseClient)"
+        }
+      ],
+      "features": [
+        {
+          "name": "이메일 로그인",
+          "status": "live"
+        }
+      ],
+      "notes": "세션 있으면 /admin 으로 자동 이동. admin/layout.tsx 의 auth.getSession() 게이트."
+    },
+    {
+      "id": "web:/admin/consultations",
+      "group": "erp",
+      "name": "상담 관리",
+      "role": "견적/상담 신청 리드 조회·상세·상태 갱신",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        }
+      ],
+      "features": [
+        {
+          "name": "상담 테이블",
+          "status": "live"
+        },
+        {
+          "name": "상담 상세 편집",
+          "status": "live"
+        }
+      ],
+      "notes": "ConsultationTable/ConsultationDetail 컴포넌트가 브라우저 supabase 로 consultations 직접 read."
+    },
+    {
+      "id": "web:/admin/contracts",
+      "group": "erp",
+      "name": "계약 관리",
+      "role": "고객 계약·회원·캐피탈 디렉토리 관리",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/admin/contracts"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/members"
+        },
+        {
+          "type": "api",
+          "ref": "/api/capital-directory"
+        },
+        {
+          "type": "supabase",
+          "ref": "customer_contracts"
+        },
+        {
+          "type": "supabase",
+          "ref": "members"
+        }
+      ],
+      "features": [
+        {
+          "name": "계약 목록/편집",
+          "status": "live"
+        },
+        {
+          "name": "회원 조회",
+          "status": "live"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web:/admin/info",
+      "group": "erp",
+      "name": "정보관리",
+      "role": "렌트 가이드/정보 아티클·카테고리 CRUD",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/admin/info-articles"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/info-categories"
+        },
+        {
+          "type": "supabase",
+          "ref": "info_articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "info_categories"
+        }
+      ],
+      "features": [
+        {
+          "name": "아티클 CRUD",
+          "status": "live"
+        },
+        {
+          "name": "카테고리 관리",
+          "status": "live"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web:/admin/promotions",
+      "group": "erp",
+      "name": "프로모션 관리",
+      "role": "프로모션 배너/이벤트 등록·편집",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "promotions"
+        }
+      ],
+      "features": [
+        {
+          "name": "프로모션 CRUD",
+          "status": "live"
+        }
+      ],
+      "notes": "브라우저 supabase 클라이언트로 promotions 직접 접근."
+    },
+    {
+      "id": "web:/admin/prices",
+      "group": "erp",
+      "name": "인기차종 관리",
+      "role": "차량 가격표(pricing) 관리 및 캐시 재검증",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "pricing"
+        },
+        {
+          "type": "supabase",
+          "ref": "vehicles"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/revalidate"
+        }
+      ],
+      "features": [
+        {
+          "name": "가격표 편집",
+          "status": "live"
+        },
+        {
+          "name": "ISR 재검증",
+          "status": "live"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web:/admin/finance",
+      "group": "erp",
+      "name": "금융 조건",
+      "role": "금융 이율(finance_rates) 관리·가격 재생성 트리거",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "finance_rates"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/finance-rates"
+        },
+        {
+          "type": "api",
+          "ref": "/api/generate-pricing"
+        }
+      ],
+      "features": [
+        {
+          "name": "이율 편집",
+          "status": "live"
+        },
+        {
+          "name": "가격 재생성",
+          "status": "live"
+        }
+      ],
+      "notes": "known-issues.md §2.1 HIGH 이슈 대상 페이지."
+    },
+    {
+      "id": "web:/admin/diagnosis",
+      "group": "erp",
+      "name": "진단 관리",
+      "role": "AI 금융 진단 설정(diagnosis_config) 편집",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "diagnosis_config"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/diagnosis-config"
+        }
+      ],
+      "features": [
+        {
+          "name": "진단 파라미터 편집",
+          "status": "live"
+        }
+      ],
+      "notes": ""
+    },
+    {
+      "id": "web:/admin/images",
+      "group": "erp",
+      "name": "이미지 관리",
+      "role": "차량 이미지·360 스핀 프레임 갱신",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "vehicles"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/update-car-image"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/update-spin-frame"
+        }
+      ],
+      "features": [
+        {
+          "name": "차량 이미지 교체",
+          "status": "live"
+        },
+        {
+          "name": "360 프레임 지정",
+          "status": "live"
+        }
+      ],
+      "notes": "서버 supabase(createServerSupabase)로 vehicles read."
+    },
+    {
+      "id": "web:/admin/ai",
+      "group": "erp",
+      "name": "AI 설정",
+      "role": "진단 config + AI 코멘트 생성 테스트",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "diagnosis_config"
+        },
+        {
+          "type": "api",
+          "ref": "/api/admin/diagnosis-config"
+        },
+        {
+          "type": "api",
+          "ref": "/api/ai-comment"
+        }
+      ],
+      "features": [
+        {
+          "name": "AI 코멘트 프리뷰",
+          "status": "live"
+        },
+        {
+          "name": "진단 config",
+          "status": "live"
+        }
+      ],
+      "notes": "/admin/diagnosis 와 diagnosis_config 를 공유."
+    },
+    {
+      "id": "web:/admin-mode",
+      "group": "erp",
+      "name": "관리자 모드 토글",
+      "role": "브라우저 GA 추적 제외 토글(localStorage admin_mode)",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "hardcoded",
+          "ref": "localStorage.admin_mode (adminMode.ts / isAdminMode)"
+        }
+      ],
+      "features": [
+        {
+          "name": "GA opt-out 토글",
+          "status": "live"
+        }
+      ],
+      "notes": "/admin-mode 활성화, /admin-mode?off=1 해제. Auth 게이트 없음 — /admin 표면과 무관한 GA 제어용 공개 스텁."
+    },
+    {
+      "id": "erp:/",
+      "group": "erp",
+      "name": "운영 대시보드",
+      "role": "로그인 후 첫 화면. KPI 밴드와 전환 퍼널·오늘 콜백·매니저 실적 위젯을 보여주는 운영 요약판",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/dashboard/summary"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        },
+        {
+          "type": "supabase",
+          "ref": "lead_sales"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_pnl_monthly"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_funnel_monthly"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_manager_perf"
+        }
+      ],
+      "features": [
+        {
+          "name": "KPI 밴드 8종",
+          "status": "live"
+        },
+        {
+          "name": "전환 퍼널·오늘 콜백·매니저 실적 위젯",
+          "status": "live"
+        }
+      ],
+      "notes": "모든 로그인 사용자 접근(dashboard='*'). DashboardClient가 /api/dashboard/summary 단일 호출로 뷰(v_pnl_monthly 등) 집계 조회."
+    },
+    {
+      "id": "erp:/tasks",
+      "group": "erp",
+      "name": "업무 칸반",
+      "role": "에이전트/사람 업무를 상태별(대기·진행·검토·완료)로 관리하는 칸반. 상담·결재로 이어짐",
+      "links_to": [
+        "erp:/"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/tasks"
+        },
+        {
+          "type": "api",
+          "ref": "/api/tasks/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/tasks/[id]/approval"
+        },
+        {
+          "type": "api",
+          "ref": "/api/tasks/[id]/approval/request"
+        },
+        {
+          "type": "api",
+          "ref": "/api/tasks/[id]/thread"
+        },
+        {
+          "type": "api",
+          "ref": "/api/tasks/[id]/timeline"
+        },
+        {
+          "type": "api",
+          "ref": "/api/tasks/progress"
+        },
+        {
+          "type": "supabase",
+          "ref": "erp_tasks"
+        },
+        {
+          "type": "supabase",
+          "ref": "erp_task_status_history"
+        },
+        {
+          "type": "supabase",
+          "ref": "erp_task_approval_history"
+        },
+        {
+          "type": "supabase",
+          "ref": "erp_task_progress_log"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_erp_task_thread"
+        }
+      ],
+      "features": [
+        {
+          "name": "섹션별 업무 목록·상태 변경",
+          "status": "live"
+        },
+        {
+          "name": "결재 요청/타임라인/스레드",
+          "status": "live"
+        }
+      ],
+      "notes": "핵심 broker 연동: claude-broker가 [TASK] 태그로 /api/tasks 에 POST 쓰기. middleware.ts(ISS-017)가 x-dashboard-token == DASHBOARD_AUTH_TOKEN 이면 세션 게이트 우회(broker는 쿠키 세션 없음). 쓰기는 전부 service_role 클라이언트. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/agent-approvals",
+      "group": "erp",
+      "name": "에이전트 파일 결재",
+      "role": "AI 에이전트가 만들어 낸 산출물 파일을 사람이 승인/반려하는 화면",
+      "links_to": [
+        "erp:/agent-approvals/[agent]/[file]"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/agent-approvals/decide"
+        },
+        {
+          "type": "filesystem",
+          "ref": "/Users/kim/projects/_meta/agents/<agent>/outputs/pending"
+        }
+      ],
+      "features": [
+        {
+          "name": "에이전트별 대기 파일 목록",
+          "status": "live"
+        },
+        {
+          "name": "승인 시 파일 이동(pending→처리)",
+          "status": "live"
+        }
+      ],
+      "notes": "DB가 아닌 파일시스템 기반. lib/agent-approvals.ts가 AGENTS_ROOT(/Users/kim/projects/_meta/agents)의 outputs/pending 디렉토리를 readdir. decidePendingApproval이 renameSync로 파일 이동, path traversal 차단. broker/에이전트들이 이 폴더에 산출물을 씀. middleware가 /api/agent-approvals* 에도 x-dashboard-token 우회 허용. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/agent-approvals/[agent]/[file]",
+      "group": "erp",
+      "name": "에이전트 파일 상세",
+      "role": "특정 에이전트 산출물 파일 하나의 내용을 열어보고 승인/반려 버튼을 누르는 상세 화면",
+      "links_to": [
+        "erp:/agent-approvals"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/agent-approvals/decide"
+        },
+        {
+          "type": "filesystem",
+          "ref": "/Users/kim/projects/_meta/agents/<agent>/outputs/pending/<file>"
+        }
+      ],
+      "features": [
+        {
+          "name": "파일 내용 표시(readFileSync)",
+          "status": "live"
+        },
+        {
+          "name": "DecideButtons 승인/반려",
+          "status": "live"
+        }
+      ],
+      "notes": "동적 라우트([agent]/[file]). lib/agent-approvals.ts readFileSync로 원문 로드. DecideButtons가 /api/agent-approvals/decide 호출."
+    },
+    {
+      "id": "erp:/approvals",
+      "group": "erp",
+      "name": "통합 결재판",
+      "role": "후기·성공보수·업무·에이전트 산출물 등 승인 대기 항목을 한 화면에 모아 처리",
+      "links_to": [
+        "erp:/agent-approvals"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/approvals"
+        },
+        {
+          "type": "supabase",
+          "ref": "reviews"
+        },
+        {
+          "type": "supabase",
+          "ref": "success_fees"
+        },
+        {
+          "type": "supabase",
+          "ref": "erp_tasks"
+        },
+        {
+          "type": "filesystem",
+          "ref": "/Users/kim/projects/_meta/agents/*/outputs/pending (getPendingApprovals)"
+        }
+      ],
+      "features": [
+        {
+          "name": "대기 항목 통합 집계(reviews/success_fees/erp_tasks/에이전트)",
+          "status": "live"
+        },
+        {
+          "name": "승인/반려 처리 + writeAudit",
+          "status": "live"
+        }
+      ],
+      "notes": "/api/approvals 가 여러 소스를 합침: reviews(status=pending), success_fees(status=pending), erp_tasks(approval_requested·approval_status=대기), 그리고 lib/agent-approvals getPendingApprovals(파일). 처리 시 lib/audit writeAudit로 audit_log 기록. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/notify-center",
+      "group": "erp",
+      "name": "알림 센터",
+      "role": "고객·매니저에게 나간 알림(문자/알림톡 등) 발송 로그를 조회하는 뷰어",
+      "links_to": [
+        "erp:/"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/notify-log"
+        },
+        {
+          "type": "supabase",
+          "ref": "notification_log"
+        }
+      ],
+      "features": [
+        {
+          "name": "발송 로그 목록 조회",
+          "status": "live"
+        }
+      ],
+      "notes": "읽기 전용 뷰어. notification_log는 상담 관련 라우트(/api/consultations/[id], /api/consultations/[id]/summary)와 외부 n8n/collector 알림 흐름이 씀. 이 페이지는 조회만. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/consultations",
+      "group": "erp",
+      "name": "상담 관리",
+      "role": "고객 상담(리드)을 목록·필터로 관리하고 매니저 배정·상태를 다루는 상담매니저 핵심 화면",
+      "links_to": [
+        "erp:/consultations/[id]",
+        "erp:/lead-dispatch"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/consultations"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]/quotes"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]/summary"
+        },
+        {
+          "type": "api",
+          "ref": "/api/managers"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        }
+      ],
+      "features": [
+        {
+          "name": "상담 목록·필터·상세 워크스페이스",
+          "status": "live"
+        },
+        {
+          "name": "견적(quotes)·요약 관리",
+          "status": "live"
+        }
+      ],
+      "notes": "lib/consult.ts 헬퍼 사용. 접근=admin·manager(consult)."
+    },
+    {
+      "id": "erp:/consultations/[id]",
+      "group": "erp",
+      "name": "상담 상세",
+      "role": "상담 한 건의 상세 정보·견적·요약을 편집하는 화면",
+      "links_to": [
+        "erp:/consultations"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]/quotes"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]/quotes/[quoteId]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]/summary"
+        },
+        {
+          "type": "api",
+          "ref": "/api/managers"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        }
+      ],
+      "features": [
+        {
+          "name": "상담 상세 편집",
+          "status": "live"
+        },
+        {
+          "name": "견적 CRUD·AI 요약",
+          "status": "live"
+        }
+      ],
+      "notes": "동적 라우트. summary 라우트가 notification_log 에도 기록. lib/consult.ts."
+    },
+    {
+      "id": "erp:/lead-dispatch",
+      "group": "erp",
+      "name": "리드 배포",
+      "role": "상담 리드를 매니저에게 배정(배포)하는 화면. F3 신규",
+      "links_to": [
+        "erp:/consultations"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/consultations"
+        },
+        {
+          "type": "api",
+          "ref": "/api/consultations/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/managers"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        },
+        {
+          "type": "supabase",
+          "ref": "managers"
+        }
+      ],
+      "features": [
+        {
+          "name": "미배정 리드 목록",
+          "status": "live"
+        },
+        {
+          "name": "매니저 배정",
+          "status": "live"
+        }
+      ],
+      "notes": "consultations?pageSize=200 조회 후 배정. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/lead-market",
+      "group": "erp",
+      "name": "리드 마켓·지갑",
+      "role": "제휴 매니저가 리드를 구매하고 지갑(포인트) 잔액·충전을 관리하는 마켓",
+      "links_to": [
+        "erp:/"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/lead-market"
+        },
+        {
+          "type": "api",
+          "ref": "/api/lead-market/buy"
+        },
+        {
+          "type": "api",
+          "ref": "/api/wallet"
+        },
+        {
+          "type": "api",
+          "ref": "/api/wallet/topup"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        },
+        {
+          "type": "supabase",
+          "ref": "lead_sales"
+        },
+        {
+          "type": "supabase",
+          "ref": "manager_lead_pricing"
+        },
+        {
+          "type": "supabase",
+          "ref": "wallet_transactions"
+        },
+        {
+          "type": "supabase",
+          "ref": "managers"
+        }
+      ],
+      "features": [
+        {
+          "name": "리드 구매(buy)",
+          "status": "live"
+        },
+        {
+          "name": "지갑 잔액·충전(topup)",
+          "status": "live"
+        }
+      ],
+      "notes": "파트너 메뉴 my-leads/my-wallet도 이 라우트를 가리킴(MODULE_ROUTE). 접근=admin·manager + partner(본인 데이터)."
+    },
+    {
+      "id": "erp:/contracts",
+      "group": "erp",
+      "name": "계약 관리",
+      "role": "장기렌터카 계약 건을 관리하고 필요 서류 업로드 링크를 발급하는 화면",
+      "links_to": [
+        "erp:/members",
+        "erp:/catalog"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/contracts"
+        },
+        {
+          "type": "api",
+          "ref": "/api/contracts/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/contracts/[id]/documents"
+        },
+        {
+          "type": "api",
+          "ref": "/api/contracts/[id]/upload-link"
+        },
+        {
+          "type": "api",
+          "ref": "/api/contracts?mode=capitals"
+        },
+        {
+          "type": "api",
+          "ref": "/api/catalog"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members"
+        },
+        {
+          "type": "supabase",
+          "ref": "contracts"
+        }
+      ],
+      "features": [
+        {
+          "name": "계약 목록·상세",
+          "status": "live"
+        },
+        {
+          "name": "서류 요건·업로드 링크 발급",
+          "status": "live"
+        }
+      ],
+      "notes": "lib/contract-doc-requirements.ts 서류 요건 정의. 회원·차종 조회 연동. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/members",
+      "group": "erp",
+      "name": "회원 관리",
+      "role": "가입 회원의 정보·메모·태그·동의 이력을 관리하고 마케팅 발송을 트리거하는 화면",
+      "links_to": [
+        "erp:/marketing"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/members"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/[id]/memo"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/[id]/tags"
+        },
+        {
+          "type": "api",
+          "ref": "/api/members/[id]/consents"
+        },
+        {
+          "type": "api",
+          "ref": "/api/marketing/send"
+        }
+      ],
+      "features": [
+        {
+          "name": "회원 검색·상세·메모·태그",
+          "status": "live"
+        },
+        {
+          "name": "동의 이력·마케팅 발송",
+          "status": "live"
+        }
+      ],
+      "notes": "lib/members.ts, lib/consult.ts 헬퍼. 접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/catalog",
+      "group": "erp",
+      "name": "차종 관리",
+      "role": "판매 차종 카탈로그(모델·MSRP·단종 여부)를 관리하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/catalog"
+        },
+        {
+          "type": "api",
+          "ref": "/api/catalog/[slug]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/catalog/msrp"
+        },
+        {
+          "type": "api",
+          "ref": "/api/catalog/deprec"
+        }
+      ],
+      "features": [
+        {
+          "name": "차종 목록·상세 모달(VehicleDetailModal)",
+          "status": "live"
+        },
+        {
+          "name": "MSRP·단종(deprec) 관리",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/images",
+      "group": "erp",
+      "name": "이미지 관리",
+      "role": "차량 이미지(프레임 세트 포함)를 조회·관리하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/images"
+        },
+        {
+          "type": "api",
+          "ref": "/api/images/[slug]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/images/[slug]/frames"
+        }
+      ],
+      "features": [
+        {
+          "name": "차종별 이미지 목록",
+          "status": "live"
+        },
+        {
+          "name": "프레임(360 등) 조회",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin·manager."
+    },
+    {
+      "id": "erp:/reviews",
+      "group": "erp",
+      "name": "후기 관리",
+      "role": "고객 후기를 검수(승인/숨김)하는 모더레이션 화면",
+      "links_to": [
+        "erp:/approvals"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/reviews"
+        },
+        {
+          "type": "api",
+          "ref": "/api/reviews/[id]"
+        },
+        {
+          "type": "supabase",
+          "ref": "reviews"
+        }
+      ],
+      "features": [
+        {
+          "name": "후기 목록·상태 변경(pending→published/hidden)",
+          "status": "live"
+        }
+      ],
+      "notes": "reviews의 pending 항목은 통합 결재판(/approvals)에도 노출. 접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/faq",
+      "group": "erp",
+      "name": "FAQ 관리",
+      "role": "웹사이트 FAQ 지식베이스를 등록·수정·검수하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/faq"
+        },
+        {
+          "type": "api",
+          "ref": "/api/faq/[id]"
+        }
+      ],
+      "features": [
+        {
+          "name": "FAQ CRUD·모더레이션",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/points",
+      "group": "erp",
+      "name": "포인트 관리",
+      "role": "회원 포인트 적립·차감·정책과 카카오페이 지급을 관리하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/points"
+        },
+        {
+          "type": "supabase",
+          "ref": "point_transactions"
+        },
+        {
+          "type": "supabase",
+          "ref": "point_rules"
+        },
+        {
+          "type": "supabase",
+          "ref": "point_redeem_policy"
+        }
+      ],
+      "features": [
+        {
+          "name": "포인트 거래 내역·규칙·정책",
+          "status": "live"
+        }
+      ],
+      "notes": "카카오페이 지급 포함 → editor 제외. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/finance",
+      "group": "erp",
+      "name": "금융 조건",
+      "role": "캐피탈사 금리 등 금융 조건 데이터를 조회하는 화면",
+      "links_to": [
+        "erp:/"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/finance/summary"
+        },
+        {
+          "type": "api",
+          "ref": "/api/finance"
+        },
+        {
+          "type": "supabase",
+          "ref": "finance_rates"
+        }
+      ],
+      "features": [
+        {
+          "name": "금리 요약·목록",
+          "status": "live"
+        }
+      ],
+      "notes": "FinanceClient는 /api/finance/summary만 호출. 접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/market-insight",
+      "group": "erp",
+      "name": "마켓 인사이트",
+      "role": "월별 차량 판매순위·시장 데이터를 보여주는 인사이트 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/market-insight"
+        },
+        {
+          "type": "supabase",
+          "ref": "car_sales_monthly"
+        }
+      ],
+      "features": [
+        {
+          "name": "국산·수입 판매순위(모델/브랜드)",
+          "status": "live"
+        }
+      ],
+      "notes": "car_sales_monthly 2130행 → 최신 year_month만 조회하는 2단계 로직. 접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/recalls",
+      "group": "erp",
+      "name": "리콜 관리",
+      "role": "차종 리콜 정보를 조회하는 카탈로그 뷰어",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/recalls"
+        },
+        {
+          "type": "supabase",
+          "ref": "recalls"
+        }
+      ],
+      "features": [
+        {
+          "name": "리콜 목록 조회",
+          "status": "live"
+        }
+      ],
+      "notes": "배치10-B-1 카탈로그 뷰어. 접근=admin·manager·editor."
+    },
+    {
+      "id": "erp:/content",
+      "group": "erp",
+      "name": "콘텐츠·프로모션·진단",
+      "role": "블로그 아티클, 프로모션, 진단 콘텐츠를 관리하는 에디터 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/content/articles"
+        },
+        {
+          "type": "api",
+          "ref": "/api/content/articles/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/content/promotions"
+        },
+        {
+          "type": "api",
+          "ref": "/api/content/diagnosis"
+        }
+      ],
+      "features": [
+        {
+          "name": "아티클 CRUD",
+          "status": "live"
+        },
+        {
+          "name": "프로모션·진단 패널",
+          "status": "live"
+        }
+      ],
+      "notes": "lib/content.ts 헬퍼. 접근=admin·editor."
+    },
+    {
+      "id": "erp:/clips",
+      "group": "erp",
+      "name": "쇼츠 관리",
+      "role": "숏폼(쇼츠) 영상 콘텐츠를 관리하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/clips"
+        }
+      ],
+      "features": [
+        {
+          "name": "쇼츠 목록·패널",
+          "status": "live"
+        }
+      ],
+      "notes": "ClipsClient/ClipsPanels가 /api/clips 사용(클라이언트 내 상대경로). 접근=admin·editor."
+    },
+    {
+      "id": "erp:/marketing",
+      "group": "erp",
+      "name": "마케팅 관리",
+      "role": "마케팅 제안(캠페인)을 관리하고 발송하는 화면",
+      "links_to": [
+        "erp:/members"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/marketing?tab=..."
+        },
+        {
+          "type": "api",
+          "ref": "/api/marketing/proposals/[id]"
+        },
+        {
+          "type": "api",
+          "ref": "/api/marketing/send"
+        }
+      ],
+      "features": [
+        {
+          "name": "제안 탭별 조회·상세",
+          "status": "live"
+        },
+        {
+          "name": "발송(send)",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin·editor."
+    },
+    {
+      "id": "erp:/settlement",
+      "group": "erp",
+      "name": "매니저·정산 / 비용·손익",
+      "role": "매니저 정산과 비용·손익(P&L)을 2탭으로 보는 운영 관리 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/settlement"
+        },
+        {
+          "type": "api",
+          "ref": "/api/manager-perf"
+        },
+        {
+          "type": "api",
+          "ref": "/api/pnl"
+        },
+        {
+          "type": "api",
+          "ref": "/api/expenses"
+        },
+        {
+          "type": "supabase",
+          "ref": "lead_sales"
+        },
+        {
+          "type": "supabase",
+          "ref": "success_fees"
+        },
+        {
+          "type": "supabase",
+          "ref": "wallet_transactions"
+        },
+        {
+          "type": "supabase",
+          "ref": "managers"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_pnl_monthly"
+        },
+        {
+          "type": "supabase",
+          "ref": "expenses"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_manager_perf"
+        },
+        {
+          "type": "supabase",
+          "ref": "manager_lead_pricing"
+        }
+      ],
+      "features": [
+        {
+          "name": "정산 집계",
+          "status": "live"
+        },
+        {
+          "name": "손익(P&L)·비용·매니저 실적",
+          "status": "live"
+        }
+      ],
+      "notes": "settlement=pnl 통합(MODULE_ROUTE pnl→/settlement). 접근=admin·manager."
+    },
+    {
+      "id": "erp:/stats",
+      "group": "erp",
+      "name": "통계·리포트",
+      "role": "수요·퍼널·리드 품질·매니저 실적 등 집계 리포트 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/stats/summary"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_demand_by_model"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_funnel_monthly"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_lead_quality_monthly"
+        },
+        {
+          "type": "supabase",
+          "ref": "v_manager_perf"
+        }
+      ],
+      "features": [
+        {
+          "name": "집계 뷰 기반 리포트",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin·manager."
+    },
+    {
+      "id": "erp:/audit",
+      "group": "erp",
+      "name": "감사 로그",
+      "role": "누가 언제 무엇을 승인/변경했는지 감사 로그(audit_log)를 조회하는 뷰어",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/audit"
+        },
+        {
+          "type": "supabase",
+          "ref": "audit_log"
+        }
+      ],
+      "features": [
+        {
+          "name": "감사 로그 목록 조회",
+          "status": "live"
+        }
+      ],
+      "notes": "배치G2. lib/audit.ts writeAudit가 여러 결재/변경 지점에서 audit_log에 기록, 이 페이지는 읽기 전용. 원래 스코프 목록에는 없었으나 실제 존재하는 페이지라 포함. 접근=admin·manager."
+    },
+    {
+      "id": "erp:/ops",
+      "group": "erp",
+      "name": "운영 데이터(§6.12E)",
+      "role": "사이트 노출 페이지·리콜·시장금리·캐피탈 디렉토리 등 운영 원천 데이터를 관리하는 admin 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/ops"
+        },
+        {
+          "type": "supabase",
+          "ref": "site_pages"
+        },
+        {
+          "type": "supabase",
+          "ref": "recalls"
+        },
+        {
+          "type": "supabase",
+          "ref": "market_rates"
+        },
+        {
+          "type": "supabase",
+          "ref": "capital_directory"
+        }
+      ],
+      "features": [
+        {
+          "name": "resource 탭별 CRUD(site_pages·recalls·market_rates·capital_directory)",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin 전용."
+    },
+    {
+      "id": "erp:/architecture",
+      "group": "erp",
+      "name": "시스템 아키텍처",
+      "role": "docs/architecture.md 문서를 실시간 렌더링하는 뷰어(Mermaid 다이어그램 포함)",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "filesystem",
+          "ref": "docs/architecture.md (lib/monitoring/markdown loadDoc)"
+        }
+      ],
+      "features": [
+        {
+          "name": "마크다운 렌더",
+          "status": "live"
+        },
+        {
+          "name": "Mermaid 클라이언트 렌더",
+          "status": "live"
+        }
+      ],
+      "notes": "배치G1. 신규 API·DB 없음. 접근=admin·dev(PLANE2 infra 게이트)."
+    },
+    {
+      "id": "erp:/console",
+      "group": "erp",
+      "name": "SQL 콘솔",
+      "role": "관리자가 읽기 전용 SQL을 직접 실행해 DB를 조회하는 콘솔",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/console/query"
+        },
+        {
+          "type": "api",
+          "ref": "/api/console/tables"
+        },
+        {
+          "type": "supabase",
+          "ref": "Supabase Management API /projects/{ref}/database/query/read-only"
+        }
+      ],
+      "features": [
+        {
+          "name": "읽기 전용 SQL 실행",
+          "status": "live"
+        },
+        {
+          "name": "테이블 목록·행수(getTableCounts)",
+          "status": "live"
+        }
+      ],
+      "notes": "직접 supabase 조회. /api/console/query는 세미콜론·쓰기 구문 guard 후 lib/monitoring/supabase-mgmt runReadOnlyQuery로 Supabase Management API의 read-only 엔드포인트 호출(SUPABASE_ACCESS_TOKEN 필요). /api/console/tables는 supabase-view getTableCounts. admin 전용(dev 제외)."
+    },
+    {
+      "id": "erp:/settings/secrets",
+      "group": "erp",
+      "name": "시크릿 관리",
+      "role": "시스템 시크릿(환경변수/키)의 존재·상태만 보여주는 현황판. 실제 값은 표시 안 함",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/settings/secrets"
+        },
+        {
+          "type": "filesystem",
+          "ref": "data/secrets-status.json + data/secrets-manifest.public.json"
+        }
+      ],
+      "features": [
+        {
+          "name": "시크릿 상태 현황판(값 미표시)",
+          "status": "live"
+        }
+      ],
+      "notes": "DB 미사용. 로컬 파일 data/secrets-status.json, secrets-manifest.public.json 읽어 상태만 노출. admin 전용."
+    },
+    {
+      "id": "erp:/sheets",
+      "group": "erp",
+      "name": "시트 연동",
+      "role": "구글 시트 연동 콘솔 — 아직 골격만 있는 미완성 화면",
+      "links_to": [
+        "erp:/"
+      ],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/sheets"
+        }
+      ],
+      "features": [
+        {
+          "name": "구글 시트 연동",
+          "status": "todo"
+        }
+      ],
+      "notes": "STUB. /api/sheets는 15줄 골격으로 항상 {status:'pending', jobs:[]} 반환 — 외부 Google Sheets API 미연동. '연동 시트·캐피탈 마이그레이션 2탭' 예정. admin 전용."
+    },
+    {
+      "id": "erp:/monitoring/health",
+      "group": "erp",
+      "name": "모니터링·서비스 헬스",
+      "role": "각 서비스 상태·알림·추적 이슈를 보는 인프라 헬스 대시보드",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/health"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/alerts"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/alerts/acknowledge"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/alerts/mute"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/alerts/promote"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/issues"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/issues/close"
+        }
+      ],
+      "features": [
+        {
+          "name": "라이브 알림·이슈 추적",
+          "status": "live"
+        },
+        {
+          "name": "승격/음소거/확인 처리",
+          "status": "live"
+        }
+      ],
+      "notes": "lib/monitoring/collector·alert-store·issues 기반. 접근=admin·dev(PLANE2)."
+    },
+    {
+      "id": "erp:/monitoring/llm",
+      "group": "erp",
+      "name": "모니터링·LLM 모니터",
+      "role": "LLM 호출량·비용·모델 인벤토리와 Ollama/GPU 서버 상태를 보는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/llm"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/llm/ollama"
+        },
+        {
+          "type": "http",
+          "ref": "Ollama 로컬 http://localhost:11434/api/tags"
+        },
+        {
+          "type": "http",
+          "ref": "Tailscale GPU http://100.80.136.112:11434/api/tags"
+        },
+        {
+          "type": "http",
+          "ref": "n8n REST /api/v1 (getExecutionStats·getLlmCallStats)"
+        },
+        {
+          "type": "supabase",
+          "ref": "review_feedback"
+        }
+      ],
+      "features": [
+        {
+          "name": "LLM 호출·비용 통계",
+          "status": "live"
+        },
+        {
+          "name": "Ollama 로컬·GPU 핑",
+          "status": "live"
+        }
+      ],
+      "notes": "서버 컴포넌트가 lib/monitoring/n8n·infra·llm-model-map·supabase-view 직접 호출. 상류=n8n + Ollama(localhost:11434) + Tailscale GPU(100.80.136.112) + supabase review_feedback. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/n8n",
+      "group": "erp",
+      "name": "모니터링·n8n 워크플로우",
+      "role": "n8n 자동화 워크플로우 실행 통계·노드·크론 건강도를 보는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/n8n/nodes"
+        },
+        {
+          "type": "http",
+          "ref": "n8n REST /api/v1 (env.n8nBaseUrl, X-N8N-API-KEY)"
+        },
+        {
+          "type": "supabase",
+          "ref": "getPipelineFunnel (supabase-view)"
+        },
+        {
+          "type": "http",
+          "ref": "WordPress(wp.ts) getRecentPostsAllStatus"
+        },
+        {
+          "type": "filesystem",
+          "ref": "naver-log getNaverPublishEvents"
+        }
+      ],
+      "features": [
+        {
+          "name": "워크플로우 개요·실행 통계",
+          "status": "live"
+        },
+        {
+          "name": "노드 뷰·크론 헬스·파이프라인 비교",
+          "status": "live"
+        }
+      ],
+      "notes": "상류=n8n REST API(N8N_BASE_URL 기본 localhost:5678, N8N_API_KEY). 파이프라인 퍼널은 supabase 뷰, WP/네이버 발행 현황도 병합. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/prompts",
+      "group": "erp",
+      "name": "모니터링·프롬프트",
+      "role": "n8n·prompt_templates에 쓰이는 프롬프트 슬롯을 조회·수정·롤백하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/prompts?id=..."
+        },
+        {
+          "type": "api",
+          "ref": "/api/prompts/apply"
+        },
+        {
+          "type": "api",
+          "ref": "/api/prompts/sync"
+        },
+        {
+          "type": "api",
+          "ref": "/api/prompts/rollback"
+        },
+        {
+          "type": "api",
+          "ref": "/api/prompts/revisions/[id]"
+        },
+        {
+          "type": "http",
+          "ref": "파이프라인 BFF ${BFF_BASE_URL}/api/prompt-slots (lib/bff)"
+        }
+      ],
+      "features": [
+        {
+          "name": "프롬프트 슬롯 조회·편집·적용",
+          "status": "live"
+        },
+        {
+          "name": "리비전·롤백·동기화",
+          "status": "live"
+        }
+      ],
+      "notes": "상류=외부 파이프라인 BFF(BFF_BASE_URL 기본 localhost:3099). lib/bff getAllSlots와 /api/prompts/* 라우트 모두 BFF /api/prompt-slots 프록시. 실제 프롬프트는 n8n·prompt_templates에 존재. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/automation",
+      "group": "erp",
+      "name": "모니터링·자동화 작업",
+      "role": "맥미니 launchd 예약작업(에이전트/크론) 실행 상태를 보는 워크벤치",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "shell",
+          "ref": "execSync('launchctl list') — 로컬 launchd"
+        }
+      ],
+      "features": [
+        {
+          "name": "launchctl 목록 파싱·표시",
+          "status": "live"
+        }
+      ],
+      "notes": "API·DB 없음. 서버 컴포넌트가 node:child_process execSync로 launchctl list 실행. 조회 실패 시 경고 표시. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/crawl",
+      "group": "erp",
+      "name": "모니터링·크롤 현황",
+      "role": "뉴스/블로그 크롤러 수집량·소스·중복·키워드 규칙 적중을 보는 크롤 대시보드",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/keyword-rules"
+        },
+        {
+          "type": "supabase",
+          "ref": "crawled_articles"
+        },
+        {
+          "type": "supabase",
+          "ref": "curated_topics"
+        },
+        {
+          "type": "supabase",
+          "ref": "cadam_keyword_rules"
+        },
+        {
+          "type": "http",
+          "ref": "n8n getRecentContentExecStats"
+        }
+      ],
+      "features": [
+        {
+          "name": "일별 수집 추이·소스 분석",
+          "status": "live"
+        },
+        {
+          "name": "키워드 규칙 히트맵·죽은 규칙 정리·재크롤",
+          "status": "live"
+        }
+      ],
+      "notes": "서버 컴포넌트가 lib/monitoring/supabase-view(getDailyCrawlCounts·getCrawlBreakdown 등)·crawl-extras·n8n 직접 호출. 상류=크롤러 결과 저장 supabase + n8n. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/content",
+      "group": "erp",
+      "name": "모니터링·콘텐츠 현황",
+      "role": "콘텐츠 생성 퍼널·발행 타임라인·리라이트/리뷰 통계를 보는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "http",
+          "ref": "n8n getExecutionStats·getRecentContentExecStats"
+        },
+        {
+          "type": "http",
+          "ref": "WordPress(wp.ts) getRecentPostsAllStatus"
+        },
+        {
+          "type": "filesystem",
+          "ref": "naver-log getNaverPublishEvents"
+        },
+        {
+          "type": "supabase",
+          "ref": "curated_topics / review_feedback (supabase-view)"
+        }
+      ],
+      "features": [
+        {
+          "name": "콘텐츠 퍼널·발행 타임라인",
+          "status": "live"
+        },
+        {
+          "name": "리뷰 점수·리라이트·차종 작성 매트릭스",
+          "status": "live"
+        }
+      ],
+      "notes": "서버 컴포넌트가 n8n·wp·naver-log·supabase-view 병합. WP는 isWpAuthConfigured로 인증 여부 확인. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/leads",
+      "group": "erp",
+      "name": "모니터링·리드 분석",
+      "role": "리드 유입 집계와 알림 발송 실패를 분석하는 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/leads"
+        },
+        {
+          "type": "supabase",
+          "ref": "consultations"
+        },
+        {
+          "type": "supabase",
+          "ref": "notification_log"
+        }
+      ],
+      "features": [
+        {
+          "name": "리드 집계(getLeadsAggregates)",
+          "status": "live"
+        },
+        {
+          "name": "알림 실패 분석(getNotificationFailures)",
+          "status": "live"
+        }
+      ],
+      "notes": "서버 컴포넌트가 lib/monitoring/supabase-view 직접 호출. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/files",
+      "group": "erp",
+      "name": "모니터링·파일 브라우저",
+      "role": "에이전트 산출물(_meta/agents/*/outputs) 파일 트리를 탐색하는 브라우저",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/files?path=..."
+        },
+        {
+          "type": "filesystem",
+          "ref": "/Users/kim/projects/_meta/agents/*/outputs (readdirSync)"
+        }
+      ],
+      "features": [
+        {
+          "name": "에이전트 산출물 파일 트리·미리보기",
+          "status": "live"
+        }
+      ],
+      "notes": "/api/monitoring/files가 ROOT 하위 경로만 허용(path traversal 차단). 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/supabase",
+      "group": "erp",
+      "name": "모니터링·DB 관리",
+      "role": "Supabase DB 테이블 현황·로그·상태를 보는 관리 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "http",
+          "ref": "Supabase Management API (lib/monitoring/supabase-mgmt, SUPABASE_ACCESS_TOKEN)"
+        },
+        {
+          "type": "supabase",
+          "ref": "supabase-view getTableCounts (각 테이블)"
+        }
+      ],
+      "features": [
+        {
+          "name": "테이블 현황·행수",
+          "status": "live"
+        },
+        {
+          "name": "관리 API 조회",
+          "status": "live"
+        }
+      ],
+      "notes": "상류=Supabase Management API + service_role 뷰. 접근=admin·dev."
+    },
+    {
+      "id": "erp:/monitoring/config",
+      "group": "erp",
+      "name": "모니터링·키워드·점수 설정",
+      "role": "크롤/큐레이션에 쓰는 카테고리·키워드 규칙·점수 가중치를 편집하는 설정 화면",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "/api/monitoring/categories"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/keyword-rules"
+        },
+        {
+          "type": "api",
+          "ref": "/api/monitoring/score-weights"
+        },
+        {
+          "type": "supabase",
+          "ref": "cadam_categories"
+        },
+        {
+          "type": "supabase",
+          "ref": "cadam_keyword_rules"
+        },
+        {
+          "type": "supabase",
+          "ref": "cadam_score_weights"
+        }
+      ],
+      "features": [
+        {
+          "name": "카테고리·키워드 규칙 CRUD",
+          "status": "live"
+        },
+        {
+          "name": "점수 가중치 편집",
+          "status": "live"
+        }
+      ],
+      "notes": "접근=admin·dev."
+    },
+    {
+      "id": "erp:/login",
+      "group": "erp",
+      "name": "로그인",
+      "role": "이메일·비밀번호로 ERP에 로그인하는 공개 화면(비밀번호 재설정 메일 발송 포함)",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase-auth",
+          "ref": "supabase.auth.signInWithPassword / resetPasswordForEmail"
+        }
+      ],
+      "features": [
+        {
+          "name": "이메일·비밀번호 로그인",
+          "status": "live"
+        },
+        {
+          "name": "재설정 메일 발송",
+          "status": "live"
+        }
+      ],
+      "notes": "PUBLIC_PATHS(미들웨어 게이트 제외). createBrowserSupabaseClient 사용. 최초 로그인 계정은 must_reset 플래그로 /reset-password 강제 이동."
+    },
+    {
+      "id": "erp:/reset-password",
+      "group": "erp",
+      "name": "비밀번호 재설정",
+      "role": "새 비밀번호를 설정하는 공개 화면. 최초 발급 계정은 여기로 강제 이동",
+      "links_to": [
+        "erp:/login"
+      ],
+      "data_sources": [
+        {
+          "type": "supabase-auth",
+          "ref": "supabase.auth.updateUser({password, data:{must_reset:false}})"
+        }
+      ],
+      "features": [
+        {
+          "name": "새 비밀번호 설정",
+          "status": "live"
+        }
+      ],
+      "notes": "PUBLIC_PATH. 업데이트 시 must_reset=false로 해제하면 미들웨어 강제 이동 종료."
+    },
+    {
+      "id": "infra:supabase",
+      "group": "infra",
+      "name": "Supabase (공용 DB/Auth/Storage)",
+      "role": "고객웹·ERP 양쪽 앱의 단일 데이터베이스·인증·파일저장소",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "supabase",
+          "ref": "모든 테이블/버킷(car-360 등)"
+        }
+      ],
+      "features": [
+        {
+          "name": "service_role 서버접근",
+          "status": "live"
+        },
+        {
+          "name": "Management API SQL 콘솔(ERP)",
+          "status": "live"
+        }
+      ],
+      "notes": "web·erp 가 동일 NEXT_PUBLIC_SUPABASE_URL 공유. 스키마 변경 시 양쪽 동시 영향(공유 테이블 다수)."
+    },
+    {
+      "id": "infra:n8n",
+      "group": "infra",
+      "name": "n8n 자동화",
+      "role": "콘텐츠 생성·크롤·알림 등 워크플로우 자동화 엔진",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "external",
+          "ref": "n8n REST /api/v1 (:5678)"
+        }
+      ],
+      "features": [
+        {
+          "name": "프롬프트 슬롯 동기화(BFF 경유)",
+          "status": "live"
+        },
+        {
+          "name": "워크플로우 실행/노드 모니터",
+          "status": "live"
+        }
+      ],
+      "notes": "web은 N8N_API_KEY 로, ERP /monitoring/n8n·/monitoring/llm 및 /api/prompts*(cadam-pipeline BFF 경유)로 연동."
+    },
+    {
+      "id": "infra:claude-broker",
+      "group": "infra",
+      "name": "claude-broker (디스코드 에이전트)",
+      "role": "디스코드 봇들이 ERP 태스크·승인카드를 읽고 쓰는 에이전트 브로커",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "api",
+          "ref": "erp:/api/tasks*, erp:/api/agent-approvals*"
+        }
+      ],
+      "features": [
+        {
+          "name": "x-dashboard-token 세션우회 쓰기",
+          "status": "live"
+        }
+      ],
+      "notes": "[TASK] 태그로 erp_tasks 및 승인 파일 조작. ERP middleware 가 DASHBOARD_AUTH_TOKEN 일치 시 세션 게이트 우회."
+    },
+    {
+      "id": "infra:wordpress",
+      "group": "infra",
+      "name": "WordPress 블로그",
+      "role": "정보/블로그 원문 CMS (cadam21y.mycafe24.com)",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "external",
+          "ref": "WP REST (NEXT_PUBLIC_WP_API_URL)"
+        }
+      ],
+      "features": [
+        {
+          "name": "info_articles 미러링(sync-wp 크론)",
+          "status": "live"
+        }
+      ],
+      "notes": "web /api/sync-wp(Vercel Cron, Bearer CRON_SECRET)로 WP→info_articles upsert 후 ISR 재검증. /api/info-articles 는 요청시 병합."
+    },
+    {
+      "id": "infra:cadam-pipeline",
+      "group": "infra",
+      "name": "cadam-pipeline (BFF·크롤러·공공데이터)",
+      "role": "공공데이터 적재·크롤러·프롬프트 BFF(:3099/:9721) 백엔드",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "external",
+          "ref": "BFF_BASE_URL /api/prompt-slots, crawler :9721"
+        }
+      ],
+      "features": [
+        {
+          "name": "공공데이터→supabase 적재",
+          "status": "live"
+        },
+        {
+          "name": "단가생성 generate_pricing.py",
+          "status": "live"
+        }
+      ],
+      "notes": "web의 CORS 공개데이터 API 9종의 상류 데이터 적재. ERP /api/prompts* 가 이 BFF 경유로 n8n 반영. web /api/generate-pricing 와 단가생성 로직 중복."
+    },
+    {
+      "id": "infra:ollama-gpu",
+      "group": "infra",
+      "name": "Ollama / GPU 서버",
+      "role": "로컬·Tailscale GPU 상의 LLM 추론(요약·알림 보강)",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "external",
+          "ref": "ollama localhost:11434 + gpu 100.80.136.112:11434"
+        }
+      ],
+      "features": [
+        {
+          "name": "상담요약·알림 enrich",
+          "status": "live"
+        }
+      ],
+      "notes": "ERP consultations 요약, notify flush/digest, alerts promote 에서 호출. web /api/ai-comment 은 대신 Anthropic API 직접 호출."
+    },
+    {
+      "id": "infra:external-3rd",
+      "group": "infra",
+      "name": "외부 3rd-party(Resend·Solapi·Telegram·Upstash·Anthropic)",
+      "role": "이메일·알림톡/SMS·운영알림·레이트리밋·LLM 등 외부 SaaS",
+      "links_to": [],
+      "data_sources": [
+        {
+          "type": "external",
+          "ref": "Resend, Solapi, Telegram Bot, Upstash Redis, Anthropic API"
+        }
+      ],
+      "features": [
+        {
+          "name": "OTP 알림톡(Solapi)",
+          "status": "live"
+        },
+        {
+          "name": "상담알림(Resend+Telegram)",
+          "status": "live"
+        },
+        {
+          "name": "진단코멘트(Anthropic)",
+          "status": "live"
+        }
+      ],
+      "notes": "web /api/consultation(Resend+Telegram), /api/members/otp/request(Solapi+Upstash), /api/ai-comment(Anthropic). ERP notify 는 Telegram."
+    }
+  ],
+  "edges_cross": [
+    {
+      "from": "erp:계약서류 요청(createUploadToken)",
+      "to": "web:/api/upload/[token]",
+      "kind": "token-handoff",
+      "note": "ERP가 CONTRACT_UPLOAD_TOKEN_SECRET(양 리포 동일 파일 contract-upload-token.ts)로 stateless HMAC 토큰 발급→고객이 web /upload/[token] 접속→GET 요구서류 조회, POST 업로드→contract_documents 저장. customer_contracts 공유. PIPA 2단계 고객 직접 업로드"
+    },
+    {
+      "from": "Vercel Cron",
+      "to": "web:/api/sync-wp",
+      "kind": "cron-webhook",
+      "note": "Bearer CRON_SECRET 인증. WordPress(cadam21y.mycafe24.com)에서 최신글 pull→info_articles upsert→ISR 재검증. 인프라 엣지"
+    },
+    {
+      "from": "external(파이프라인/n8n/WP 훅 추정)",
+      "to": "web:/api/revalidate",
+      "kind": "secret-webhook",
+      "note": "REVALIDATION_SECRET 게이트. /cars/[slug] ISR 재검증. 인앱 호출 미검출 → 외부 트리거 전용(호출 주체 미확정)"
+    },
+    {
+      "from": "web:/api/consultation",
+      "to": "external:Resend + Telegram",
+      "kind": "notification",
+      "note": "상담 인입 시 Resend 이메일(상담사·고객 리포트) + Telegram 운영알림 발송. notification_log 기록"
+    },
+    {
+      "from": "web:/api/ai-comment",
+      "to": "external:Anthropic API",
+      "kind": "llm-call",
+      "note": "claude-sonnet-4 직접 호출로 진단 코멘트 생성. Upstash rate limit"
+    },
+    {
+      "from": "web:/api/members/otp/request",
+      "to": "external:Solapi",
+      "kind": "sms-alimtalk",
+      "note": "솔라피 카카오 알림톡/SMS로 OTP 발송, Upstash Redis에 코드 TTL 저장. dev 스텁 000000"
+    },
+    {
+      "from": "web:/api/status",
+      "to": "local infra(n8n:5678, Ollama:11434, naver publish.log, openclaw sessions, crontab)",
+      "kind": "health-probe",
+      "note": "맥미니 로컬 서비스/파일 헬스 집계(execSync/lsof/fetch). admin 세션 필요. 로컬 전용 — Vercel 서버리스에선 무의미"
+    },
+    {
+      "from": "external origin(rentailor.co.kr/블로그 등)",
+      "to": "web:CORS 공개 데이터 API 9종",
+      "kind": "cors-embed",
+      "note": "accident-stats/estimate-preview/ev-charger-stats/fuel-prices/insurance-stats/recalls/rental-price/used-prices/victim-stats — allowCors로 외부 origin 임베드 허용(rate limit). 상류 공공데이터는 cadam-pipeline이 supabase 테이블에 적재"
+    },
+    {
+      "from": "web:info-articles / sync-wp",
+      "to": "external:WordPress",
+      "kind": "cms-read",
+      "note": "info-articles는 요청시 WP 블로그글 병합, sync-wp는 크론으로 WP→info_articles 미러링"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks",
+      "kind": "broker-write",
+      "note": "[TASK] 태그로 GET/POST/PATCH, x-dashboard-token 세션 우회(erp_tasks)"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks/[id]",
+      "kind": "broker-write",
+      "note": "태스크 상태 수정, x-dashboard-token"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks/[id]/approval",
+      "kind": "broker-write",
+      "note": "승인 처리, x-dashboard-token"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks/[id]/approval/request",
+      "kind": "broker-write",
+      "note": "승인 요청, x-dashboard-token"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks/[id]/thread",
+      "kind": "broker-read",
+      "note": "스레드 조회, x-dashboard-token"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks/[id]/timeline",
+      "kind": "broker-read",
+      "note": "타임라인, x-dashboard-token"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/tasks/progress",
+      "kind": "broker-write",
+      "note": "진행 로그 기록(erp_task_progress_log), ERP UI 호출 없음, x-dashboard-token"
+    },
+    {
+      "from": "claude-broker",
+      "to": "erp:/api/agent-approvals/decide",
+      "kind": "broker-fs",
+      "note": "broker가 pending .md 생성→ERP/broker가 decide로 이동. x-dashboard-token 우회 경로(/api/agent-approvals*)"
+    },
+    {
+      "from": "cron:collect-tick.sh",
+      "to": "erp:/api/monitoring/collect",
+      "kind": "cron",
+      "note": "x-collector-secret. 스냅샷 수집→sqlite alerts.db 알림 발화"
+    },
+    {
+      "from": "cron:collect-tick.sh",
+      "to": "erp:/api/notify/flush",
+      "kind": "cron",
+      "note": "x-collector-secret. notify_queue→Telegram(+Ollama enrich)"
+    },
+    {
+      "from": "cron:collect-tick.sh",
+      "to": "erp:/api/notify/digest",
+      "kind": "cron",
+      "note": "x-collector-secret. 일일 다이제스트→Telegram(+Ollama)"
+    },
+    {
+      "from": "erp:/api/prompts*",
+      "to": "bff:cadam-pipeline /api/prompt-slots",
+      "kind": "http",
+      "note": "프롬프트 슬롯 CRUD/apply/sync/rollback→BFF가 n8n 반영"
+    },
+    {
+      "from": "erp:/api/monitoring/llm",
+      "to": "n8n:/api/v1",
+      "kind": "http",
+      "note": "실행/LLM 호출 통계"
+    },
+    {
+      "from": "erp:/api/monitoring/n8n/nodes",
+      "to": "n8n:/api/v1",
+      "kind": "http",
+      "note": "워크플로우 노드 뷰"
+    },
+    {
+      "from": "erp:/api/monitoring/health",
+      "to": "n8n+WordPress+crawler(9721)+Supabase",
+      "kind": "http-ping",
+      "note": "서비스 헬스체크"
+    },
+    {
+      "from": "erp:/api/monitoring/llm/ollama",
+      "to": "ollama:localhost:11434 + gpu:100.80.136.112:11434",
+      "kind": "http",
+      "note": "로컬/Tailscale GPU Ollama 상태"
+    },
+    {
+      "from": "erp:/api/consultations/[id]/summary",
+      "to": "ollama:localhost:11434",
+      "kind": "llm",
+      "note": "상담 LLM 요약 생성"
+    },
+    {
+      "from": "erp:/api/monitoring/alerts/promote",
+      "to": "ollama + git-push(docs/ISSUES.md)",
+      "kind": "llm+git",
+      "note": "알림→이슈 승격 드래프트 생성 후 문서 커밋"
+    },
+    {
+      "from": "erp:/api/monitoring/issues*",
+      "to": "git-push(docs/ISSUES.md)",
+      "kind": "git",
+      "note": "이슈 추가/닫기 시 commitAndPush"
+    },
+    {
+      "from": "erp:/api/console/query",
+      "to": "supabase:Management API",
+      "kind": "admin-sql",
+      "note": "읽기전용 SQL 콘솔"
+    },
+    {
+      "from": "erp:/api/contracts/[id]/upload-link",
+      "to": "web:rentailor.co.kr/upload",
+      "kind": "token-link",
+      "note": "고객 웹앱 업로드 페이지용 서명 토큰 URL 발급"
+    },
+    {
+      "from": "erp:/api/images/[slug]/frames",
+      "to": "supabase:Storage(car-360)",
+      "kind": "storage",
+      "note": "360 프레임 목록"
+    }
+  ],
+  "api_index": {
+    "web": [
+      {
+        "route": "/api/accident-stats",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "insurance_stats"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [
+          "CORS 허용(rentailor.co.kr) — 외부 위젯/블로그 임베드 가능"
+        ],
+        "notes": "사고통계 조회. service_role. allowCors 적용"
+      },
+      {
+        "route": "/api/admin/callbacks",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [],
+        "notes": "관리자 콜백요청 목록. ADMIN_EMAIL 가드. consultations는 ERP와 공유 후보"
+      },
+      {
+        "route": "/api/admin/contracts",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [
+          "ERP와 customer_contracts 테이블 공유"
+        ],
+        "notes": "관리자가 계약 생성/수정(service_role). ADMIN_EMAIL 가드. customer_contracts = ERP 핵심 공유 테이블"
+      },
+      {
+        "route": "/api/admin/dashboard",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [],
+        "notes": "관리자 대시보드 집계. ADMIN_EMAIL 가드"
+      },
+      {
+        "route": "/api/admin/diagnosis-config",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "diagnosis_config"
+          }
+        ],
+        "callers": [
+          "web:admin UI(2)"
+        ],
+        "external": [],
+        "notes": "진단 설정 수정. ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/admin/finance-rates",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "finance_rates"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [],
+        "notes": "금융금리 수정. ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/admin/info-articles",
+        "methods": [
+          "POST",
+          "PATCH",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "info_articles"
+          }
+        ],
+        "callers": [
+          "web:admin UI(6)"
+        ],
+        "external": [],
+        "notes": "정보글 CRUD. ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/admin/info-categories",
+        "methods": [
+          "POST",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "info_categories"
+          }
+        ],
+        "callers": [
+          "web:admin UI(2)"
+        ],
+        "external": [],
+        "notes": "정보 카테고리 관리. ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/admin/members",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [
+          "members = ERP와 공유 후보"
+        ],
+        "notes": "회원 목록. ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/admin/revalidate",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "static",
+            "ref": "revalidatePath('/cars/[slug]')"
+          }
+        ],
+        "callers": [
+          "web:admin UI(3)"
+        ],
+        "external": [],
+        "notes": "관리자 ISR 재검증(zod slug). ADMIN_EMAIL 가드 — /api/revalidate(secret)와 별개, admin 세션 인증"
+      },
+      {
+        "route": "/api/admin/update-car-image",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "storage bucket(admin.storage.from(BUCKET) — 테이블 미사용)"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [],
+        "notes": "reprocessCarImage로 이미지 가공→Storage 버킷 업로드→publicUrl 반환 후 revalidatePath. DB 테이블 .from 없음(Storage 전용). ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/admin/update-spin-frame",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [],
+        "notes": "360 뷰 스핀프레임 번호 갱신 후 revalidatePath. ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/ai-comment",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "Anthropic API (claude-sonnet-4-20250514)"
+          },
+          {
+            "type": "external",
+            "ref": "Upstash ratelimit"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [
+          "Anthropic LLM 직접 호출"
+        ],
+        "notes": "진단 AI 코멘트 생성. rateLimiter.limit(ip). ANTHROPIC_API_KEY"
+      },
+      {
+        "route": "/api/capital-directory",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "capital_directory"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [],
+        "notes": "캐피탈사 디렉토리. service_role"
+      },
+      {
+        "route": "/api/catalog-pricing",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "pricing"
+          }
+        ],
+        "callers": [
+          "web(3)"
+        ],
+        "external": [],
+        "notes": "카탈로그 가격표. revalidate=60. service_role"
+      },
+      {
+        "route": "/api/catalog-specs",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_powertrains"
+          }
+        ],
+        "callers": [
+          "web(3)"
+        ],
+        "external": [],
+        "notes": "카탈로그 제원. revalidate=60. service_role"
+      },
+      {
+        "route": "/api/community/answers",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "community_answers"
+          }
+        ],
+        "callers": [
+          "web:community"
+        ],
+        "external": [],
+        "notes": "커뮤니티 답변 작성. getMemberId 세션 필요 + service_role"
+      },
+      {
+        "route": "/api/community/posts/[id]",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "community_posts"
+          },
+          {
+            "type": "supabase",
+            "ref": "community_answers"
+          },
+          {
+            "type": "supabase",
+            "ref": "community_comments"
+          }
+        ],
+        "callers": [
+          "web:community(1)"
+        ],
+        "external": [],
+        "notes": "게시글 상세+답변+댓글. getMemberId(내 반응 표시용)"
+      },
+      {
+        "route": "/api/community/posts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "community_posts"
+          },
+          {
+            "type": "supabase",
+            "ref": "community_answers"
+          }
+        ],
+        "callers": [
+          "web:community(2)"
+        ],
+        "external": [],
+        "notes": "게시글 목록/작성. POST는 getMemberId 필요"
+      },
+      {
+        "route": "/api/community/reactions",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "community_reactions"
+          }
+        ],
+        "callers": [
+          "web:community"
+        ],
+        "external": [],
+        "notes": "좋아요/반응 토글. getMemberId 필요"
+      },
+      {
+        "route": "/api/consultation",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "notification_log"
+          },
+          {
+            "type": "supabase",
+            "ref": "pricing(estimatePricing 경유)"
+          },
+          {
+            "type": "external",
+            "ref": "Resend email"
+          },
+          {
+            "type": "external",
+            "ref": "Telegram Bot API"
+          },
+          {
+            "type": "external",
+            "ref": "Upstash ratelimit"
+          }
+        ],
+        "callers": [
+          "web(12) — 진단/견적 폼"
+        ],
+        "external": [
+          "Resend 상담사·고객 리포트 이메일",
+          "Telegram 운영알림"
+        ],
+        "notes": "핵심 리드 인입. rateLimiter + 리드스코어 + 이메일2종 + 텔레그램. consultations = ERP와 공유 핵심 테이블"
+      },
+      {
+        "route": "/api/estimate-preview",
+        "methods": [
+          "OPTIONS",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "pricing(estimatePricing 경유)"
+          }
+        ],
+        "callers": [
+          "web:견적"
+        ],
+        "external": [
+          "CORS 허용 — 외부 origin 호출 가능"
+        ],
+        "notes": "렌트료 미리보기 계산. allowCors + service_role. .from 직접 없음(estimatePricing 라이브러리)"
+      },
+      {
+        "route": "/api/ev-charger-stats",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "ev_chargers"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 위젯 임베드"
+        ],
+        "notes": "전기차 충전소 통계. 원천 공공데이터는 파이프라인이 ev_chargers에 적재. allowCors"
+      },
+      {
+        "route": "/api/ev-chargers",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "ev_chargers"
+          }
+        ],
+        "callers": [
+          "web:components/map/KakaoMap.tsx"
+        ],
+        "external": [],
+        "notes": "충전소 목록. service_role. 상류 공공API는 cadam-pipeline이 적재"
+      },
+      {
+        "route": "/api/fuel-prices",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "fuel_prices"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 위젯 임베드"
+        ],
+        "notes": "유가 정보. 상류 오피넷 등 공공API는 파이프라인이 fuel_prices에 적재. allowCors"
+      },
+      {
+        "route": "/api/garage",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "contract_vehicles"
+          }
+        ],
+        "callers": [
+          "web:마이차고(1)"
+        ],
+        "external": [
+          "contract_vehicles = ERP 계약 파생 데이터"
+        ],
+        "notes": "내 차고(계약 차량). getMemberId 필요 + service_role"
+      },
+      {
+        "route": "/api/gas-stations",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "gas_stations"
+          }
+        ],
+        "callers": [
+          "web:components/map/KakaoMap.tsx"
+        ],
+        "external": [],
+        "notes": "주유소(kakao_id 등). service_role. 상류 카카오/공공API는 파이프라인 적재"
+      },
+      {
+        "route": "/api/generate-pricing",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "pricing"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicle_trims"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "web:admin UI(1)"
+        ],
+        "external": [
+          "ERP generate_pricing.py 파이프라인과 로직 중복"
+        ],
+        "notes": "가격표 생성(관리자). ADMIN_EMAIL 가드 + service_role"
+      },
+      {
+        "route": "/api/home-cms",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "home_sections"
+          },
+          {
+            "type": "supabase",
+            "ref": "billboard_slides"
+          }
+        ],
+        "callers": [
+          "web:home(1)"
+        ],
+        "external": [],
+        "notes": "홈 CMS 섹션/빌보드. s-maxage=60 캐시"
+      },
+      {
+        "route": "/api/info-articles",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "info_articles"
+          },
+          {
+            "type": "external",
+            "ref": "WordPress (wp-client fetchWpPosts)"
+          }
+        ],
+        "callers": [
+          "web(7)"
+        ],
+        "external": [
+          "WordPress cadam21y.mycafe24.com 블로그 병합"
+        ],
+        "notes": "DB 정보글 + WP 블로그글 병합 반환. s-maxage=60"
+      },
+      {
+        "route": "/api/insurance-stats",
+        "methods": [
+          "OPTIONS",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "insurance_stats"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 위젯/도구 임베드"
+        ],
+        "notes": "보험료 통계 조회(POST 파라미터). allowCors + rate limit"
+      },
+      {
+        "route": "/api/market-insight",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "car_sales_monthly"
+          },
+          {
+            "type": "supabase",
+            "ref": "market_rates"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [],
+        "notes": "시장 인사이트. revalidate=3600. service_role"
+      },
+      {
+        "route": "/api/members/contracts",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          }
+        ],
+        "callers": [
+          "web:마이페이지(1)"
+        ],
+        "external": [
+          "customer_contracts = ERP 공유 핵심 테이블"
+        ],
+        "notes": "내 계약 목록. getMemberId 필요 + service_role"
+      },
+      {
+        "route": "/api/members/favorites",
+        "methods": [
+          "GET",
+          "POST",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "favorites"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [],
+        "notes": "찜 목록/추가/삭제. getMemberId 필요"
+      },
+      {
+        "route": "/api/members/me",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [
+          "members = ERP 공유 후보"
+        ],
+        "notes": "내 정보 + refreshMemberSession(슬라이딩 갱신)"
+      },
+      {
+        "route": "/api/members/mypage",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          }
+        ],
+        "callers": [
+          "web:마이페이지(1)"
+        ],
+        "external": [],
+        "notes": "마이페이지 집계. getMemberId 필요"
+      },
+      {
+        "route": "/api/members/notifications",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_consents"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [],
+        "notes": "마케팅 채널동의(sms/kakao/email/push) member_consents 장부. getMemberId 필요"
+      },
+      {
+        "route": "/api/members/otp/request",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "Solapi 알림톡/SMS (otp-providers)"
+          },
+          {
+            "type": "external",
+            "ref": "Upstash Redis otp-store TTL 3분"
+          }
+        ],
+        "callers": [
+          "web:로그인(1)"
+        ],
+        "external": [
+          "Solapi(솔라피) 카카오 알림톡 발송"
+        ],
+        "notes": "OTP 발송. dev는 스텁 고정코드 000000. isStubMode 분기"
+      },
+      {
+        "route": "/api/members/otp/verify",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_consents"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "external",
+            "ref": "Upstash Redis otp-store"
+          }
+        ],
+        "callers": [
+          "web:로그인(1)"
+        ],
+        "external": [],
+        "notes": "OTP 검증→회원 upsert→setMemberSession(rt_member 쿠키). consultations 매칭 병합"
+      },
+      {
+        "route": "/api/members/signout",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "static",
+            "ref": "clearMemberSession 쿠키 삭제"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [],
+        "notes": "로그아웃(쿠키 클리어)"
+      },
+      {
+        "route": "/api/points",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "point_rules"
+          },
+          {
+            "type": "supabase",
+            "ref": "point_redeem_policy"
+          },
+          {
+            "type": "supabase",
+            "ref": "point_transactions"
+          }
+        ],
+        "callers": [
+          "web(3)"
+        ],
+        "external": [
+          "포인트/카카오페이 정산은 ERP 연계 후보"
+        ],
+        "notes": "포인트 조회/사용(kakaopay method). getMemberId 필요"
+      },
+      {
+        "route": "/api/promotions",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "promotions"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [
+          "promotions = ERP 공유 후보"
+        ],
+        "notes": "프로모션 목록. s-maxage=3600. createServerSupabaseClient(anon)"
+      },
+      {
+        "route": "/api/recalls",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "recall_slugs"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 임베드"
+        ],
+        "notes": "차량 리콜 조회. anon 키 사용(예외). allowCors"
+      },
+      {
+        "route": "/api/rental-price",
+        "methods": [
+          "OPTIONS",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "rental_prices"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 위젯/도구 임베드"
+        ],
+        "notes": "렌탈료 조회(POST). allowCors + rate limit + service_role"
+      },
+      {
+        "route": "/api/repair-shops",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "repair_shops"
+          }
+        ],
+        "callers": [
+          "web:components/map/KakaoMap.tsx"
+        ],
+        "external": [],
+        "notes": "정비소 목록. service_role"
+      },
+      {
+        "route": "/api/revalidate",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "static",
+            "ref": "revalidatePath('/cars/[slug]')"
+          }
+        ],
+        "callers": [
+          "EXTERNAL: REVALIDATION_SECRET 보유자(파이프라인/n8n/WP 훅 추정)"
+        ],
+        "external": [
+          "시크릿 게이트 ISR 재검증 트리거 — 외부 호출용"
+        ],
+        "notes": "secret !== REVALIDATION_SECRET 이면 거부. 인앱 fetch 미검출 → 외부 트리거 전용"
+      },
+      {
+        "route": "/api/reviews",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          }
+        ],
+        "callers": [
+          "web(3)"
+        ],
+        "external": [
+          "reviews = ERP 공유 후보"
+        ],
+        "notes": "리뷰 목록/작성. POST는 getMemberId 필요"
+      },
+      {
+        "route": "/api/status",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "supabase(헬스체크)"
+          },
+          {
+            "type": "external",
+            "ref": "로컬 n8n :5678 /api/v1"
+          },
+          {
+            "type": "external",
+            "ref": "로컬 Ollama :11434 /api/ps"
+          },
+          {
+            "type": "external",
+            "ref": "로컬 파일시스템(publish.log/backup.log/openclaw sessions/crontab)"
+          }
+        ],
+        "callers": [
+          "web:admin UI"
+        ],
+        "external": [
+          "로컬 인프라(n8n/Ollama/네이버 발행/OpenClaw) 헬스 집계"
+        ],
+        "notes": "운영 헬스 엔드포인트. 로그인 세션 필요(user 없으면 401). execSync/lsof 사용 — 맥미니 로컬 전용"
+      },
+      {
+        "route": "/api/sync-wp",
+        "methods": [
+          "POST",
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "info_articles"
+          },
+          {
+            "type": "external",
+            "ref": "WordPress cadam21y.mycafe24.com /wp-json"
+          }
+        ],
+        "callers": [
+          "EXTERNAL: Vercel Cron (Bearer CRON_SECRET)"
+        ],
+        "external": [
+          "WordPress 동기화 크론 — 인프라 엣지"
+        ],
+        "notes": "WP 최신글→info_articles upsert 후 revalidateTag('wp-posts')+revalidatePath('/info'). GET은 POST 별칭. CRON_SECRET 게이트"
+      },
+      {
+        "route": "/api/upload/[token]",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "contract_documents"
+          },
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          }
+        ],
+        "callers": [
+          "web:/upload/[token] 고객 업로드 페이지",
+          "EXTERNAL: ERP가 createUploadToken으로 토큰 발급→고객에게 링크 전달"
+        ],
+        "external": [
+          "ERP↔web 계약서류 토큰 핸드오프 (PIPA 2단계)"
+        ],
+        "notes": "verifyUploadToken(HMAC, CONTRACT_UPLOAD_TOKEN_SECRET 양 리포 공유). GET=요구서류 조회, POST=업로드→contract_documents. service_role"
+      },
+      {
+        "route": "/api/used-prices",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_used_prices"
+          }
+        ],
+        "callers": [
+          "web(4)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 위젯 임베드"
+        ],
+        "notes": "중고 시세. allowCors + service_role"
+      },
+      {
+        "route": "/api/vehicle-msrp/brands",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_msrp"
+          }
+        ],
+        "callers": [
+          "web"
+        ],
+        "external": [],
+        "notes": "MSRP 브랜드 목록. max-age=3600 캐시"
+      },
+      {
+        "route": "/api/vehicle-msrp/models",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_msrp"
+          }
+        ],
+        "callers": [
+          "web(3)"
+        ],
+        "external": [],
+        "notes": "MSRP 모델 목록. max-age=3600 캐시"
+      },
+      {
+        "route": "/api/vehicle-msrp",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_msrp"
+          }
+        ],
+        "callers": [
+          "web(4)"
+        ],
+        "external": [],
+        "notes": "MSRP 상세. max-age=86400 캐시"
+      },
+      {
+        "route": "/api/vehicle-spec",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicle_powertrains"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [],
+        "notes": "차량 제원. revalidate=300. service_role"
+      },
+      {
+        "route": "/api/vehicles/brands",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [],
+        "notes": "차량 브랜드 목록. max-age=3600 캐시"
+      },
+      {
+        "route": "/api/vehicles/models",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [],
+        "notes": "차량 모델 목록. max-age=3600 캐시"
+      },
+      {
+        "route": "/api/vehicles/trims",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_trims"
+          }
+        ],
+        "callers": [
+          "web(1)"
+        ],
+        "external": [],
+        "notes": "차량 트림 목록. max-age=86400 캐시"
+      },
+      {
+        "route": "/api/victim-stats",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "insurance_victim_stats"
+          }
+        ],
+        "callers": [
+          "web(2)"
+        ],
+        "external": [
+          "CORS 허용 — 외부 위젯 임베드"
+        ],
+        "notes": "교통사고 피해자 통계. allowCors + service_role"
+      }
+    ],
+    "erp": [
+      {
+        "route": "/api/agent-approvals/decide",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "filesystem",
+            "ref": "AGENTS_ROOT/<agent>/outputs/pending|decided (lib/agent-approvals decidePendingApproval, renameSync)"
+          }
+        ],
+        "callers": [
+          "erp:/agent-approvals/[agent]/[file]",
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회 대상(/api/agent-approvals*)"
+        ],
+        "notes": "파일시스템 기반 결재. broker가 pending .md 생성→ERP가 승인/반려로 decided 이동. Supabase 미사용"
+      },
+      {
+        "route": "/api/approvals",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_tasks"
+          },
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          },
+          {
+            "type": "supabase",
+            "ref": "success_fees"
+          }
+        ],
+        "callers": [
+          "erp:/approvals"
+        ],
+        "external": [],
+        "notes": "통합 결재함(태스크+리뷰+성공보수)"
+      },
+      {
+        "route": "/api/audit",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "audit_log"
+          }
+        ],
+        "callers": [
+          "erp:/audit"
+        ],
+        "external": [],
+        "notes": "감사 로그 조회"
+      },
+      {
+        "route": "/api/catalog/[slug]",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicle_trims"
+          },
+          {
+            "type": "supabase",
+            "ref": "trim_options"
+          },
+          {
+            "type": "supabase",
+            "ref": "pricing"
+          }
+        ],
+        "callers": [
+          "erp:/catalog"
+        ],
+        "external": [],
+        "notes": "차종 상세(트림/옵션/가격)"
+      },
+      {
+        "route": "/api/catalog/deprec",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "v_deprec_model_year"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "erp:/catalog"
+        ],
+        "external": [],
+        "notes": "감가 뷰"
+      },
+      {
+        "route": "/api/catalog/msrp",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicle_msrp"
+          }
+        ],
+        "callers": [
+          "erp:/catalog"
+        ],
+        "external": [],
+        "notes": "MSRP 조회"
+      },
+      {
+        "route": "/api/catalog",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "erp:/catalog",
+          "erp:/contracts"
+        ],
+        "external": [],
+        "notes": "차종 목록. web에는 /api/catalog 없음(웹은 직접 vehicles 조회)"
+      },
+      {
+        "route": "/api/clips",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "static",
+            "ref": "하드코딩 빈 배열(clips 테이블 없음)"
+          }
+        ],
+        "callers": [
+          "erp:(clips 페이지)"
+        ],
+        "external": [],
+        "notes": "쇼츠 관리 껍데기. DB 조회 없음. web에도 clips API 없음"
+      },
+      {
+        "route": "/api/console/query",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "Supabase Management API 읽기전용 SQL (lib/monitoring/supabase-mgmt runReadOnlyQuery)"
+          }
+        ],
+        "callers": [
+          "erp:/console"
+        ],
+        "external": [
+          "Supabase Management API"
+        ],
+        "notes": "관리 콘솔 read-only SQL"
+      },
+      {
+        "route": "/api/console/tables",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "다중 테이블 count (lib/monitoring/supabase-view getTableCounts)"
+          }
+        ],
+        "callers": [
+          "erp:/console"
+        ],
+        "external": [],
+        "notes": "테이블별 행수"
+      },
+      {
+        "route": "/api/consultations/[id]/quotes/[quoteId]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultation_quotes"
+          }
+        ],
+        "callers": [
+          "erp:/consultations/[id]"
+        ],
+        "external": [],
+        "notes": "견적 수정"
+      },
+      {
+        "route": "/api/consultations/[id]/quotes",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultation_quotes"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          }
+        ],
+        "callers": [
+          "erp:/consultations/[id]"
+        ],
+        "external": [],
+        "notes": "상담 견적 목록/생성"
+      },
+      {
+        "route": "/api/consultations/[id]",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "diagnosis_reports"
+          },
+          {
+            "type": "supabase",
+            "ref": "managers"
+          },
+          {
+            "type": "supabase",
+            "ref": "notification_log"
+          }
+        ],
+        "callers": [
+          "erp:/consultations/[id]",
+          "erp:/lead-dispatch"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): 웹은 consultations를 members/mypage·otp에서 조회. 같은 테이블 consultations"
+      },
+      {
+        "route": "/api/consultations/[id]/summary",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultation_quotes"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultation_summaries"
+          },
+          {
+            "type": "supabase",
+            "ref": "notification_log"
+          },
+          {
+            "type": "external",
+            "ref": "Ollama (lib/consult-summary summarizeConsultation)"
+          }
+        ],
+        "callers": [
+          "erp:/consultations/[id]"
+        ],
+        "external": [
+          "Ollama LLM 요약"
+        ],
+        "notes": "POST=LLM 상담요약 생성"
+      },
+      {
+        "route": "/api/consultations",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          }
+        ],
+        "callers": [
+          "erp:/consultations",
+          "erp:/lead-dispatch"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): 같은 consultations 테이블. 웹은 별도 /api/consultations route 없음"
+      },
+      {
+        "route": "/api/content/articles/[id]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "info_articles"
+          }
+        ],
+        "callers": [
+          "erp:/content"
+        ],
+        "external": [],
+        "notes": "정보성 아티클 수정"
+      },
+      {
+        "route": "/api/content/articles",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "info_articles"
+          }
+        ],
+        "callers": [
+          "erp:/content"
+        ],
+        "external": [],
+        "notes": "아티클 목록"
+      },
+      {
+        "route": "/api/content/diagnosis",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "diagnosis_config"
+          },
+          {
+            "type": "supabase",
+            "ref": "diagnosis_reports"
+          }
+        ],
+        "callers": [
+          "erp:/content"
+        ],
+        "external": [],
+        "notes": "진단 설정/리포트"
+      },
+      {
+        "route": "/api/content/promotions",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "promotions"
+          }
+        ],
+        "callers": [
+          "erp:/content"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web /api/promotions 도 promotions 테이블 동일"
+      },
+      {
+        "route": "/api/contracts/[id]/documents",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "contract_documents"
+          },
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          }
+        ],
+        "callers": [
+          "erp:/contracts"
+        ],
+        "external": [],
+        "notes": "계약 문서. lib/contract-doc-requirements 사용"
+      },
+      {
+        "route": "/api/contracts/[id]",
+        "methods": [
+          "GET",
+          "PATCH",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          }
+        ],
+        "callers": [
+          "erp:/contracts"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web members/contracts 도 customer_contracts 동일"
+      },
+      {
+        "route": "/api/contracts/[id]/upload-link",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          },
+          {
+            "type": "external",
+            "ref": "업로드 토큰→ https://rentailor.co.kr/upload (customer web)"
+          }
+        ],
+        "callers": [
+          "erp:/contracts"
+        ],
+        "external": [
+          "customer web app 업로드 페이지"
+        ],
+        "notes": "서명 토큰 생성(lib/contract-upload-token)→고객 웹 업로드 URL"
+      },
+      {
+        "route": "/api/contracts",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "customer_contracts"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          },
+          {
+            "type": "supabase",
+            "ref": "capital_directory"
+          }
+        ],
+        "callers": [
+          "erp:/contracts"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): 같은 customer_contracts"
+      },
+      {
+        "route": "/api/dashboard/summary",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "lead_sales"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_funnel_monthly"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_manager_perf"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_pnl_monthly"
+          }
+        ],
+        "callers": [
+          "erp:/(대시보드 홈)"
+        ],
+        "external": [],
+        "notes": "홈 요약 KPI"
+      },
+      {
+        "route": "/api/expenses",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "expenses"
+          }
+        ],
+        "callers": [
+          "erp:/settlement"
+        ],
+        "external": [],
+        "notes": "비용 기록. (파일에 n8n 문자열은 주석/무관)"
+      },
+      {
+        "route": "/api/faq/[id]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "faqs"
+          }
+        ],
+        "callers": [
+          "erp:/faq"
+        ],
+        "external": [],
+        "notes": "FAQ 수정"
+      },
+      {
+        "route": "/api/faq",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "faqs"
+          }
+        ],
+        "callers": [
+          "erp:/faq"
+        ],
+        "external": [],
+        "notes": "FAQ 목록"
+      },
+      {
+        "route": "/api/finance",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "finance_rates"
+          }
+        ],
+        "callers": [
+          "erp:/finance (FinanceClient)"
+        ],
+        "external": [],
+        "notes": "금융 요율. web에는 /api/finance 없음"
+      },
+      {
+        "route": "/api/finance/summary",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "finance_rates"
+          }
+        ],
+        "callers": [
+          "erp:/finance",
+          "erp:/settlement"
+        ],
+        "external": [],
+        "notes": "요율 요약"
+      },
+      {
+        "route": "/api/images/[slug]/frames",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "Supabase Storage bucket car-360 list"
+          }
+        ],
+        "callers": [
+          "erp:/images (ImagesClient)"
+        ],
+        "external": [
+          "Supabase Storage"
+        ],
+        "notes": "360 프레임 목록(스토리지)"
+      },
+      {
+        "route": "/api/images/[slug]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          }
+        ],
+        "callers": [
+          "erp:/images"
+        ],
+        "external": [],
+        "notes": "차종 이미지 메타 수정"
+      },
+      {
+        "route": "/api/images",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          },
+          {
+            "type": "supabase",
+            "ref": "info_articles"
+          },
+          {
+            "type": "supabase",
+            "ref": "promotions"
+          },
+          {
+            "type": "supabase",
+            "ref": "trim_options"
+          },
+          {
+            "type": "external",
+            "ref": "lib/reprocess-car-image (이미지 가공)"
+          }
+        ],
+        "callers": [
+          "erp:/images"
+        ],
+        "external": [
+          "이미지 리프로세싱"
+        ],
+        "notes": "이미지 통합 관리"
+      },
+      {
+        "route": "/api/lead-market/buy",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "manager_lead_pricing"
+          }
+        ],
+        "callers": [
+          "erp:/lead-market"
+        ],
+        "external": [],
+        "notes": "리드 구매"
+      },
+      {
+        "route": "/api/lead-market",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "lead_sales"
+          },
+          {
+            "type": "supabase",
+            "ref": "manager_lead_pricing"
+          }
+        ],
+        "callers": [
+          "erp:/lead-market"
+        ],
+        "external": [],
+        "notes": "리드 마켓 목록"
+      },
+      {
+        "route": "/api/manager-perf",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "managers"
+          },
+          {
+            "type": "supabase",
+            "ref": "manager_lead_pricing"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_manager_perf"
+          }
+        ],
+        "callers": [
+          "erp:/settlement"
+        ],
+        "external": [],
+        "notes": "매니저 실적"
+      },
+      {
+        "route": "/api/managers",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "managers"
+          }
+        ],
+        "callers": [
+          "erp:/consultations",
+          "erp:/lead-dispatch"
+        ],
+        "external": [],
+        "notes": "매니저 목록"
+      },
+      {
+        "route": "/api/market-insight",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "car_sales_monthly"
+          }
+        ],
+        "callers": [
+          "erp:/market-insight"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web /api/market-insight = car_sales_monthly + market_rates. ERP는 car_sales_monthly 만"
+      },
+      {
+        "route": "/api/marketing/proposals/[id]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "marketing_agent_proposals"
+          }
+        ],
+        "callers": [
+          "erp:/marketing"
+        ],
+        "external": [],
+        "notes": "마케팅 에이전트 제안 수정"
+      },
+      {
+        "route": "/api/marketing",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "marketing_channels"
+          },
+          {
+            "type": "supabase",
+            "ref": "marketing_campaigns"
+          },
+          {
+            "type": "supabase",
+            "ref": "marketing_keywords"
+          },
+          {
+            "type": "supabase",
+            "ref": "marketing_agent_proposals"
+          }
+        ],
+        "callers": [
+          "erp:/marketing"
+        ],
+        "external": [],
+        "notes": "탭별(channels/campaigns/keywords/proposals) 동적 조회"
+      },
+      {
+        "route": "/api/marketing/send",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_consents"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          },
+          {
+            "type": "supabase",
+            "ref": "marketing_sends"
+          }
+        ],
+        "callers": [
+          "erp:/members"
+        ],
+        "external": [],
+        "notes": "세그먼트 대상 마케팅 발송 기록(marketing_sends insert). 실제 외부 발송 채널 코드 없음(기록만)"
+      },
+      {
+        "route": "/api/members/[id]/consents",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "member_consents"
+          },
+          {
+            "type": "supabase",
+            "ref": "members"
+          }
+        ],
+        "callers": [
+          "erp:/members"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web도 member_consents 동일"
+      },
+      {
+        "route": "/api/members/[id]/memo",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "member_memo"
+          }
+        ],
+        "callers": [
+          "erp:/members"
+        ],
+        "external": [],
+        "notes": "회원 메모(ERP 전용 테이블)"
+      },
+      {
+        "route": "/api/members/[id]",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_consents"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_memo"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_tags"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          }
+        ],
+        "callers": [
+          "erp:/members"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): 핵심 members 테이블 공유. member_memo/member_tags는 ERP 전용"
+      },
+      {
+        "route": "/api/members/[id]/tags",
+        "methods": [
+          "POST",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "member_tags"
+          }
+        ],
+        "callers": [
+          "erp:/members"
+        ],
+        "external": [],
+        "notes": "회원 태그(ERP 전용)"
+      },
+      {
+        "route": "/api/members",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "member_consents"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          }
+        ],
+        "callers": [
+          "erp:/members",
+          "erp:/contracts"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web members/me·mypage·notifications 도 members 테이블 동일"
+      },
+      {
+        "route": "/api/monitoring/alerts/acknowledge",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: alerts (alert-store acknowledge)"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health (LiveAlerts)"
+        ],
+        "external": [],
+        "notes": "알림 확인"
+      },
+      {
+        "route": "/api/monitoring/alerts/mute",
+        "methods": [
+          "GET",
+          "POST",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: rule_mutes"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health (LiveAlerts)"
+        ],
+        "external": [],
+        "notes": "룰 음소거"
+      },
+      {
+        "route": "/api/monitoring/alerts/promote",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: alerts (getPromotionCandidates/markPromoted)"
+          },
+          {
+            "type": "filesystem",
+            "ref": "docs/ISSUES.md"
+          },
+          {
+            "type": "external",
+            "ref": "Ollama (llm-enrich generatePromotionDraft) + git commitAndPush"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health (PromotionCandidates)"
+        ],
+        "external": [
+          "Ollama",
+          "git push"
+        ],
+        "notes": "알림→이슈 승격, ISSUES.md 커밋"
+      },
+      {
+        "route": "/api/monitoring/alerts",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: alerts, alert_history"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health"
+        ],
+        "external": [],
+        "notes": "활성 알림/이력"
+      },
+      {
+        "route": "/api/monitoring/categories",
+        "methods": [
+          "GET",
+          "POST",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "cadam_categories"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/config"
+        ],
+        "external": [],
+        "notes": "모니터링 카테고리 설정"
+      },
+      {
+        "route": "/api/monitoring/collect",
+        "methods": [
+          "POST",
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: alerts, collect_runs, notify_queue (collector+rules+enqueue)"
+          },
+          {
+            "type": "external",
+            "ref": "인프라 핑(collectSnapshot)"
+          }
+        ],
+        "callers": [
+          "cron:collect-tick.sh",
+          "erp:/monitoring/health(runCollect 직접 import)"
+        ],
+        "external": [
+          "x-collector-secret 우회. launchd cron"
+        ],
+        "notes": "스냅샷 수집→룰 평가→알림 발화·큐 적재"
+      },
+      {
+        "route": "/api/monitoring/files",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "filesystem",
+            "ref": "AGENT_OUTPUTS_ROOT (에이전트 산출물 파일 트리)"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/files"
+        ],
+        "external": [],
+        "notes": "에이전트 출력 파일 브라우저"
+      },
+      {
+        "route": "/api/monitoring/health",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "n8n 핑, WordPress 핑, crawler/BFF 핑, Supabase 핑 (lib/monitoring: n8n/wp/crawler/supabase-view)"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health(서버컴포넌트 직접 호출 위주)"
+        ],
+        "external": [
+          "n8n",
+          "WordPress",
+          "crawler(9721)",
+          "BFF",
+          "Supabase"
+        ],
+        "notes": "서비스 헬스체크 집계"
+      },
+      {
+        "route": "/api/monitoring/issues/close",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "filesystem",
+            "ref": "docs/ISSUES.md"
+          },
+          {
+            "type": "external",
+            "ref": "git commitAndPush"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health (TrackedIssues)"
+        ],
+        "external": [
+          "git push"
+        ],
+        "notes": "이슈 닫기(문서 편집+커밋)"
+      },
+      {
+        "route": "/api/monitoring/issues",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "filesystem",
+            "ref": "docs/ISSUES.md (loadIssues)"
+          },
+          {
+            "type": "external",
+            "ref": "git commitAndPush"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/health (AddIssueForm)"
+        ],
+        "external": [
+          "git push"
+        ],
+        "notes": "이슈 트래커(docs/ISSUES.md 파싱/추가)"
+      },
+      {
+        "route": "/api/monitoring/keyword-rules",
+        "methods": [
+          "GET",
+          "POST",
+          "PATCH",
+          "DELETE"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "cadam_keyword_rules"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/config",
+          "erp:/monitoring/crawl"
+        ],
+        "external": [],
+        "notes": "키워드 룰 CRUD"
+      },
+      {
+        "route": "/api/monitoring/leads",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "review_feedback"
+          },
+          {
+            "type": "supabase",
+            "ref": "crawled_articles"
+          },
+          {
+            "type": "supabase",
+            "ref": "curated_topics"
+          },
+          {
+            "type": "supabase",
+            "ref": "content_schedule"
+          },
+          {
+            "type": "supabase",
+            "ref": "notification_log"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/leads(서버컴포넌트 직접 호출)"
+        ],
+        "external": [],
+        "notes": "리드/콘텐츠 파이프라인 집계(getLeadsAggregates)"
+      },
+      {
+        "route": "/api/monitoring/llm/ollama",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "Ollama local(11434) + Tailscale GPU 100.80.136.112:11434 (infra pingOllamaLocal/pingTailscaleGpu/getOllamaModels)"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/llm"
+        ],
+        "external": [
+          "Ollama local",
+          "Tailscale GPU"
+        ],
+        "notes": "로컬/원격 Ollama 상태·모델"
+      },
+      {
+        "route": "/api/monitoring/llm",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "n8n API (getExecutionStats/getLlmCallStats)"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/llm(서버컴포넌트 직접 호출)"
+        ],
+        "external": [
+          "n8n"
+        ],
+        "notes": "n8n 실행/LLM 호출 통계"
+      },
+      {
+        "route": "/api/monitoring/n8n/nodes",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "n8n API (getWorkflowNodeView)"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/n8n(서버컴포넌트 직접 호출)"
+        ],
+        "external": [
+          "n8n"
+        ],
+        "notes": "워크플로우 노드 뷰"
+      },
+      {
+        "route": "/api/monitoring/score-weights",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "cadam_score_weights"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/config"
+        ],
+        "external": [],
+        "notes": "스코어 가중치 설정"
+      },
+      {
+        "route": "/api/notify-log",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "notification_log"
+          }
+        ],
+        "callers": [
+          "erp:/notify-center"
+        ],
+        "external": [],
+        "notes": "알림 발송 로그"
+      },
+      {
+        "route": "/api/notify/digest",
+        "methods": [
+          "POST",
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: alerts (listResolvedSince)"
+          },
+          {
+            "type": "filesystem",
+            "ref": "STAMP_FILE"
+          },
+          {
+            "type": "external",
+            "ref": "Telegram sendTelegram + Ollama runDailyDigest"
+          }
+        ],
+        "callers": [
+          "cron:collect-tick.sh"
+        ],
+        "external": [
+          "x-collector-secret 우회",
+          "Telegram",
+          "Ollama"
+        ],
+        "notes": "일일 다이제스트 전송"
+      },
+      {
+        "route": "/api/notify/flush",
+        "methods": [
+          "POST",
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "sqlite",
+            "ref": "data/alerts.db: notify_queue, notify_cooldown"
+          },
+          {
+            "type": "external",
+            "ref": "Telegram sendTelegram + Ollama enrichAlert"
+          }
+        ],
+        "callers": [
+          "cron:collect-tick.sh"
+        ],
+        "external": [
+          "x-collector-secret 우회",
+          "Telegram",
+          "Ollama"
+        ],
+        "notes": "알림 큐 플러시→텔레그램"
+      },
+      {
+        "route": "/api/ops",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "capital_directory"
+          },
+          {
+            "type": "supabase",
+            "ref": "market_rates"
+          },
+          {
+            "type": "supabase",
+            "ref": "recalls"
+          },
+          {
+            "type": "supabase",
+            "ref": "site_pages"
+          }
+        ],
+        "callers": [
+          "erp:/ops"
+        ],
+        "external": [],
+        "notes": "운영 잡화(캐피탈/시세/리콜/사이트페이지). recalls·market_rates 웹과 공유 후보"
+      },
+      {
+        "route": "/api/pnl",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "v_pnl_monthly"
+          }
+        ],
+        "callers": [
+          "erp:/settlement"
+        ],
+        "external": [],
+        "notes": "손익 뷰"
+      },
+      {
+        "route": "/api/points",
+        "methods": [
+          "GET",
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "point_transactions"
+          },
+          {
+            "type": "supabase",
+            "ref": "point_rules"
+          },
+          {
+            "type": "supabase",
+            "ref": "point_redeem_policy"
+          }
+        ],
+        "callers": [
+          "erp:/points"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web /api/points 와 3개 테이블 동일(point_transactions·point_rules·point_redeem_policy)"
+      },
+      {
+        "route": "/api/prompts/apply",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "BFF /api/prompt-slots/{id}/apply-n8n"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/prompts"
+        ],
+        "external": [
+          "BFF(cadam-pipeline)→n8n"
+        ],
+        "notes": "프롬프트 슬롯 n8n 반영"
+      },
+      {
+        "route": "/api/prompts/revisions/[id]",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "BFF /api/prompt-slots/{id}/revisions"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/prompts"
+        ],
+        "external": [
+          "BFF"
+        ],
+        "notes": "리비전 조회"
+      },
+      {
+        "route": "/api/prompts/rollback",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "BFF /api/prompt-slots/{id}/rollback"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/prompts"
+        ],
+        "external": [
+          "BFF"
+        ],
+        "notes": "롤백"
+      },
+      {
+        "route": "/api/prompts",
+        "methods": [
+          "GET",
+          "PUT"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "BFF /api/prompt-slots"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/prompts"
+        ],
+        "external": [
+          "BFF"
+        ],
+        "notes": "프롬프트 슬롯 목록/수정"
+      },
+      {
+        "route": "/api/prompts/sync",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "external",
+            "ref": "BFF /api/prompt-slots/sync-n8n"
+          }
+        ],
+        "callers": [
+          "erp:/monitoring/prompts"
+        ],
+        "external": [
+          "BFF→n8n"
+        ],
+        "notes": "n8n 동기화"
+      },
+      {
+        "route": "/api/recalls",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "recalls"
+          }
+        ],
+        "callers": [
+          "erp:/recalls"
+        ],
+        "external": [],
+        "notes": "INCONSISTENCY(web): ERP=recalls 테이블 / web /api/recalls=recall_slugs 테이블. 서로 다른 테이블"
+      },
+      {
+        "route": "/api/reports",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "v_funnel_monthly"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_demand_by_model"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_manager_perf"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_lead_quality_monthly"
+          }
+        ],
+        "callers": [
+          "(ERP tsx fetch 미발견 — type 파라미터 뷰 라우터)"
+        ],
+        "external": [],
+        "notes": "type→뷰 매핑 리포트. 클라이언트 호출처 불명확"
+      },
+      {
+        "route": "/api/reviews/[id]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          }
+        ],
+        "callers": [
+          "erp:/reviews"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): web /api/reviews 도 reviews 동일"
+      },
+      {
+        "route": "/api/reviews",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "reviews"
+          }
+        ],
+        "callers": [
+          "erp:/reviews"
+        ],
+        "external": [],
+        "notes": "OVERLAP(web): 같은 reviews 테이블"
+      },
+      {
+        "route": "/api/search",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          },
+          {
+            "type": "supabase",
+            "ref": "members"
+          },
+          {
+            "type": "supabase",
+            "ref": "vehicles"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_tasks"
+          },
+          {
+            "type": "supabase",
+            "ref": "success_fees"
+          }
+        ],
+        "callers": [
+          "erp:전역(components/shell/ErpShell)"
+        ],
+        "external": [],
+        "notes": "통합 검색"
+      },
+      {
+        "route": "/api/settings/secrets",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "filesystem",
+            "ref": "STATUS_FILE + MANIFEST_FILE (JSON, 시크릿 상태/매니페스트)"
+          }
+        ],
+        "callers": [
+          "erp:/settings/secrets"
+        ],
+        "external": [],
+        "notes": "시크릿 회전 상태(파일 기반). 값 미노출"
+      },
+      {
+        "route": "/api/settlement",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "success_fees"
+          },
+          {
+            "type": "supabase",
+            "ref": "lead_sales"
+          },
+          {
+            "type": "supabase",
+            "ref": "wallet_transactions"
+          },
+          {
+            "type": "supabase",
+            "ref": "managers"
+          }
+        ],
+        "callers": [
+          "erp:/settlement"
+        ],
+        "external": [],
+        "notes": "정산 집계"
+      },
+      {
+        "route": "/api/sheets",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "static",
+            "ref": "하드코딩 pending 상태(Google Sheets 미연동)"
+          }
+        ],
+        "callers": [
+          "erp:(sheets 페이지)"
+        ],
+        "external": [],
+        "notes": "시트 연동 껍데기. 외부 API 미연동"
+      },
+      {
+        "route": "/api/stats/summary",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "v_funnel_monthly"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_demand_by_model"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_lead_quality_monthly"
+          },
+          {
+            "type": "supabase",
+            "ref": "v_manager_perf"
+          }
+        ],
+        "callers": [
+          "erp:/stats"
+        ],
+        "external": [],
+        "notes": "통계 요약 뷰"
+      },
+      {
+        "route": "/api/success-fees/[id]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "success_fees"
+          }
+        ],
+        "callers": [
+          "erp:/approvals (성공보수 결재)"
+        ],
+        "external": [],
+        "notes": "성공보수 수정"
+      },
+      {
+        "route": "/api/success-fees",
+        "methods": [
+          "GET",
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "success_fees"
+          },
+          {
+            "type": "supabase",
+            "ref": "consultations"
+          }
+        ],
+        "callers": [
+          "erp:/approvals"
+        ],
+        "external": [],
+        "notes": "성공보수 목록/생성"
+      },
+      {
+        "route": "/api/tasks/[id]/approval/request",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_tasks"
+          }
+        ],
+        "callers": [
+          "erp:/tasks",
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회"
+        ],
+        "notes": "태스크 승인 요청"
+      },
+      {
+        "route": "/api/tasks/[id]/approval",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_tasks (lib/tasks setApprovalById)"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_approval_history"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_status_history"
+          }
+        ],
+        "callers": [
+          "erp:/tasks (TasksClient)",
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회"
+        ],
+        "notes": "승인/수정/반려 처리"
+      },
+      {
+        "route": "/api/tasks/[id]",
+        "methods": [
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_tasks"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_status_history"
+          }
+        ],
+        "callers": [
+          "erp:/tasks",
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회"
+        ],
+        "notes": "태스크 상태/필드 수정(자식 자동배분 로직 포함)"
+      },
+      {
+        "route": "/api/tasks/[id]/thread",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "v_erp_task_thread"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_tasks (lib/tasks getTaskThread)"
+          }
+        ],
+        "callers": [
+          "erp:/tasks (TasksClient)",
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회"
+        ],
+        "notes": "태스크 스레드(뷰)"
+      },
+      {
+        "route": "/api/tasks/[id]/timeline",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_task_progress_log"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_status_history"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_approval_history (lib/tasks)"
+          }
+        ],
+        "callers": [
+          "erp:/tasks (TasksClient)",
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회"
+        ],
+        "notes": "태스크 타임라인 집계"
+      },
+      {
+        "route": "/api/tasks/progress",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_task_progress_log"
+          }
+        ],
+        "callers": [
+          "claude-broker"
+        ],
+        "external": [
+          "x-dashboard-token 우회. ERP tsx 호출 없음"
+        ],
+        "notes": "broker가 진행 로그 기록"
+      },
+      {
+        "route": "/api/tasks",
+        "methods": [
+          "GET",
+          "POST",
+          "PATCH"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "erp_tasks"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_status_history"
+          },
+          {
+            "type": "supabase",
+            "ref": "erp_task_approval_history"
+          }
+        ],
+        "callers": [
+          "erp:/tasks",
+          "claude-broker"
+        ],
+        "external": [
+          "broker [TASK] 태그 쓰기, x-dashboard-token 우회"
+        ],
+        "notes": "업무 칸반 핵심"
+      },
+      {
+        "route": "/api/wallet",
+        "methods": [
+          "GET"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "wallet_transactions"
+          },
+          {
+            "type": "supabase",
+            "ref": "managers"
+          }
+        ],
+        "callers": [
+          "erp:/lead-market"
+        ],
+        "external": [],
+        "notes": "지갑 잔액/거래"
+      },
+      {
+        "route": "/api/wallet/topup",
+        "methods": [
+          "POST"
+        ],
+        "sources": [
+          {
+            "type": "supabase",
+            "ref": "wallet_transactions (createServiceRoleSupabaseClient + writeAudit→audit_log)"
+          }
+        ],
+        "callers": [
+          "erp:/lead-market"
+        ],
+        "external": [],
+        "notes": "지갑 충전. lib/audit로 audit_log 기록"
+      }
+    ]
+  }
+}
