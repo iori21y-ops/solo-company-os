@@ -2,7 +2,6 @@
 # 서버 자동 점검 스크립트 — 문제 있을 때만 디스코드 알림
 # 실행: launchd 매일 07:00
 
-WEBHOOK_URL="https://discordapp.com/api/webhooks/1510306626974777386/GdJ7TVdkbjoaEkSHnGDWPn562D8CiCxR0GA0-joplEWqOeQLibCZWabny0I2Fmy67tkc"
 LOG_FILE="$HOME/projects/_meta/logs/health-check.log"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 PROBLEMS=""
@@ -124,7 +123,8 @@ if [ -n "$PROBLEMS" ]; then
 
   # 3) 봇 토큰 / 채널 준비
   BOT_TOKEN=$(grep DISCORD_BOT_TOKEN "$HOME/.openclaw/workspace/claude-broker/.env" 2>/dev/null | cut -d= -f2 | tr -d "'" | tr -d '"')
-  CHANNEL_ID=$(grep HEALTH_CHECK_CHANNEL_ID "$HOME/.openclaw/workspace/claude-broker/.env" 2>/dev/null | cut -d= -f2 | tr -d "'" | tr -d '"' | tr -d ' ')
+  # 죽은 HEALTH_CHECK_CHANNEL_ID → 시스템알림 채널(secrets.env)로 교체 (2026-07-12)
+  CHANNEL_ID=$(grep '^DISCORD_SYSTEM_CHANNEL_ID=' "$HOME/.cadam-secrets/secrets.env" 2>/dev/null | head -1 | cut -d= -f2 | tr -d "'" | tr -d '"' | tr -d ' ')
 
   # 4) Claude에게 분석 요청
   PROMPT="너는 1인 기업의 서버 관리팀장이다. 아래 서버 점검 결과를 대표에게 보고하는 형식으로 작성해라.
@@ -167,22 +167,7 @@ PYEOF
     fi
   fi
 
-  # 6) Claude/봇 실패 시 웹훅 fallback (원시 데이터만)
-  if [ "$SENT" = "false" ]; then
-    TMPFILE=$(mktemp)
-    echo -e "$PROBLEMS" > "$TMPFILE"
-    FALLBACK=$(TMPFILE="$TMPFILE" TS="$TIMESTAMP" python3 << 'PYEOF'
-import json, os
-with open(os.environ["TMPFILE"]) as f:
-    desc = f.read().strip()
-ts = os.environ["TS"]
-msg = f"⚠️ **서버 점검 알림** ({ts})\n\n{desc}"
-print(json.dumps({"content": msg}))
-PYEOF
-    )
-    rm -f "$TMPFILE"
-    curl -s -H "Content-Type: application/json" -d "$FALLBACK" "$WEBHOOK_URL" > /dev/null 2>&1
-  fi
+  # 6) 웹훅 fallback 제거 (2026-07-12) — 평문 웹훅 URL 폐기, 디스코드 봇 API로 단일화
 
   echo "[$TIMESTAMP] ALERT (bot=$SENT, claude=$( [ -n "$ANALYSIS" ] && echo true || echo false ))" >> "$LOG_FILE"
 else
