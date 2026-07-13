@@ -171,6 +171,11 @@ PYEOF
 
   echo "[$TIMESTAMP] ALERT (bot=$SENT, claude=$( [ -n "$ANALYSIS" ] && echo true || echo false ))" >> "$LOG_FILE"
 else
-  # 정상 → 조용히 로그만
+  # 정상 → 로그 + 하트비트 1회.
+  #   '문제 시에만 알림' 구조는 알림 경로 자체가 죽어도 무음이라 '무소식=정상'을 검증할 수 없다.
+  #   매일 1회 "정상 작동 중" 신호를 같은 시스템 채널로 보내 알림 파이프라인 생존까지 함께 확인한다.
   echo "[$TIMESTAMP] ALL OK" >> "$LOG_FILE"
+  source "$HOME/.cadam-secrets/notify_discord.sh"
+  notify_discord "💓 [서버 자동점검] 정상 작동 중 — 이상 없음 ($TIMESTAMP)"
+  echo "[$TIMESTAMP] heartbeat sent" >> "$LOG_FILE"
 fi
