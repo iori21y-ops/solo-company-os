@@ -77,7 +77,7 @@ if [ "$DOM" = "02" ] || [ "$DOM" = "03" ]; then
 fi
 
 # --- 9. LaunchAgent 상태 ---
-for AGENT in com.rentailor.claude-broker; do
+for AGENT in com.rentailor.claude-broker com.cadam.audit; do
   if ! launchctl list 2>/dev/null | grep -q "$AGENT"; then
     PROBLEMS="${PROBLEMS}🔴 LaunchAgent ${AGENT} 미로드\n　→ 복구: launchctl load ~/Library/LaunchAgents/${AGENT}.plist\n"
   fi
