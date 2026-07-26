@@ -100,3 +100,113 @@ Opus 모델 기반으로 판단·조율·품질관리를 담당한다.
 ## 업무 칸반 기록 ([TASK])
 > 공유 규칙: [_shared/call-rules.md](../_shared/call-rules.md)의 [TASK] 규칙 참조
 실질 업무 착수 시 `[TASK:진행중] 제목 | 출처 | 우선순위`, 완료 시 `[TASK:완료] 제목`(제목 동일). 순수 보고엔 쓰지 않는다.
+
+### 8. 모닝 브리핑 (Discord 뉴스레터)
+- **입력**: `~/projects/stocks/data/briefing_data.json` (stocks 파이프라인 `main.py`가 매일 생성)
+- **발송 채널**: `1527296041169322135` (디스코드 channel id)
+- **조립·발송 도구**: `tools/send_morning_briefing.py` — JSON을 읽어 임베드를 조립하고 Discord REST API로 발송하는 기계적 도구다. `--commentary`/`--commentary-file`로 관전포인트 텍스트를, `--stock-comments-file`로 종목별 코멘트를 **반드시 전달**해야 하며, 이 스크립트는 어느 쪽도 스스로 지어내지 않는다(아래 ②·②-1은 관리팀장이 직접 작성).
+- **발송 메시지 분리**: 평일 발송은 디스코드 메시지 **최소 2개로 분리**된다(도구가 자동 처리) — ①시황+관전포인트+가치 Top5(+코멘트), ②낙폭과대 반등 Top5(+코멘트)+보유 평가+종목별 뉴스+고지. **주의**: 디스코드의 6,000자 한도는 임베드 1개가 아니라 **메시지 1개 내 임베드 전체 합산** 기준이다 — 종목별 코멘트가 길어 ②의 합계가 6,000자를 넘으면 도구가 ②를 ②-1/②-2로 자동으로 추가 분리한다(2026-07-23 실측: 코멘트 포함 시 ②가 4,756자+1,357자로 2개 메시지에 나뉨). 메시지가 2개보다 많이 와도 정상 동작이니 실패로 오인하지 말 것. 주말 경량판(§8-1)은 분리 없이 기존과 동일하게 1메시지.
+
+**절차**
+0. **main.py 실행 (에이전트 세션과 분리 — 2026-07-27 추가, 같은 날 무한재실행 버그 수정)**
+   ```
+   mkdir -p ~/projects/stocks/logs
+   launchctl remove com.rentailor.stocks-mainpy 2>/dev/null
+   launchctl submit -l com.rentailor.stocks-mainpy \
+     -o ~/projects/stocks/logs/main-$(date +%Y%m%d).log \
+     -e ~/projects/stocks/logs/main-$(date +%Y%m%d).log \
+     -- /bin/bash -c '/Users/kim/projects/stocks/venv/bin/python3 -u /Users/kim/projects/stocks/main.py; launchctl remove com.rentailor.stocks-mainpy'
+   ```
+   - **`setsid`·`nohup ... & disown`은 이 macOS 환경에서 실측 결과 둘 다 세션 강제종료 시 자식까지 함께 죽는다(2026-07-27 검증 — `setsid` 자체가 macOS에 없고, `nohup+disown`도 프로세스 그룹이 분리되지 않아 부모 세션 강제종료 시 함께 죽음). 반드시 `launchctl submit`을 쓴다** — launchd가 직접 관리하는 완전히 독립된 프로세스라 에이전트 세션이 어떻게 끝나도 영향받지 않는다(2026-07-27 실측: 세션을 여러 차례 강제종료해도 생존 확인됨).
+   - **반드시 `bash -c '... ; launchctl remove com.rentailor.stocks-mainpy'`로 감싸서 자기 자신을 제거하게 한다.** 단순히 `-- python3 main.py`만 submit하면 **`launchctl submit`은 종료 후 launchd가 자동으로 재시작시킨다(KeepAlive 기본 동작)** — 2026-07-27 실사고: 이 형태로 07:00에 제출한 main.py가 07:06, 07:11에 **자동으로 계속 재실행**돼 KRX/DART를 무한정 재호출함(사람이 발견해서 `launchctl remove`로 수동 중단). main.py 자체가 몇 번 도는지와 무관하게 **반드시 위 self-remove 래핑 형태를 그대로 쓴다** — 생략 금지.
+   - **절대 `python main.py`를 세션에 딸린 채로 포그라운드 실행하거나 단순 `& disown`만으로 띄우지 않는다** — 세션 종료 시 자식 프로세스까지 함께 죽어 브리핑 자체가 조용히 무산된다(2026-07-24 실측 사고 원인).
+   - main.py는 정상 완료까지 **8~10분 걸린다**(2026-07-24 실측 496.9초). 위 self-remove 래핑 덕분에 완료 시 잡이 스스로 사라지므로 별도로 `launchctl remove`할 필요는 없다(다음날 재제출 전 안전장치로 위 `launchctl remove ... 2>/dev/null`는 매번 선행됨).
+   - **완료 대기는 이 호출 안에서 직접 폴링한다 (2026-07-27 재설계 — 카드 체인 방식 폐기)**:
+     ```
+     START=$(date +%s)
+     while true; do
+       if grep -q "\[main\] 전체 완료" ~/projects/stocks/logs/main-$(date +%Y%m%d).log 2>/dev/null; then
+         echo DONE; break
+       fi
+       if ! launchctl list | grep -q com.rentailor.stocks-mainpy; then
+         echo GONE_NO_COMPLETE; break   # 잡이 사라졌는데 로그에 완료가 없으면 = 죽은 것(실패)
+       fi
+       if [ $(( $(date +%s) - START )) -gt 1200 ]; then
+         echo TIMEOUT_20MIN; break
+       fi
+       sleep 180
+     done
+     ```
+     `DONE`이면 그대로 이어서 1번(읽기)~9번(발송)까지 **같은 호출 안에서** 계속 진행한다. `GONE_NO_COMPLETE`·`TIMEOUT_20MIN`이면 7번 실패 알림(`--alert-only`) 후 `[ESCALATE]`로 보고하고 중단한다.
+     **왜 예전처럼 "후속 확인 카드"를 여러 개 만들어 체인으로 넘기지 않는가**: 2026-07-27 실사고로 확인됨 — broker(`agent.js`)는 매 호출이 끝날 때 **그 호출이 담당한 카드를 텍스트 내용과 무관하게 항상 자동으로 '완료' PATCH 시도**하고(`agent.js:1244` 부근), 대시보드가 이를 거부(HTTP 409)하면 그 카드를 결재상신(GATE)으로 자동 전환한다(`agent.js:1267`). 즉 "아직 실행 중이니 카드는 안 닫겠다"고 텍스트에 써도 그 카드 자체는 broker가 알아서 완료 처리하거나 결재대기로 박제해버려 체인이 끊긴다(실사고: 카드 233은 자동 완료, 카드 234는 GATE에 걸려 정체). 이 자동완료·GATE 로직은 SKILL.md로 못 바꾸는 broker/대시보드 쪽 동작이므로, **애초에 카드를 여러 개로 쪼개지 않고 한 호출 안에서 끝까지 기다리는 방식**으로 우회한다.
+     **전제(중요)**: 이 방식은 `claude-broker/.env`의 `CLAUDE_TIMEOUT_MS`가 빈 값(현재 상태, 하드 타임아웃 비활성)일 때만 20분 대기가 안전하다 — 2026-07-27 코드 확인: `CLAUDE_TIMEOUT_MS=`(빈 문자열)이면 `Number.parseInt('')`가 `NaN`이 돼 `agent.js`의 하드 타임아웃(`spawnWithOutput`)이 걸리지 않는다. 만약 나중에 누군가 `CLAUDE_TIMEOUT_MS`에 실제 숫자(예: 120000)를 채우면 이 호출 자체가 그 시간에 강제종료될 수 있다 — main.py는 launchd job이라 영향 없이 계속 돌지만, 이 폴링·발송 흐름은 끊긴다. `.env`에서 `CLAUDE_TIMEOUT_MS` 값이 채워지는 변경이 있으면 이 절차를 재검토할 것.
+1. `briefing_data.json`을 읽는다. `errors` 배열이 비어있지 않으면, 어떤 항목이 실패했는지 브리핑 최상단(메시지①)에 별도 경고 임베드로 표기한다(도구가 자동 처리함 — `errors`가 있으면 "⚠️ 데이터 수집 중 일부 실패" 임베드가 맨 앞에 자동으로 붙는다).
+2. **관전포인트 3~5문장**을 직접 작성한다. `us`/`kr` 배열의 실제 수치만 근거로 쓰고 숫자를 지어내지 않는다. `kr`의 코스피 `chg`가 -3% 이하인 급락일이면 리스크 중심 톤으로 쓴다(스크립트가 자동으로 임베드 색상을 빨간색으로 바꾼다).
+2-1. **종목별 분석 코멘트 작성 (가치 Top5 + 낙폭과대 반등 Top5, 총 10종목)**: 종목마다 4~6문장을 직접 작성해 `{"티커": "코멘트", ...}` 형태 JSON 파일로 저장한다(예: `/tmp/stock-comments-YYYYMMDD.json`, 발송 후 삭제 불필요 — 매일 새로 씀).
+   - 구성: ①업황·뉴스 해석 ②`picks`/`swing_top5`의 `score_detail[].basis` 텍스트를 인용해 왜 상위에 올랐는지 해석 ③낙폭과대 반등 Top5는 `score_detail`의 "수급" 항목(시총대비 순매수 %)을 반드시 한 문장 이상 언급 ④마지막 문장은 반드시 리스크 요인 1가지.
+   - **뉴스 조사**: 종목명으로 WebSearch를 실행해 최근 뉴스를 확인한다. 검색 결과가 있으면 **인용한 매체명(또는 출처)을 코멘트 안에 반드시 명시**한다(예: "관련 뉴스: 한국경제 '~~' 기사 참조"). 검색 결과가 없거나 관련성이 낮으면 뉴스 언급 없이 넘어가지 말고 **"관련 뉴스 없음"이라고 명시**한 뒤 나머지 문장은 `score_detail`/수급 등 이미 수집된 데이터만으로 작성한다.
+   - **정확성 규칙(엄수)**: `score_detail`/`tags`/`levels`/`us`/`kr`/WebSearch로 실제 확인한 내용 외의 사실을 절대 지어내지 않는다. 실적 수치, 목표주가, 애널리스트 의견 등을 WebSearch로 확인 못 했으면 언급하지 않는다.
+3. 임베드 섹션은 다음 고정 순서로 조립된다(도구가 처리):
+   **메시지①** — 🇺🇸 미국장 7지표 → 🇰🇷 코스피·수급 → 📌 관전포인트 → 🎯 추천 Top5(점수, PER/PBR/배당, 1·2차 매수가, 목표가, 손절1·2, 태그, 각 가격의 basis 1줄 요약, **💬 종목별 코멘트 필드**).
+   **메시지②** — 🔄 낙폭과대 반등 Top5(가치 Top5와 중복 제외, 스윙점수 6항목 낙폭깊이/반등초입/저점경과일/저평가/거래량급증/수급, 1·2차 매수가, 목표가, 손절1·2, 적자(PER미평가)·⚡골든크로스형성(정보성, 배점 없음) 태그 등, 각 가격의 basis 1줄 요약, **💬 종목별 코멘트 필드**. DART 악재 플래그 종목은 차순위로 자동 보충됨) → 💼 보유 평가(평가손익, 개인화 손절 stop_personal, 신호) → 📰 종목별 뉴스 링크(가치+낙폭과대 반등 Top5 전체) → 고지문.
+   `swing_top5` 키는 `picks`와 별개 배열이며(내부 필드명은 유지, 표시명만 "낙폭과대 반등 Top5"), `briefing_data.json`에 없거나 비어 있으면 빈 임베드로 처리된다(기존 `picks` 빈 배열 처리와 동일 동작). `--stock-comments-file`을 생략하면 💬 코멘트 필드 없이 기존과 동일하게 동작한다(하위호환).
+   고지문 임베드에는 **"매수/매도 제안가는 기계적 산출 참고선입니다."** 문구가 반드시 포함된다(도구가 `disclaimer` 필드에 자동으로 이어붙임 — 이 문구를 빼거나 스크립트를 우회해 직접 임베드를 만들지 말 것).
+4. 디스코드 한도 대응은 도구가 자동 처리한다: 임베드 1개당 6000자, 필드 1개당 1024자를 넘으면 다음 임베드로 분리하고, 메시지 1개당 임베드 10개를 넘으면 다음 메시지로 분리한다(①/②의 큰 틀 분리는 유지한 채로).
+5. 실행:
+   ```
+   /Users/kim/projects/stocks/venv/bin/python3 tools/send_morning_briefing.py \
+     --commentary "<3~5문장 관전포인트>" \
+     --stock-comments-file <2-1에서 저장한 JSON 경로>
+   ```
+   (`--commentary`는 `--commentary-file`로 대체 가능) 필요시 먼저 `--dry-run`으로 임베드 수·메시지 수·총 글자수를 확인할 수 있다. **주의**: `--dry-run`은 상태 파일을 갱신하지 않으므로 휴장일 중복 스킵 검증에는 쓸 수 없다 — 실제 스킵 여부를 확인하려면 `--dry-run` 없이 실행해야 한다(스킵 판정은 발송 이전에 일어나므로 안전하다).
+6. **휴장일/중복 스킵**: `briefing_data.json`의 `kr_trading_date`가 `tools/.morning-briefing-state.json`의 `last_sent_trading_date`와 같으면, 스크립트가 자동으로 "휴장일 스킵" 로그만 남기고 발송하지 않는다(공휴일·주말 재실행 등으로 같은 기준일이 반복될 때). 이건 실패가 아니라 정상 동작이니 실패 알림을 보내지 말 것. 강제로 다시 보내야 하면 `--force`.
+7. **실패 알림**: 0번 폴링 결과가 `GONE_NO_COMPLETE`(잡이 사라졌는데 로그에 "[main] 전체 완료" 없음 — 죽은 것) 또는 `TIMEOUT_20MIN`(20분 넘도록 미완료)이면 실패로 보고 `python3 tools/send_morning_briefing.py --alert-only "main.py 실행"` 으로 채널에 "⚠️ 모닝 브리핑 생성 실패: main.py 실행" 한 줄을 남기고 중단한다. 발송 자체가 실패하면 스크립트가 예외 발생 시 자동으로 같은 형식의 알림을 보낸 뒤 실패한다(직접 처리할 필요 없음). **침묵 실패 금지** — 어떤 단계든 실패하면 반드시 채널에 흔적을 남긴다.
+8. 성공적으로 발송하면 스크립트가 `tools/.morning-briefing-state.json`에 `last_sent_trading_date`를 자동 기록한다. 이 파일을 손으로 건드리지 말 것.
+9. 토큰은 `~/.openclaw/workspace/claude-broker/.env`의 `DISCORD_BOT_TOKEN`을 스크립트가 직접 읽는다. 토큰 값을 채팅·로그·파일에 직접 출력하지 않는다.
+10. **완료 여부를 나중에 다시 확인해야 할 때(엄수, 2026-07-27 추가·재설계)**: 0번의 단일 호출 내 폴링이 정상 흐름이라 보통은 이 단계까지 갈 일이 없다 — 다만 그 호출 자체가 예기치 않게 끊겼거나(예: `CLAUDE_TIMEOUT_MS`가 나중에 채워짐), 사람이 뒤늦게 "오늘 발송됐어?"라고 물어보는 경우 아래 (a)/(b)로만 판단한다. "main.py 완료되면 알림이 올 것이므로 대기하겠다"는 식으로 확인 없이 "완료됐다"고 답하지 않는다 — 대기는 완료 판정이 아니다(2026-07-24 사고: 발화 4분 33초 만에 미확인 상태로 카드를 닫아 실패가 은폐됨).
+    - (a) **정상 발송 확인**: `tools/.morning-briefing-state.json`의 `last_sent_trading_date`가 이번 브리핑의 기준일로, `sent_at`이 오늘 시각으로 갱신돼 있는지 확인.
+    - (b) **실패 알림 확인**: 7번의 `--alert-only` 메시지가 채널에 실제로 올라간 것을 확인(이 경우 state 파일은 갱신되지 않는 게 정상).
+    - 위 (a)·(b) 어느 쪽도 확인 안 되면(예: main.py가 아직 실행 중, 로그에 "전체 완료" 없음) "완료"라고 단정하지 말고 진행 중/불명 상태 그대로 보고한다.
+
+**스케줄 카드**: ERP 대시보드에 `source=주기, sourceRef=ADMIN-06, cadence=daily, earliestHour=7` (card id 220)로 등록되어 broker `scheduledCardPoll`이 매일 07시대에 발화한다. **주의**: earliestHour는 시간 단위 게이트일 뿐 분 단위 정밀도가 없다 — 실제로는 07:00~07:01경 발화하며 "07:25 정확히"는 보장되지 않는다(그래도 07:30 발송 목표보다 이르게 끝나 문제 없음). `sourceRef`를 바꾸거나 새 카드를 추가할 때는 `claude-broker/src/agent.js`의 `refMap`(`scheduledCardPoll` 함수 내)에 해당 `sourceRef`를 반드시 추가해야 한다 — 없으면 카드가 "unknown source_ref" 경고와 함께 조용히 무시된다. `agent.js` 수정 후에는 `node --check`로 문법 검증 후 `launchctl kickstart -k gui/$(id -u)/com.rentailor.claude-broker`로 재시작해야 반영된다.
+
+### 8-1. 주말 경량판 (토요일 — 미국 금요장 마감 요약)
+- 평일(§8) 카드·스크립트와는 **완전히 별도** — 이 분기가 실패해도 평일 절차에 영향 없다.
+- **입력**: `~/projects/stocks/data/briefing_us_YYYYMMDD.json` (`main.py --us-only`가 생성 — KRX/DART/스코어링을 전혀 거치지 않고 미국 지표 7개만 수집, 수 초 내 완료).
+- **트리거**: ERP 카드 `sourceRef=ADMIN-07, cadence=weekly:6(토요일), earliestHour=7` — 매주 토요일 07시대 1회. **일요일은 카드 없음.**
+- **절차**:
+  1. `cd ~/projects/stocks && source venv/bin/activate && python3 main.py --us-only` 실행. 실패 시 평일과 동일하게 `python3 ~/projects/_meta/agents/admin/tools/send_morning_briefing.py --alert-only "main.py --us-only 실행"`으로 실패 알림 후 중단(침묵 실패 금지 — 평일과 동일 규칙).
+  2. 생성된 `briefing_us_YYYYMMDD.json`의 `us` 배열 실제 수치만 근거로 **2~3문장** 코멘트를 직접 작성한다. 숫자를 지어내지 말 것. 마지막 문장에는 **다음 주 국내장에 주는 시사점을 반드시 1문장** 포함한다(예: 반도체·기술주 약세면 국내 반도체 업종 영향 언급).
+  3. `python3 ~/projects/_meta/agents/admin/tools/send_morning_briefing.py --briefing-path ~/projects/stocks/data/briefing_us_YYYYMMDD.json --commentary "<②의 코멘트>"` 실행. 스크립트가 입력 JSON에 `picks` 키가 없는 것으로 **자동으로 주말 경량판**을 판별해 구성한다 — 별도 플래그 불필요.
+  4. 구성: 제목 "🇺🇸 주말 브리핑 — 미국 금요장 마감" 임베드(지표 7개) → "📌 관리팀장 코멘트" 임베드(②의 코멘트) → **"📊 추천 성과 (주간)" 임베드** → 고지 임베드(`disclaimer` 필드 그대로 — 매수/매도 제안가가 없으므로 평일 전용 문구는 붙이지 않는다). **국내 섹션·추천 Top5·보유 평가는 절대 넣지 않는다** — 애초에 입력 JSON에 그 데이터가 없다.
+  5. 발송 실패 시 스크립트가 자동으로 실패 알림을 보낸다(평일과 동일 메커니즘). 휴장일 중복 스킵 로직은 주말판에는 적용되지 않는다(주 1회 카드라 자체 중복이 없음).
+
+**성과 섹션 (2026-07-23 추가)**
+- 평일 `main.py`가 매 실행 끝에 `~/projects/stocks/performance.py`로 그날의 가치 Top5·낙폭과대 Top5 추천 10건을 `history/tracked_picks.json`에 기록하고, 진행 중 건의 목표/손절1 도달·20영업일 만료를 매일 평가해 `history/performance_report.json`(섹션별 승률·평균/최고/최저 수익률·종결 내역·진행 중 요약)을 갱신한다.
+- `main.py --us-only`는 이 `performance_report.json`을 **읽기만** 해서 `briefing_us_YYYYMMDD.json`에 `weekly_performance` 키로 포함한다 (KRX 재조회 없음 — 평일 산출물을 그대로 재사용).
+- `send_morning_briefing.py`의 `build_performance_embeds()`가 섹션별(가치/낙폭과대) 승률·수익률·종결 내역(최대 10줄, 초과분은 "...외 N건 생략")·진행 중 요약을 임베드로 조립한다. 표본이 5건 미만이면 "표본 부족(N건)" 문구가 그대로 표시된다. `performance_report.json`이 아직 없으면(축적 초기) "데이터 축적 중" placeholder 1줄만 표시하고 실패하지 않는다.
+- 이 섹션도 기존 6,000자(메시지 내 임베드 합산)/1,024자(필드) 한도 로직(`pack_embeds`/`chunk_into_messages`)을 그대로 통과한다 — 별도 처리 불필요. 첫 실리포트는 표본 부족 문구가 뜨는 게 정상이며 실패가 아니다.
+
+### 9. 종목 보유/삭제/분석 명령 (뉴스레터 채널 채팅형 명령)
+- **채널**: `1527296041169322135` (§8과 동일 채널, 별개 트리거 — §8의 아침 자동발송 흐름과 무관하게 독립 동작한다)
+- **트리거**: 메시지 첫 줄이 `Discord user: iori21y`이고(= 사장님 본인), `=== 현재 지시 ===` 이하 본문이 `보유`/`삭제`/`분석` 중 하나로 시작할 때만 반응한다. 그 외 사용자의 메시지, 그리고 이 세 명령이 아닌 일반 메시지에는 **무반응**(응답하지 않는다).
+- **작업 폴더**: `~/projects/stocks` (git 저장소 아님 — 커밋하지 않는다). 스크립트는 반드시 venv 파이썬으로 실행: `/Users/kim/projects/stocks/venv/bin/python3`.
+
+**명령 형식**
+```
+보유 <종목명> <수량>주 <평단가>   # 예: 보유 삼성전자 10 71,500  ("주" 생략 가능, 평단가 콤마 허용)
+삭제 <종목명>
+분석 <종목명>
+```
+정규식 기준: `^보유\s+(\S+)\s+(\d+)주?\s+([\d,]+)\s*$`, `^삭제\s+(\S+)\s*$`, `^분석\s+(\S+)\s*$`. 위 형식에 맞지 않으면 실행하지 말고 올바른 형식을 안내한다(스크립트를 억지로 실행하지 않는다).
+
+**절차**
+1. **즉시 선응답**: 명령을 파싱했으면 스크립트 실행 전에 먼저 `"<종목명> 분석 중..."` (삭제는 `"<종목명> 삭제 처리 중..."`) 한 줄을 채널에 보낸다. `analyze_stock.py`는 `levels.py`가 KRX 서버에 종목당 2회 조회하는 특성상 **15~20초 정도 걸릴 수 있어** 선응답 없이는 사장님이 무응답으로 오인할 수 있다.
+2. 명령별 실행:
+   - **보유**: `python3 tools/holdings_manager.py add "<종목명>" <수량> "<평단가>"` 실행 → 출력에 "추가 완료"/"갱신 완료"가 있으면 저장 성공. 이어서 `python3 tools/analyze_stock.py "<종목명>"` 실행 → **저장 확인 한 줄 + 분석 결과를 한 메시지로 묶어** 응답한다. holdings_manager가 실패(후보만 제시하고 저장 안 함)하면 그 출력 그대로 안내하고 analyze_stock은 실행하지 않는다.
+   - **삭제**: `python3 tools/holdings_manager.py remove "<종목명>"` 실행 → 출력 그대로 응답(삭제 성공/실패 모두).
+   - **분석**: `python3 tools/analyze_stock.py "<종목명>"` 실행 → 출력 그대로 응답. **holdings.json을 건드리지 않는다** — 보유 여부와 무관하게 현재 기준 분석만 한다.
+3. 두 스크립트 모두 **최종 수치(현재가/PER/PBR/ROE/배당수익률/매수·매도·손절가/평가손익 등)를 절대 직접 계산하거나 고치지 않는다** — 스크립트 출력 그대로 전달하고, 관리팀장은 코멘트 1~2줄만 덧붙인다(§8과 동일 원칙).
+4. 종목명이 정확히 일치하지 않으면 두 스크립트 모두 "저장하지 않았습니다"와 함께 유사 후보를 stdout으로 준다 — 그 후보 목록을 그대로 사장님께 안내하고 재입력을 요청한다. 스스로 후보 중 하나를 임의로 골라 실행하지 않는다.
+5. 스크립트가 0이 아닌 종료코드로 죽거나 예외가 나면 **오류 한 줄 요약만** 응답한다(예: "분석 실패: pykrx 조회 오류" 등). 파이썬 스택트레이스를 채널에 그대로 붙여넣지 않는다.
+6. holdings_manager.py는 실행 직전 `holdings.json`을 `holdings.json.bak`으로 자동 백업한다(도구가 처리, 직접 손대지 말 것).
