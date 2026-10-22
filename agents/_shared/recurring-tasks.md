@@ -59,6 +59,8 @@ references:
 
 > **MKTG-01 가동 시 적용(2026-06-03 대표 지시)**: 글쓰기 ↔ 발행을 **단계 분리** — 한 호출에 `글쓰기+SEO+CTA+발행`을 묶지 말 것(관리팀장 §3과 동형 문제). 글쓰기·SEO 산출 → 발행게이트 승인 → 발행을 각각 별도 호출로. marketing SKILL '작업 단위 원칙' 참조.
 
+> **미해결 이슈(2026-07-06 등록, 마케팅 요청)**: Instagram Insights 자격증명(`META_ACCESS_TOKEN`/`IG_USER_ID`) 미프로비저닝 — **MKTG-03(D+7 노출측정) 반복 차단**. GRANT 실행방식 결정 트랙(관리팀장 상신, `decision-결정-요청-20260706.md`)과 연동 확인 필요. cycle-004에서 이미 확인된 사후정리 이슈로 신규 결재 대상 아님 — 자격증명 해소 전까지 향후 D+7 측정 사이클은 동일 사유로 보류 처리, 재상신 없이 이 항목으로 추적.
+
 ## 시스템 (ops/시스템) — **관찰·체크·보고만** (복구는 관리팀장)
 > ⚠️ 역할 분리(이번 변경): 시스템은 **관찰·체크·보고**까지. 장애 복구·수정 **판단·집행은 관리팀장**(ADMIN-02, 대표 승인 후). ops SKILL의 "장애복구·재시작 자율" 부분은 이 원칙으로 수정 예정.
 
@@ -92,6 +94,8 @@ references:
 | ADMIN-03 | 익일 7시 대표 요약 보고 | 매일 07시 | schedule | 결재·발행·이상 요약 | 운영중 | admin SKILL |
 | ADMIN-04 | pending 48h 미처리 에스컬레이트 | 상시 | 스캔 | [ESCALATE] | 정의됨 | admin SKILL |
 | ADMIN-05 | 미결재 알림(pending 1건↑ 시만 전송, 0건 침묵) | 매일 09시 | launchd (com.rentailor.admin-status) | 결재 대기 목록 Discord 알림 | 운영중(2026-06-09 개편) | 대표님 지시: 자동 다이제스트→pending-only 축소 |
+| ADMIN-06 | 주식 모닝 브리핑(~/projects/stocks 파이프라인 실행+발송) | 평일 07:25 | 카드(scheduledCardPoll, cadence=daily·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드 뉴스레터 | 운영중(2026-07-17 카드 등록, card id 220) | admin/SKILL.md §8, tools/send_morning_briefing.py |
+| ADMIN-07 | 주식 주말 경량 브리핑(미국 금요장 마감 요약, us-only) | 토요일 07:25(일요일 없음) | 카드(scheduledCardPoll, cadence=weekly:6·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드(미국지표+코멘트만) | 운영중(2026-07-17 카드 등록) | admin/SKILL.md §8-1, main.py --us-only |
 
 ## 미정의 직무 (현재 주기 업무 없음)
 - sales / cs / finance / legal / strategy: 스텁. 정의 완료 시 본 레지스트리에 행 추가.
@@ -115,6 +119,7 @@ references:
   - DATA-05(=데이터레지스트리 A-5): Gemini 추출 산출물 verdict, green만 다운스트림.
   - CONT-01(=콘텐츠레지스트리): green 데이터 → fact-block 가공 + 정확성 게이트.
 - **비활성화 기준(블로킹)**: "스펙 작성"이 아니라 "**대체 경로가 실제로 돌아 산출물 생성**"되어야 검증 완료. → DATA-05 verdict 가동 + content가 green으로 1회 실제 생산·결재 통과 후에야 GWP-1 글쓰기 트리거 경로 비활성화를 1건씩 사전확인하에 검토. **현재 GWP-1 라이브 유지.**
-- **트리거 구현(2026-06-02, launchd)**: DATA-05=`com.rentailor.data-a5-extraction`(매일 06:45), CONT-01=`com.rentailor.content-c1-factblock`(매일 07:30). CONT-01은 48h lookback green verdict self-gate+멱등(중복 생산 금지). 데이터팀 A-1~A-3 트리거 패턴 계승. **등록 완료이나 산출 검증 전 = 정의됨·미가동.** 상세: 콘텐츠레지스트리 Part E.
+- **트리거 구현 이력**: (구) 2026-06-02 launchd — DATA-05=`com.rentailor.data-a5-extraction`(매일 06:45), CONT-01=`com.rentailor.content-c1-factblock`(매일 07:30). CONT-01은 48h lookback green verdict self-gate+멱등(중복 생산 금지). 데이터팀 A-1~A-3 트리거 패턴 계승. 상세: 콘텐츠레지스트리 Part E.
+- **가동 중 — 2026-06-26 카드 이관(scheduledCardPoll)**: (구) launchd `com.rentailor.*` plist 방식은 2026-06-25 bootout+disable로 **폐기**. 현재 DATA-05·CONT-01은 대시보드 '주기' 카드(source=주기·cadence=daily·earliest_hour 6/7·owner 데이터/콘텐츠)로 등록되어 broker `scheduledCardPoll`(60초 폴러, `agent.js`)이 매일 발화 — `last_run` 일일 갱신으로 실증(2026-07-07 06:00·07:00 KST 발화 확인). ADMIN-05(미결재 알림)는 별도 발화 카드 없이 broker `adminStatusPoll`이 **대체·가동**(dedup 카드 source_ref=ADMIN-STATUS·cadence=null·earliest_hour 9, 매일 09시 1회, pending≥1건만 알림·0건 침묵). → **3종(DATA-05/CONT-01/ADMIN-05) 모두 가동 중.**
 - **후속(이번 세션 밖)**: GWP-2(글쓰기+검수+발행), GWP-3(재작성), GWP-4/6·WF-7(옵티마이저), GWP-5/VWP-5(주간리포트) 분해.
 - **Stale pending 재추출 방침 (2026-06-09 등록)**: `extracted_insights` 테이블에서 `status='pending' AND created_at < NOW() - INTERVAL '30 days'` 조건 행은 GWP-1 다음 배치 실행 시 재추출 대상으로 자동 포함. 별도 플래그 불필요 — 현행 `status='pending'` 값이 재추출 식별자로 충분. (배경: 2026-04-04 생성 market_trend 1건, 67일 경과·미검증 — A-5 범위 밖이므로 즉시 조치 없이 다음 배치에 흡수)
