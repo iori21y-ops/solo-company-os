@@ -1,6 +1,8 @@
 #!/bin/bash
 # 서버 자동 점검 스크립트 — 문제 있을 때만 디스코드 알림
 # 실행: launchd 매일 07:00
+# Long-lived token for headless `claude -p` (avoids shared OAuth refresh races, 2026-10-26)
+[ -f "$HOME/.cadam-secrets/claude-token.env" ] && { set -a; . "$HOME/.cadam-secrets/claude-token.env"; set +a; }
 
 LOG_FILE="$HOME/projects/_meta/logs/health-check.log"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')

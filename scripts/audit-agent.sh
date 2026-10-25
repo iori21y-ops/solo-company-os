@@ -232,6 +232,8 @@ else
   # 결함 목록 텍스트
   FLIST=$(printf '%s\n' "$FINDINGS" | awk -F'|' '{printf "  [%s/%s] %s: %s\n",$1,$2,$3,$4}')
   CLAUDE_BIN="/Users/kim/.local/bin/claude"
+  # Long-lived token for headless `claude -p` (avoids shared OAuth refresh races, 2026-10-26)
+  [ -f "$HOME/.cadam-secrets/claude-token.env" ] && { set -a; . "$HOME/.cadam-secrets/claude-token.env"; set +a; }
   ANALYSIS=""
   if [ "$DRY_RUN" = false ] && [ -x "$CLAUDE_BIN" ]; then
     PROMPT="너는 1인 기업 서버 감사팀장이다. 아래 시스템 감사 결함을 대표에게 보고하는 형식으로 2000자 이내 한국어로 요약하라. 형식: 한줄 종합판단(심각도) → 항목별(무엇을 놓쳤나→영향→권고). 감사 시각 $TS.
