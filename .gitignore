@@ -62,3 +62,6 @@ logs/health-check-latest.txt
 token.json
 **/token.json
 _archive/
+
+# n8n workflow backups (may contain credentials)
+n8n-backups/
