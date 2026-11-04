@@ -308,4 +308,16 @@ done <<< "$FINDINGS"
 # 해소된 결함은 seen에서 자동 제거(이번에 안 잡힌 키는 NEW_SEEN에 없음)
 printf '%s' "$NEW_SEEN" | grep -v '^$' > "$SEEN" || true
 
+# Linear: one issue per actionable finding; closed automatically once the finding disappears (never blocks the audit)
+printf '%s\n' "$FINDINGS" | /usr/bin/python3 -c '
+import json, sys
+items = []
+for line in sys.stdin:
+    p = line.rstrip("\n").split("|", 3)
+    if len(p) == 4 and p[0] in ("A1", "A2", "A3", "A4", "A5"):
+        items.append({"key": f"audit:{p[0]}:{p[2]}", "title": f"[감사 {p[0]}] {p[2]}",
+                      "body": f"일일 감사(audit-agent.sh, 매일 07:30)에서 발견: {p[3]}"})
+print(json.dumps(items, ensure_ascii=False))
+' | /usr/bin/python3 "$HOME/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py" sync "audit:" >> "$LOG" 2>&1 || true
+
 echo "[$TS] audit done — findings=$FCOUNT" >> "$LOG"

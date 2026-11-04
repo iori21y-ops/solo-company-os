@@ -172,7 +172,16 @@ PYEOF
   # 6) 웹훅 fallback 제거 (2026-07-12) — 평문 웹훅 URL 폐기, 디스코드 봇 API로 단일화
 
   echo "[$TIMESTAMP] ALERT (bot=$SENT, claude=$( [ -n "$ANALYSIS" ] && echo true || echo false ))" >> "$LOG_FILE"
+
+  # Linear: one open issue while problems persist (refreshed each run); closed on the next ALL OK
+  echo -e "$PROBLEMS" | /usr/bin/python3 -c '
+import json, sys
+body = "서버 자동점검(매일 07:00)에서 발견된 문제:\n\n" + sys.stdin.read().strip()
+print(json.dumps([{"key": "health:problems", "title": "[서버 자동점검] 문제 감지", "body": body}], ensure_ascii=False))
+' | /usr/bin/python3 "$HOME/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
 else
+  # Linear: close the health issue if one is open
+  echo "[]" | /usr/bin/python3 "$HOME/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
   # 정상 → 로그 + 하트비트 1회.
   #   '문제 시에만 알림' 구조는 알림 경로 자체가 죽어도 무음이라 '무소식=정상'을 검증할 수 없다.
   #   매일 1회 "정상 작동 중" 신호를 같은 시스템 채널로 보내 알림 파이프라인 생존까지 함께 확인한다.
