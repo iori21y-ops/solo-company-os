@@ -32,8 +32,8 @@ references:
 
 | ID | 업무 | 주기 | 트리거 | 합격/산출 | 상태 | 출처 |
 |----|------|------|--------|-----------|------|------|
-| DATA-01 | 차량 공급 데이터 정합성 verdict | 주 1회 | 크롤 완료 후 | `verdict-supply-*.md`, audit 위반 0 | 정의됨·미가동 | 기존/GWP-1분해 |
-| DATA-02 | 사이트 표시 데이터 신선도 | 주 1회 | schedule | `freshness-display-*.md`, 만료 0 | 정의됨·미가동 | 기존 |
+| DATA-01 | 차량 공급 데이터 정합성 verdict | 주 1회 | 크롤 완료 후 | `outputs/reports/verdict-supply-*.md`(결재 없음), 이상은 Linear 등록 | 운영중(카드 111, 월 06시) | 기존/GWP-1분해 |
+| DATA-02 | 사이트 표시 데이터 신선도 | 주 1회 | schedule | `outputs/reports/freshness-display-*.md`(결재 없음), 만료는 Linear 등록 | 운영중(카드 112, 월 06시) | 기존 |
 | DATA-03 | 크롤러 수집 결과 검증(엔카·가격·약관·공공API) | 일 1회 | 크롤 후 | 이상 시만 알림 | 운영중 | 기존 |
 | DATA-04 | 외부 시장 데이터 모니터(환율·보조금·정책) | 변동 감지 | 소스 변동 | 변동 시 스팟 전환 | 정의됨·미가동 | 기존 |
 | DATA-05 | 큐레이션 입력용 인사이트 정합성(추출 verdict 게이트) | 일 1회 | GWP-1 추출 후 | `verdict-extraction-*.md`, green만 다운스트림 | **폐기(2026-10-23, 카드114 취소)** — 코드 검증(cadam-pipeline insight_extractor.py)이 대체 | 데이터레지스트리 A-5 |
@@ -53,7 +53,7 @@ references:
 | ID | 업무 | 주기 | 트리거 | 합격/산출 | 상태 | 출처 |
 |----|------|------|--------|-----------|------|------|
 | MKTG-01 | 확정 발행계획 실행(글쓰기+SEO+CTA→발행) | 주 N회 | 발행 캘린더 | `outputs/pending` → 발행게이트 승인 후 발행 | 이관대상 | GWP-2 |
-| MKTG-02 | 신규 주제 발굴·Tier 판정 | 주기B | content 후보+트렌드 | 확정 발행계획 | 정의됨·미가동 | marketing SKILL 주기B |
+| MKTG-02 | 신규 주제 발굴·Tier 판정 | 주기B | content 후보+트렌드 | 확정 발행계획 | 운영중(카드 116, 월 08시) | marketing SKILL 주기B |
 | MKTG-03 | D+7 노출측정·환류 | 발행+7일 | schedule | 노출 지표→sales 핸드오프 | 이관대상 | 주기C / GWP-5·VWP-5 |
 | MKTG-04 | 재작성 루프 | 검수 반려 시 | 반려 시그널 | 재작성(최대 2회)→재검수 | 이관대상 | GWP-3 |
 
@@ -93,7 +93,7 @@ references:
 | ADMIN-02 | **시스템 보고 수신→판단→대표 승인→복구 집행** | 이벤트 | SYS 보고 | 복구 결정·집행 | 신규제안 | 역할 분리 |
 | ADMIN-03 | 익일 7시 대표 요약 보고 | 매일 07시 | schedule | 결재·발행·이상 요약 | 운영중 | admin SKILL |
 | ADMIN-04 | pending 48h 미처리 에스컬레이트 | 상시 | 스캔 | [ESCALATE] | 정의됨 | admin SKILL |
-| ADMIN-05 | 미결재 알림(pending 1건↑ 시만 전송, 0건 침묵) | 매일 09시 | launchd (com.rentailor.admin-status) | 결재 대기 목록 Discord 알림 | 운영중(2026-06-09 개편) | 대표님 지시: 자동 다이제스트→pending-only 축소 |
+| ADMIN-05 | 미결재 알림(pending 1건↑ 시만 전송, 0건 침묵) | 매일 09시 | broker adminStatusPoll | 최근 7일 결재 대기만 #대표이사실 알림(역할멘션 없음). 담당 봇 없는 원장 요청은 Linear로 자동 이관 | 운영중(2026-11-04 개편: 결재 창구 Linear 일원화) | 대표님 지시: 자동 다이제스트→pending-only 축소 |
 | ADMIN-06 | 주식 모닝 브리핑(~/projects/stocks 파이프라인 실행+발송) | 평일 07:25 | 카드(scheduledCardPoll, cadence=daily·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드 뉴스레터 | 운영중(2026-07-17 카드 등록, card id 220) | admin/SKILL.md §8, tools/send_morning_briefing.py |
 | ADMIN-07 | 주식 주말 경량 브리핑(미국 금요장 마감 요약, us-only) | 토요일 07:25(일요일 없음) | 카드(scheduledCardPoll, cadence=weekly:6·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드(미국지표+코멘트만) | 운영중(2026-07-17 카드 등록) | admin/SKILL.md §8-1, main.py --us-only |
 

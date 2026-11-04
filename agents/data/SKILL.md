@@ -88,6 +88,7 @@ boundary-rules.md 쌍2 참조.
 
 ### 산출 이중경로
 - 단발 납품물(리포트/스냅샷/점검결과) → outputs/pending → 결재 → approved/.
+- **(2026-11-04 대표님 지시) 주기 점검 보고서(A-1 verdict-supply, A-2 freshness-display)는 결재 없음** → `outputs/reports/`에 저장하고 결재카드를 올리지 않는다. 문제(RED/AMBER/만료)는 `python3 ~/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py open "<키>" "<제목>" "<본문>" --labels 데이터`로 Linear(REN)에 등록한다. 대표님 결정이 필요한 일도 Linear가 유일한 창구다. 담당 봇이 없는 '시스템' 앞 위임은 처리되지 않으므로 Linear로 올린다.
 - 유지되는 풀(Supabase 테이블 + 로컬 폴더): 직접 산출이 아니라 상태 유지. 다운스트림 핸드오프 신호 = 정합성 verdict("수확 허가"). 다운스트림은 verdict가 green인 구역만 소비한다.
 
 ### 결재 게이트
