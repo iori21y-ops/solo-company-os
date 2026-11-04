@@ -109,7 +109,7 @@ check_silent(){
   local st; st=$(launchctl list 2>/dev/null | awk -v l="$label" '$3==l{print $2}')
   [ -z "$st" ] && return 0
   [ "$st" = "0" ] || [ "$st" = "-15" ] || [ "$st" = "143" ] && return 0
-  if [ -f "$script" ] && ! grep -Eq "notify_discord|tg_notify|sendDiscord|discord.com/api" "$script"; then
+  if [ -f "$script" ] && ! grep -Eq "notify_discord|tg_notify|sendDiscord|discord.com/api|notify_failure|from lib.notify|from .notify|lib.section7" "$script"; then
     add_finding "A3|med|$label|잡 실패(종료코드 $st)인데 스크립트에 알림 발신 경로 없음 — 무알림 사각"
   fi
 }
