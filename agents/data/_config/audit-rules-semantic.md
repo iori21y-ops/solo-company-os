@@ -27,3 +27,11 @@ created: 2026-05-27
 `pricing.method`(장기렌트/리스/할부) 컬럼이 NULL인 것은 **결함 아님**.
 - 근거: 상품 구분은 `pricing.conditions->>product_type`(jsonb)로 저장·소비된다. downstream(`cadam-web/src/lib/estimatePricing.ts`)이 `conditions.product_type==='rent'`를 읽고 **method 컬럼은 아무도 참조 안 함**(2026-07-14 확인). method 컬럼은 과거 레거시 잔재(is_active=false 11건에만 값 존재).
 - 따라서 SEM에서 method-NULL 비율을 flag 하지 않는다.
+
+### S3. pricing = 계산식 추정치 보관용 (신선도·커버리지 flag 금지) — 2026-11-09 대표 결정 (REN-127 (a))
+`pricing` 테이블은 11/01 폐기된 계산식이 마지막으로 만든 **추정치 보관본**이다. **실가격 근거가 아니며** 사이트·ERP·콘텐츠 어디서도 읽지 않는다.
+- A-1에서 FRESH-4(갱신 7일)·COV-3(차종별 pricing 존재)·PRC 계열을 **flag하지 않는다**. 신규 차종에 pricing이 없는 것은 정상이다.
+- 무결성(중복·min>max·깨진 vehicle 참조)만 정보성으로 확인한다.
+- downstream은 가격 근거로 `vehicle_msrp`·실측 JSON·`vehicle_used_prices`를 쓴다. pricing 값을 가격 근거로 인용하지 않는다.
+- 'N' 모델(아반떼 N 등) 접미사 논의는 이 규칙으로 불필요해졌다(REN-128).
+
