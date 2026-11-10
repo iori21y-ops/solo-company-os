@@ -397,15 +397,178 @@ def planned_engine(e: dict) -> str:
     return f'<div class="card"><h3>{esc(e["name"])} — 아직 연결 전</h3><p>{esc(e.get("summary", ""))}</p><p class="muted">연결되면 보일 것:</p><ul>{items}</ul><p class="muted small">추가 방법: <code>_meta/dashboard/engines.yaml</code>에서 status를 active로 바꾸고 build.py에 읽는 함수를 붙입니다.</p></div>'
 
 
+# ── data catalog tab ─────────────────────────────────────────────────────
+def code_texts(usage: dict) -> dict:
+    """label → [(file name, text)] for every .py under the listed folders / files (shallow: generated and vendor folders skipped)."""
+    out = {}
+    for label, paths in (usage or {}).items():
+        files = []
+        for raw in paths:
+            p = P(raw)
+            cand = [p] if p.is_file() else [f for f in p.rglob("*.py") if not any(x in f.parts for x in ("node_modules", ".venv", "venv", "__pycache__", "_archive", "outbox", "data"))
+                                             and len(f.relative_to(p).parts) <= 3] if p.is_dir() else []
+            files += [(f.name, read(f)) for f in cand[:400]]
+        out[label] = files
+    return out
+
+
+def used_by(table: str, texts: dict, sql_only: bool) -> str:
+    """Chips: which groups of code read this table (file names in the tooltip). sql_only: FROM/JOIN context only (plain-word table names)."""
+    t = re.escape(table)
+    pat = re.compile(rf"(?:FROM|JOIN)\s+(?:\w+\.)?{t}\b" if sql_only else rf"(?:FROM|JOIN)\s+(?:\w+\.)?{t}\b|[\"'](?:\w+\.)?{t}[\"']", re.I)
+    chips = []
+    for label, files in texts.items():
+        hit = sorted({n for n, txt in files if pat.search(txt)})
+        if hit:
+            chips.append(f'<span class="chip use" title="{esc(", ".join(hit))}">{esc(label)} <b>{len(hit)}</b></span>')
+    return "".join(chips)
+
+
+def job_for(text: str, jobs: list[dict]) -> str:
+    """Schedules of the launchd jobs a '수집' note names (matched on the label's last parts)."""
+    out = []
+    for j in jobs:
+        suffix = j["label"].split(".", 2)[-1]
+        last = suffix.split(".")[-1]
+        if (suffix in text or (len(last) >= 5 and re.search(rf"(?<![\w-]){re.escape(last)}(?![\w-])", text))) and j["schedule"] not in ("수동",):
+            out.append(f'<div class="small"><code>{esc(suffix)}</code> {esc(j["schedule"])} {pill(j["state"], j["kind"]) if j["kind"] in ("bad", "off") else ""}</div>')
+    return "".join(dict.fromkeys(out))
+
+
+UNUSED = '<span class="muted">수집·보관만 — 사이트·글·쇼츠 코드에서 읽는 곳을 못 찾음</span>'
+BLOG_USE = {"✅": ("출처 표기하고 사용", "ok"), "🔒": ("출처 이름 없이 통계로만", "warn"), "⏸": ("결정 전 사용 금지", "off"), "⛔": ("사용 금지", "bad")}
+
+
+def cadam_data(d: dict, jobs: list[dict]) -> str:
+    cat = md_tables(read(P(d["catalog"])))
+    health = {}
+    for t in md_tables(read(P(d["health"]))):
+        if t["head"][:2] == ["상태", "대상"]:
+            for r in t["rows"]:
+                if len(r) >= 5:
+                    h = health.setdefault(r[1], {"worst": "✅"})
+                    h[r[3]] = r[4]
+                    if r[0] != "✅":
+                        h["worst"] = r[0] if h["worst"] != "❌" else "❌"
+    reg = md_tables(read(P(d["registry"])))
+    site = [t for t in reg if t["head"] and t["head"][0] == "테이블" or (t["heading"] in ("약관·금융사", "고객·운영 (생성형)"))]
+    counts = dict(re.findall(r"([a-z_]+) ([\d,]+)", read(P(d["counts"]))))
+    texts = code_texts(d.get("usage"))
+
+    def site_use(name: str) -> str:
+        out = []
+        for t in site:
+            for r in t["rows"]:
+                names = re.findall(r"[a-z][a-z_]*\*?", r[0])
+                if name in names or any(n.endswith("*") and name.startswith(n[:-1]) for n in names):
+                    out.append(f'<div class="small">{md_inline(" · ".join(c for c in r[2:4] if c))}</div>')
+        return "".join(out[:2])
+
+    rows = []
+    for t in cat[:1]:
+        for r in t["rows"]:
+            r = r + [""] * (7 - len(r))
+            name = re.sub(r"`", "", r[0]).split(" ")[0].split(".")[-1]   # `data.kosis_x` → kosis_x
+            h = health.get(r[1], {})
+            use = BLOG_USE.get(r[5].strip(), (r[5], ""))
+            state = {"✅": pill("정상", "ok"), "⚠️": pill("주의", "warn"), "❌": pill("문제", "bad")}.get(h.get("worst"), pill("점검 대상 아님", ""))
+            fresh = re.sub(r"\(.*?허용.*?\)", "", h.get("fresh", "")).strip()
+            agem = re.search(r"\((\d+)일 전", h.get("fresh", ""))
+            rows.append([f"<b>{esc(r[1])}</b><div class='small'>{md_inline(r[0])}</div>", esc(r[2]) + (f"<div class='small muted'>{esc(r[3])}~</div>" if r[3] else ""),
+                         (md_inline(r[6]) if r[6] else '<span class="muted">-</span>') + job_for(r[6], jobs),
+                         f"{esc(fresh or '-')}" + (f"<div class='small muted'>{agem.group(1)}일 전 · 허용 {esc(r[4])}일</div>" if agem and r[4] else ""),
+                         esc(h.get("rows", "-")), state, pill(use[0], use[1]) if r[5].strip() else "", (site_use(name) + used_by(name, texts, False)) or UNUSED])
+    head_note = next((ln for ln in read(P(d["health"])).split("\n") if ln.startswith("점검 ")), "")
+    n_unused = sum(1 for r in rows if r[-1] == UNUSED)
+    out = [f'<p class="muted">저장: {md_inline(d.get("store", ""))} · 상태 점검: {esc(head_note)} ({esc(day(mtime(P(d["health"]))))}) · 원본 <code>{esc(short(P(d["catalog"])))}</code></p>',
+           f'<div class="stats"><div><b>{len(rows)}</b><span>데이터 묶음</span></div><div><b>{len(rows) - n_unused}</b><span>사이트·글·쇼츠·파생에서 읽음</span></div>'
+           f'<div><b>{n_unused}</b><span>수집·보관만 (읽는 코드 못 찾음)</span></div><div><b>{sum(1 for r in rows if "문제" in r[5] or "주의" in r[5])}</b><span>상태 주의·문제</span></div></div>',
+           f'<input class="filter" data-for="dt-{esc(d["id"])}" placeholder="이름·표·수집기로 걸러 보기 (예: 렌트료, 판매, kosis, 보관만)">',
+           f'<div id="dt-{esc(d["id"])}">' + table(["데이터", "구분", "어디서·언제 수집", "최신 자료", "행 수", "상태", "블로그 사용", "어디에 쓰이나"], rows, "data") + "</div>"]
+    # Supabase tables the site reads (registry §2): table → API → pages, + who writes them (§1) + row counts
+    coll = next((t for t in reg if t["head"] and t["head"][0].startswith("수집기")), None)
+    srows = []
+    for t in site:
+        for r in t["rows"]:
+            r = r + [""] * (4 - len(r))
+            names = re.findall(r"[a-z][a-z_]{3,}", r[0])
+            writers = []
+            for c in (coll["rows"] if coll else []):
+                if len(c) >= 4 and any(re.search(rf"\b{re.escape(n)}\b", c[3]) for n in names):
+                    writers.append(f'<div class="small"><code>{esc(re.sub(r" *[(].*", "", c[0]))}</code> {esc(c[1][:40])}</div>')
+            cnt = " · ".join(f"{n} {counts[n]}" for n in names if n in counts)
+            srows.append([md_inline(r[0]) + (f"<div class='small muted'>{esc(cnt)}</div>" if cnt else ""), "".join(writers[:3]) or '<span class="muted">사이트·운영에서 생성</span>',
+                          md_inline(r[1]), md_inline(r[2]), md_inline(r[3]) + used_by(names[0], texts, False) if names else md_inline(r[3])])
+    out.append(f'<details><summary>사이트가 읽는 표 (Supabase) <span class="muted">({len(srows)}묶음 — 표 → API → 페이지)</span></summary>'
+               + table(["표 · 행 수", "채우는 수집기", "읽는 API", "쓰는 페이지", "활용"], srows, "data") + "</details>")
+    return "".join(out)
+
+
+def football_data(d: dict, jobs: list[dict]) -> str:
+    reg = md_tables(read(P(d["registry"])))
+    texts = code_texts(d.get("usage"))
+    live = {}
+    try:
+        import sqlite3
+        con = sqlite3.connect(f"file:{P(d['warehouse'])}?mode=ro", uri=True, timeout=10)
+        for (n,) in con.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+            live[n] = con.execute(f'SELECT COUNT(*) FROM "{n}"').fetchone()[0]
+        con.close()
+        con = sqlite3.connect(f"file:{P(d['articles'])}?mode=ro", uri=True, timeout=10)
+        art = con.execute("SELECT COUNT(*), MAX(published_at) FROM articles").fetchone()
+        con.close()
+    except Exception as ex:  # noqa: BLE001
+        art = (None, f"읽지 못함: {ex}")
+    chk = read_json(P(d["datacheck"]), {}) or {}
+    probs = chk.get("problems") or []
+    run_job = {"매일 07:00": "football-data", "월요일 06:10": "football-brain"}
+    rows, seen = [], set()
+    for t in reg[:1]:
+        for r in t["rows"]:
+            r = r + [""] * (7 - len(r))
+            name = r[1].strip("`")
+            seen.add(name)
+            bad = [str(p) for p in probs if name in str(p)]
+            job = next((j for j in jobs if j["label"].endswith(run_job.get(r[3], "~"))), None)
+            rows.append([f"<b>{esc(r[0])}</b><div class='small'><code>{esc(name)}</code></div>", esc(r[2]),
+                         f"{esc(r[3])}" + (f"<div class='small'><code>{esc(job['label'].split('.', 2)[-1])}</code> {pill(job['state'], job['kind'])}</div>" if job else "") + f"<div class='small muted'>수동: {md_inline(r[6])}</div>",
+                         f"{esc(r[4])}일" if r[4].strip("- ") else "-", f"{live.get(name, 0):,}" if name in live else esc(r[5]),
+                         pill("문제", "bad") + f"<div class='small'>{esc('; '.join(bad)[:160])}</div>" if bad else pill("정상", "ok"),
+                         used_by(name, texts, True) or '<span class="muted">아직 글·쇼츠에서 안 씀</span>'])
+    extra = [[f"<code>{esc(n)}</code>", f"{c:,}", used_by(n, texts, True) or '<span class="muted">-</span>'] for n, c in sorted(live.items()) if n not in seen]
+    dd = P(d["data_dir"])
+    files = [["기사 제목·요약·링크 (RSS)", f"<code>{esc(short(P(d['articles'])))}</code>", f"{art[0]:,}건 · 최신 {esc(str(art[1])[:16].replace('T', ' '))}" if art[0] is not None else esc(art[1]), "매일 07:40 morning (수집) → 글감 순위"],
+             ["선수·구단 페이지 (brain)", f"<code>{esc(short(dd / 'entities'))}/</code>", f"{sum(1 for _ in (dd / 'entities').glob('*.json')):,}개", "월요일 06:10 brain → 초안 배경 자료·내부 링크"],
+             ["공식 인스타 사진 창고", f"<code>{esc(short(dd / 'media/insta'))}/</code>", f"사진 목록 {len(read_json(dd / 'media/insta/index.json', []) or []):,}장 · {esc(day(mtime(dd / 'media/insta/index.json')))}", "매일 07:00 data → 썸네일·본문 사진"]]
+    return "".join([
+        f'<p class="muted">저장: {md_inline(d.get("store", ""))} · 품질 점검: {esc((chk.get("at") or "")[:16].replace("T", " "))} ({esc(chk.get("level", ""))}) 문제 {len(probs)}건 · 원본 <code>{esc(short(P(d["registry"])))}</code></p>',
+        f'<input class="filter" data-for="dt-{esc(d["id"])}" placeholder="이름·표로 걸러 보기 (예: 순위, 이적, fbref)">',
+        f'<div id="dt-{esc(d["id"])}">' + table(["데이터", "구분", "언제 수집", "주기", "행 수(지금)", "상태", "어디에 쓰이나"], rows, "data") + "</div>",
+        "<h4>표가 아닌 자료</h4>" + table(["자료", "위치", "분량·최신", "언제·어디에"], files),
+        f'<details><summary>목록에 없는 보조 표 <span class="muted">({len(extra)}개 — 수집 기록·점검용 등)</span></summary>' + table(["표", "행 수", "쓰는 곳"], extra) + "</details>"])
+
+
+def data_panel(cfg: dict, jobs: list[dict]) -> str:
+    out = ['<p class="lead">어떤 데이터가 있고, 어디서·언제 수집되고, 어디에 쓰이는지. 각 프로젝트의 데이터 목록 문서·점검 결과·실제 DB·코드를 읽어 만듭니다. '
+           '"어디에 쓰이나"의 작은 칸은 그 표를 읽는 코드 묶음이고 숫자는 파일 수입니다(마우스를 올리면 파일 이름).</p>']
+    for d in cfg.get("data") or []:
+        try:
+            body = cadam_data(d, jobs) if d.get("kind") == "cadam" else football_data(d, jobs)
+        except Exception as ex:  # noqa: BLE001
+            body = f'<div class="card"><h3>읽는 중 오류</h3><p class="muted">{esc(type(ex).__name__)}: {esc(ex)}</p></div>'
+        out.append(f'<section class="brand"><h2>{esc(d["name"])}</h2>{body}</section>')
+    return "".join(out)
+
+
 CSS = """
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16202a;--muted:#6b7785;--line:#e3e7ec;--ok:#0f7b4f;--okbg:#e2f5ec;--warn:#9a5b00;--warnbg:#fff1d6;--bad:#b3261e;--badbg:#fde7e5;--run:#1456c4;--runbg:#e3edff;--off:#5f6975;--offbg:#eceff3;--accent:#10201b}
 @media(prefers-color-scheme:dark){:root{--bg:#11161b;--card:#1a2129;--ink:#e8edf2;--muted:#93a0ad;--line:#2b3540;--okbg:#113626;--ok:#6fd7a5;--warnbg:#40300e;--warn:#f2c46a;--badbg:#45201d;--bad:#ff9a92;--runbg:#182c52;--run:#9dbcff;--offbg:#262f39;--off:#aab4bf;--accent:#f2c84b}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
 header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--line);padding:10px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
 header h1{font-size:17px;margin:0}header .gen{margin-left:auto;color:var(--muted);font-size:12px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs button{border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit}
-.tabs button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}.tabs button .muted{font-size:11px}
-main{max-width:1280px;margin:0 auto;padding:16px 20px 60px}.panel{display:none}.panel.on{display:block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs a{border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 12px;border-radius:999px;cursor:pointer;font:inherit;text-decoration:none}
+.js .tabs a.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}.tabs a .muted{font-size:11px}
+main{max-width:1280px;margin:0 auto;padding:16px 20px 60px}.panel{scroll-margin-top:110px}.js .panel{display:none}.js .panel.on{display:block}.ptitle{font-size:22px;border-bottom:3px solid var(--accent);padding-bottom:6px;margin-top:40px}.js .ptitle{display:none}
 h2{font-size:18px;margin:26px 0 10px}h3{font-size:14px;margin:0 0 8px}h4{font-size:13px;margin:14px 0 6px;color:var(--muted)}
 .lead{color:var(--muted)}.muted{color:var(--muted)}.small{font-size:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
@@ -419,14 +582,17 @@ table.reg td{min-width:110px}code{font:12px ui-monospace,SFMono-Regular,Menlo,mo
 details{margin:10px 0}summary{cursor:pointer;font-weight:600;padding:8px 0}details>.tw,details>p,details>div,details>ul{margin-top:6px}
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}.stats div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-width:92px}.stats b{display:block;font-size:18px}.stats span{color:var(--muted);font-size:12px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font:12px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--card)}.chip.cmd{border-color:var(--warn);color:var(--warn)}
+.chip.use{border-color:var(--run);color:var(--run);margin:2px 3px 0 0;display:inline-block;font-family:inherit}table.data td{min-width:90px}table.data td:first-child{min-width:190px}table.data td:last-child{min-width:230px}
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
 """
 
 JS = """
-function show(id){document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+id));document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===id));try{localStorage.setItem('tab',id)}catch(e){}}
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+document.body.classList.add('js');
+function show(id){document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+id));document.querySelectorAll('.tabs a').forEach(b=>b.classList.toggle('on',b.dataset.t===id));try{localStorage.setItem('tab',id)}catch(e){}}
+document.querySelectorAll('.tabs a').forEach(b=>b.onclick=function(ev){ev.preventDefault();show(b.dataset.t);window.scrollTo(0,0)});
 var saved=null;try{saved=localStorage.getItem('tab')}catch(e){};if(saved&&document.getElementById('p-'+saved))show(saved);
+document.querySelectorAll('input.filter[data-for]').forEach(function(i){i.oninput=function(){var q=i.value.toLowerCase();document.querySelectorAll('#'+i.dataset.for+' tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''})}});
 var f=document.getElementById('jobfilter');if(f)f.oninput=function(){var q=f.value.toLowerCase();document.querySelectorAll('#alljobs tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''})};
 """
 
@@ -451,14 +617,15 @@ def main() -> int:
                   + (f"<h3>오류 난 작업</h3>{jobs_table(bad)}" if bad else "")
                   + '<input id="jobfilter" class="filter" placeholder="이름·프로젝트·스크립트로 걸러 보기 (예: football, crawler, 07:)"><div id="alljobs">'
                   + jobs_table(sorted(jobs, key=lambda j: (j["project"], j["label"]))) + "</div>")
-    tabs += [("jobs", "예약 작업 전체", ""), ("compat", "임시 연결·남은 일", "")]
-    panels += [("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0])]
+    tabs += [("data", "데이터", ""), ("jobs", "예약 작업 전체", ""), ("compat", "임시 연결·남은 일", "")]
+    panels += [("data", data_panel(cfg, jobs)), ("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0])]
     first = tabs[0][0]
+    names = {i: n for i, n, _ in tabs}
     page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'
             f'<header><h1>엔진 대시보드</h1><div class="tabs">'
-            + "".join(f'<button data-t="{esc(i)}" class="{"on" if i == first else ""}">{esc(n)}{f" <span class=muted>{esc(s)}</span>" if s else ""}</button>' for i, n, s in tabs)
+            + "".join(f'<a href="#p-{esc(i)}" data-t="{esc(i)}" class="{"on" if i == first else ""}">{esc(n)}{f" <span class=muted>{esc(s)}</span>" if s else ""}</a>' for i, n, s in tabs)
             + f'</div><span class="gen">만든 때 {NOW:%Y-%m-%d %H:%M} · 다시 만들기 <code>python3 ~/projects/_meta/dashboard/build.py --open</code></span></header><main>'
-            + "".join(f'<div class="panel {"on" if i == first else ""}" id="p-{esc(i)}">{b}</div>' for i, b in panels)
+            + "".join(f'<div class="panel {"on" if i == first else ""}" id="p-{esc(i)}"><h2 class="ptitle">{esc(names[i])}</h2>{b}</div>' for i, b in panels)
             + f"</main><script>{JS}</script></body></html>")
     out = HERE / "index.html"
     out.write_text(page, encoding="utf-8")

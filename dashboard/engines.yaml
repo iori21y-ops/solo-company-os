@@ -34,3 +34,37 @@ engines:
 # launchd labels listed on the 예약 작업 tab (prefix match)
 job_prefixes: [com.cadam., com.rentailor., com.iori21y., com.blogengine., com.kim.]
 compat_list: ~/projects/_meta/governance/COMPAT_LIST.md
+
+# 데이터 tab: one entry per business. Everything is read from that project's own documents / files (nothing typed here).
+# usage: label → folders (or files) whose code is searched for each table name, to show where the data is used.
+data:
+  - id: rentailor
+    name: 렌테일러 (cadam)
+    kind: cadam
+    store: 로컬 PostgreSQL `cadam` (warehouse·data 스키마) + Supabase(사이트 노출값)
+    catalog: ~/projects/cadam/docs/data-catalog.md
+    health: ~/projects/cadam/cadam-pipeline/data/health/latest.md
+    registry: ~/projects/cadam/docs/data-registry.md
+    counts: ~/projects/cadam/docs/data-registry-counts.md
+    usage:
+      블로그 글감·사실 묶음: [~/projects/cadam/cadam-pipeline/scripts/content]
+      블로그 글쓰기(엔진): [~/projects/blog-engine/brands/rentailor]
+      쇼츠: [~/projects/my-shorts]
+      분석·유입: [~/projects/cadam/cadam-pipeline/scripts/analysis, ~/projects/cadam/cadam-pipeline/scripts/growth]
+      창고 파생표 만들기: [~/projects/cadam/cadam-pipeline/scripts/maintenance]
+      사이트 API(파이프라인 서버): [~/projects/cadam/cadam-pipeline/scripts/api_server.py]
+  - id: football
+    name: 해외파 리포트 (football-blog)
+    kind: football
+    store: SQLite `football-blog/data/warehouse.sqlite3` (경기·기록) + `articles.sqlite3` (기사 제목·링크)
+    registry: ~/projects/football-blog/docs/data-registry.md
+    warehouse: ~/projects/football-blog/data/warehouse.sqlite3
+    articles: ~/projects/football-blog/data/articles.sqlite3
+    datacheck: ~/projects/football-blog/data/health/datacheck.json
+    data_dir: ~/projects/football-blog/data
+    usage:
+      블로그 글(엔진): [~/projects/blog-engine/brands/football]
+      글 배경 자료(창구): [~/projects/football-blog/football/brain.py, ~/projects/football-blog/football/insights.py, ~/projects/football-blog/football/fdorg.py, ~/projects/football-blog/football/warehouse.py, ~/projects/football-blog/football/topics.py]
+      쇼츠: [~/projects/football-blog/shorts-lab, ~/projects/football-blog/football/shortsflow.py, ~/projects/football-blog/football/matchreview.py]
+      영상: [~/projects/football-blog/football/video.py]
+      통일표·점검(내부): [~/projects/football-blog/football/ids.py, ~/projects/football-blog/football/metrics.py]
