@@ -1,0 +1,46 @@
+_meta/handoff/option_work_scripts/survey.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/handoff/option_work_scripts/kia_preview.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/handoff/option_work_scripts/kia_cov.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/handoff/option_work_scripts/dbg_k5.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/handoff/option_work_scripts/inspect_conf.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/handoff/option_work_scripts/verify_conflicts.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/handoff/option_work_scripts/trimnames.py:2:HERE='/Users/kim/projects/cadam/cadam-n8n/price_crawler'
+_meta/agents/marketing/scripts/yt_oauth_setup.py:27:ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+_meta/agents/marketing/scripts/youtube_publish.py:25:ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+_meta/agents/marketing/scripts/wp_publish.py:5:- .env(cadam-n8n)에서 인증 재사용
+_meta/agents/marketing/scripts/wp_publish.py:13:ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+_meta/agents/marketing/scripts/ig_publish.py:5:- .env(cadam-n8n)에서 인증 재사용 (키 미발급 시 명확히 안내하고 중단 = 안전)
+_meta/agents/marketing/scripts/ig_publish.py:24:ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+_meta/scripts/n8n_telegram_to_discord.py:78:            "headerParameters": {"parameters": [{"name": "User-Agent", "value": "DiscordBot (cadam-n8n, 1.0)"}]},
+_meta/scripts/server-health-check.sh:69:  CRAWLER_LOG="$HOME/projects/cadam/cadam-n8n/price_crawler/crawler.log"
+_meta/scripts/server-health-check.sh:72:    PROBLEMS="${PROBLEMS}🔴 가격크롤러 로그 없음 (이번 달 수집 미실행 의심)\n　→ 수동 실행: bash ~/projects/cadam/cadam-n8n/price_crawler/run_monthly.sh\n"
+_meta/scripts/server-health-check.sh:76:      PROBLEMS="${PROBLEMS}🔴 이번 달(${THIS_MONTH}) 가격크롤러 월간 수집 실패/누락\n　→ 수동 실행: bash ~/projects/cadam/cadam-n8n/price_crawler/run_monthly.sh\n"
+_meta/scripts/audit-agent.sh:117:check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/cadam-n8n/scrape_encar.py"
+_meta/skills/3-supabase-query/scripts/query.py:7:    envp = Path.home()/'projects/cadam/cadam-n8n/.env'
+cadam/cleanup_logs.sh:23:    "$HOME/projects/cadam/cadam-n8n/supabase/wp_sync.log" \
+cadam/promo-images/generate_event_banner.py:24:VEHICLE1_PATH = "/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/genesis-gv80-coupe.png"
+cadam/promo-images/generate_event_banner.py:25:VEHICLE2_PATH = "/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/hyundai-ioniq6.png"
+cadam/promo-images/generate_sorento_hybrid_limited.py:12:CAR_PATH = Path("/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/kia-sorento-hybrid-v2.png")
+cadam/promo-images/generate_promo.py:34:VEHICLE_PATH = "/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/genesis-gv80-coupe.png"
+cadam/promo-images/generate_promo_v2.py:24:VEHICLE_PATH = "/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/genesis-gv80-coupe.png"
+cadam/promo-images/generate_sorento_rentailor_style.py:8:CAR_PATH = Path("/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/kia-sorento-hybrid-v2.png")
+cadam/promo-images/generate_banner.py:23:VEHICLE_PATH = "/Users/kim/projects/cadam/cadam-n8n/vehicle_images/nobg/genesis-gv80-coupe.png"
+cadam/scripts/fill_color_codes.py:5:규칙: 해당 차종 최신 캐시 PDF(cadam-n8n/price_crawler/pdf_cache/*_{slug}_*.pdf)에서
+cadam/scripts/fill_color_codes.py:21:PDF_DIR = os.path.expanduser("~/projects/cadam/cadam-n8n/price_crawler/pdf_cache")
+import-lease/crawler/lease_fallback.py:28:sys.path.append("/Users/kim/projects/cadam/cadam-n8n/price_crawler")  # after ours: no name shadowing
+import-lease/crawler/lease_fallback.py:33:RC = Path(os.environ.get("RENT_COMPARE_DIR") or "/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/rent_compare")
+import-lease/crawler/lease_fallback.py:34:FAIL = Path("/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/chazm/fail_count")
+import-lease/crawler/carbay_lease.py:4:(cadam-n8n/price_crawler/data/rent_compare/carbay_<YYYYMM>.jsonl, complete when carbay_done says that month) has trim-level
+import-lease/crawler/carbay_lease.py:23:RC = Path("/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/rent_compare")
+import-lease/crawler/chazm_lease.py:27:CADAM_D = Path("/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/chazm")  # shared monthly crawl (CADAM)
+import-lease/crawler/fetch_official_pdfs.py:4:a real browser — ego lite, headless Playwright when ego lite does not answer (cadam-n8n lib/ego_browser.py) — one page
+import-lease/crawler/fetch_official_pdfs.py:23:sys.path.insert(0, str(Path.home() / "projects" / "cadam" / "cadam-n8n"))
+import-lease/crawler/naver_rent.py:5:cadam-n8n/price_crawler/data/rent_compare/naver_<YYYYMM>.jsonl and writes naver_done (YYYY-MM) when complete.
+import-lease/crawler/naver_rent.py:19:CADAM_DIR = Path("/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/rent_compare")
+import-lease/crawler/encar_used_prices.py:72:        sys.path.insert(0, "/Users/kim/projects/cadam/cadam-n8n")
+import-lease/crawler/db_size_check.py:18:CADAM_N8N_ENV = Path("/Users/kim/projects/cadam/cadam-n8n/.env")
+import-lease/crawler/run_daily.sh:10:  $PY -c "import sys; sys.path.insert(0,'/Users/kim/projects/cadam/cadam-n8n'); from lib.notify import notify; notify(sys.argv[1])" "[임포리스] $1" 2>/dev/null
+import-lease/crawler/run_daily.sh:93:CADAM_CHAZM_DONE="/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/chazm/last_month_done"
+import-lease/crawler/run_daily.sh:96:CADAM_CARBAY_DONE="/Users/kim/projects/cadam/cadam-n8n/price_crawler/data/rent_compare/carbay_done"
+import-lease/crawler/migrate_from_cadam.py:22:CRAWLER_DIR = CADAM_DIR / "cadam-n8n/price_crawler"
+import-lease/crawler/vendor/cadam_price_crawler.py:5:위치: Mac Mini ~/cadam-n8n/price_crawler/price_crawler.py
