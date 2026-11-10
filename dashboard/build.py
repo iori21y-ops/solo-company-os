@@ -727,6 +727,9 @@ def load_plan(path) -> list:
                 out.append({"id": f"{sid}-{car}-{part['part']}", "type": t.get("type", "심층 시리즈"), "series": t.get("series", sid), "name": f"{car} {part['part']} {part['name']}",
                             "plan": part.get("plan", "ready"), "pilot": f"{car} {part['part']}" in (t.get("pilot") or []), "source": "template", "status": "planned",
                             "tables": part.get("tables", []), "order": (t.get("cars").index(car), part["part"])})
+    prog = d.get("progress") or {}
+    for it in out:
+        it["status"] = prog.get(it["id"], it["status"])
     return out + list(d.get("items") or [])
 
 
