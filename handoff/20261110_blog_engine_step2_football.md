@@ -38,4 +38,8 @@
   검증: 함수 소스 해시 전후 동일, records·league dry-run 전후(코드가 만드는 줄 21/36개 동일, 상태 키 동일), series·preview는 전후 같은 사유로 건너뜀(오늘 수집 없음·일정 없음), 20:47 poll 정상.
 - 주의(다음 단계 시험): `run.py morning --dry-run`은 dry-run이어도 `data/candidates/<오늘>.json`을 디스코드 메시지 번호 없이 새로 쓰고 collect·brain 타임라인·사진 판정을 실제로 실행한다 → 낮에 후보가 게시된 날에는 돌리지 말 것. draft 경로 시험은 `tools/draft_test.py <이름>`(상태 저장 없음)으로.
 - 2026-11-10 07:40 morning은 잠금 충돌("another run in progress")로 실행되지 않음 — 오늘자 후보·초안 없음(이 작업과 무관, 미조치).
-- 다음: ② 2번(`football/postphotos.py`).
+- **2026-11-10 21:08 — ② 2번 완료** (football-blog 커밋 "photo handling split out of draft.py into postphotos.py", 직전 checkpoint `2e74e38`, push 안 함): `football/postphotos.py`에 header_block·보조 5개, photo_block, add_section_photos, commons_search, recheck_photos, photo_count, PHOTO_LINE·AI_*·SKIP_SECTIONS, image_log(insta.image_log 감싼 것). draft.py는 같은 이름을 다시 내보내고 insta·aiimage를 직접 쓰지 않음(본문 변경은 write의 `insta.image_log` → `image_log` 한 줄).
+  검증: 옮긴 15개 소스 해시 동일, 저장된 글 8편으로 header_block·photo_block·recheck_photos·compose_body·add_section_photos 결과 전후 완전 동일, records·league dry-run 동일, 21:07 poll 정상. 초안 전체 경로(draft.write)는 오늘 글감 0건이라 시험 못 함 → 글감이 있는 날 `tools/draft_test.py <이름>`로 확인 필요.
+- draft.py에 남은 football-blog 의존(4번 데이터 창구 대상): brain.context·brain.load(related_fallback), insights.block, collect.UA, media.gather/save_media(GATHER_MEDIA=False라 죽은 코드), config(C).
+- series(insta.image_log·index)·review(insta.entities_in·screen)의 insta 직접 호출은 그대로 — 3·4번에서 postphotos/창구로.
+- 다음: ② 3번(review.py 나누기: 글 승인·발행 vs 영상·쇼츠).
