@@ -9,7 +9,7 @@
 ~/projects/
   _meta/          공통 운영 OS: 규칙(governance/), 핸드오프(handoff/), 감사·점검 스크립트
   _shared/        공용 파이썬 라이브러리 패키지 `solo_common` (discord, notify, claude 호출, ego_browser, polite, config 로더,
-                  창고 DB 접속, LLM 호출, 기사 본문 추출, 표·그래프 — 두 프로젝트 이상이 쓰는 도구만)
+                  창고 DB 접속, LLM 호출, 기사 본문 추출 — 두 프로젝트 이상이 쓰는 도구만)
   _archive/       삭제 대기 보관함: _archive/<YYYY-MM-DD>/<원래 경로> — 7일간 문제 없으면 비운다
   blog-engine/    글쓰기 엔진 (모든 브랜드 공용, §3)
   <사업>/          사업별 서비스 + 그 사업의 수집기·데이터 (cadam = 렌테일러, football-blog = 해외파 리포트, …)
@@ -42,7 +42,7 @@
 blog-engine/
   engine/         공통 단계: 대기열·상태, 자료 묶음, 초안, 검수, 재작성, 숫자 검증, 금액 표기, 중복 검사, 보류 스위치, 알림
   publishers/     발행처: wordpress/, naver/ (cadam-naver 발행 서버를 여기로), youtube/(추후)
-  graphics/       표·그래프·카드 (blog_graphics), 폰트 — 해외파 글쓰기가 엔진으로 올 때까지 실제 파일은 `_shared/solo_common`에 두고 여기는 연결만
+  graphics/       표·그래프·카드 (blog_graphics), 설명 애니메이션 (explainer) — 실제 파일이 여기 있다(2026-11-10 `_shared`에서 되돌림)
   brands/
     <브랜드>/
       brand.yaml  채널(디스코드 채널·발행처·블로그 ID·카테고리), 일정, 보류 플래그 위치, 사용할 데이터 연결

@@ -65,4 +65,12 @@
   - 검증: 자료 구성 함수 44건 옛 코드 = 엔진 코드(2건은 양쪽 다 "PL 일정 없음" 데이터 사유), records·league dry-run 동일(엔진 직접 / football-blog run.py 경유 둘 다), series·preview 같은 사유로 건너뜀, 같은 글감(72시간 안 아스널)으로 초안 1편씩 — 상태 키 18개·사진 2장·소제목 7개 동일, 엔진 poll 직접 1회 + launchd poll 2회 정상.
   - **실전에서 아직 안 돌아 본 것**: 엔진을 거친 morning 전체(창구의 collect·brain_update_timeline·insta_screen 명령, 디스코드 후보·초안 게시), 승인 → 발행(보류 중이라 실행 안 됨), 발행 뒤 brain_add_post. 11/11 07:40 morning이 첫 실전.
   - 되돌리기: football-blog에서 `git revert db3d90a`(옛 파일과 옛 run.py가 돌아옴, 엔진 쪽 파일은 남아도 아무도 안 부름).
-- 다음: 11/11 아침 실행 확인 → ② 6번(작업 파일 outbox 이동, 로그 위치, graphics 되돌리기) → launchd 교체(사장님 확인) → ③.
+- **2026-11-10 22:00 — ② 6번 완료(로그 위치만 launchd 교체 때로 미룸)** — 사장님이 "6번 지금 진행" 지시. blog-engine `68e0255`(작업 파일)·`f680cd4`(graphics), _shared `fb95d1d`, football-blog `58e1035`(문서), 직전 checkpoint: football-blog `5ba6676`·blog-engine `7521ec3`·_shared `5ff7ab0`. push 안 함.
+  - 작업 파일 이동(잠금 잡고 rename): `football-blog/data/` posts·candidates·cards·records·evergreen.json·hold_cursor.json → `blog-engine/brands/football/outbox/`. `PUBLISH_PAUSE`는 제자리. 엔진은 `sources.py`에서 C.STATE_DIR·CAND_DIR·CARD_DIR·EVERGREEN_FILE을 outbox로 덮어쓰고, records.SNAP_DIR·review.HOLD_CURSOR 두 줄을 OUTBOX로 바꿈.
+  - 옛 자리 링크 2개(COMPAT_LIST A, 기한 12/15): `football-blog/data/posts`, `data/cards` → outbox. football-blog 쪽 config(STATE_DIR·CARD_DIR)는 그대로 두어 링크를 통해 읽고 쓴다(videoflow의 영상 상태, insta 사진 중복 검사, topics.recent_entities, 썸네일 크롭 `cards/headers/`).
+  - 새로 만드는 글의 카드 경로는 `…/blog-engine/brands/football/outbox/cards/…`, 11/10 이전 글 18편 본문에는 옛 경로가 남아 있다(링크로 유효).
+  - graphics: `blog_graphics.py`·`explainer.py` 실제 파일을 `_shared/solo_common` → `blog-engine/graphics/`(쓰는 곳이 엔진뿐). 해외파 draft는 `from graphics import blog_graphics`. 그림 출력 폴더는 그대로 `cadam-pipeline/data/blog_graphics/`.
+  - 검증: 파일 106개 sha1 동일, 읽는 쪽 14개 결과(엔진 all_posts·next_slot·후보·evergreen·스냅샷, football-blog used_today·recent_entities·옛 경로 목록 등) 전후 동일, 글 속 사진·카드 경로 누락 0, records·league dry-run 동일(카드가 outbox에 생김), 발행용 표시 변환(naver_markup) 4편 + 렌테일러 표·그래프 샘플 전후 동일, 21:53 poll 정상(hold_cursor가 outbox에 갱신됨).
+  - 안 한 것: 실행 기록을 `blog-engine/logs/`로(launchd가 football-blog/run.py를 실행하는 동안은 못 옮김 — launchd 교체와 함께).
+  - 되돌리기(작업 파일): 잠금 잡고 링크 2개 지운 뒤 outbox의 6개를 `football-blog/data/`로 되옮기고 blog-engine에서 `git revert 68e0255`.
+- 남은 일: ① 11/11 07:40 morning 실전 확인(엔진 경유 첫 실행) ② launchd를 엔진 직접 실행으로 교체 + 로그 위치(사장님 확인) ③ 링크 2개·사본 3개 정리(COMPAT_LIST 12/15) ④ 인계 ③ 공용 도구 합치기 ⑤ `_archive/2026-11-10/football-blog/` 11/17 이후 확인 후 비우기.
