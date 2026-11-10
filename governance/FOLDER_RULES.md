@@ -41,12 +41,13 @@
 ```
 blog-engine/
   engine/         공통 단계: 대기열·상태, 자료 묶음, 초안, 검수, 재작성, 숫자 검증, 금액 표기, 중복 검사, 보류 스위치, 알림
+  rules/          공통 규칙(common/)과 발행처별 형식 규칙(sites/<발행처>/) — 블로그별 규칙은 brands/<브랜드>/rules/ (지도: rules/README.md)
   publishers/     발행처: wordpress/, naver/ (cadam-naver 발행 서버를 여기로), youtube/(추후)
   graphics/       표·그래프·카드 (blog_graphics), 설명 애니메이션 (explainer) — 실제 파일이 여기 있다(2026-11-10 `_shared`에서 되돌림)
   brands/
     <브랜드>/
       brand.yaml  채널(디스코드 채널·발행처·블로그 ID·카테고리), 일정, 보류 플래그 위치, 사용할 데이터 연결
-      rules/      글쓰기·검수·재작성 규칙(브랜드 원본), kind/ 글 유형별 규칙, CHANGELOG.md
+      rules/      글쓰기·검수·재작성 규칙(브랜드 원본), kind/ 글 유형별 규칙, <발행처>/ 그 브랜드×발행처 전용 규칙, CHANGELOG.md
       sources.py  그 사업의 데이터 읽기(어댑터) — 데이터는 사업 프로젝트에 그대로 두고 읽기만
       topics.py   (선택) 글감 찾기
       outbox/     글쓰기 작업 파일: 글감 후보, 초안·승인 상태, 사진 작업 (git 제외). 사업이 수집한 데이터는 여기 두지 않는다
@@ -54,7 +55,8 @@ blog-engine/
   launchd/        엔진 작업의 launchd plist 원본 사본
   run.py          `run.py <brand> <command>` 하나로 실행
 ```
-- 새 형식 추가 = `brands/<새이름>/` 폴더 하나(brand.yaml + rules/ + sources.py).
+- 새 형식 추가 = `brands/<새이름>/` 폴더 하나(brand.yaml + rules/ + sources.py). 새 발행처 = `rules/sites/<발행처>/` + `publishers/<발행처>/`.
+- 규칙 층: 두 블로그 이상이 글자 그대로 같이 쓰는 규칙만 공통·발행처 층으로 올린다. 층은 자동으로 합치지 않고, 지시문을 만드는 코드가 고른다.
 - 브랜드마다 디스코드 채널을 하나 정해 그 브랜드의 글쓰기 알림은 전부 거기로(렌테일러 #콘텐츠기획, 해외파 #축구블로그).
 - **무엇이 엔진 것이고 무엇이 사업 것인가**: 글쓰기만 쓰는 파일(후보·초안·발행 상태·사진 작업)은 엔진 `outbox/`. 홈페이지·ERP·영상·수집기도 쓰는 자료(가격·시세·경기 기록·사진 원본·조회수 수집분)는 사업 프로젝트 `data/`에 그대로 두고 §2의 세 가지 길로 읽는다.
 - 실행 기록(로그)은 그 작업의 코드가 있는 프로젝트의 `logs/`에 둔다. 5MB 넘으면 주간 정리(`cadam/cleanup_logs.sh`)가 줄인다.
