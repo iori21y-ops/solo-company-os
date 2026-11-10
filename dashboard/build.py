@@ -611,7 +611,7 @@ def tightest(rows: list):
 def content_plan_table(items: list, by_name: dict) -> str:
     """Planned content × the current state of the data each piece needs."""
     rows = []
-    for it in sorted(items, key=lambda it: (TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9, it.get("series", ""), it["name"])):
+    for it in sorted(items, key=lambda it: (TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9, it.get("series", ""), it.get("order", (0, "")), it["name"])):
         need = [by_name[t] for t in it.get("tables", []) if t in by_name]
         missing = [t for t in it.get("tables", []) if t not in by_name]
         bad = [r for rs in need for r in rs if r["status"] in ("bad", "warn")]
@@ -619,8 +619,9 @@ def content_plan_table(items: list, by_name: dict) -> str:
         state = pill("데이터 문제", "bad") if bad or late or missing else pill("데이터 정상", "ok") if need else pill("데이터 없이 계산", "")
         chips = "".join(f'<span class="chip st-{rs[0]["status"]}" title="{esc(rs[0]["fresh"] or rs[0]["nrows"])}">{esc(rs[0]["title"])}</span>' for rs in need) + "".join(f'<span class="chip bad">{esc(t)} 없음</span>' for t in missing)
         rows.append([f'<span class="ctype t-{TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9}">{esc(it["type"])}</span>', f"<b>{esc(it.get('series', ''))}</b>", esc(it["name"]) + (" " + pill("시범", "run") if it.get("pilot") else ""),
-                     chips or '<span class="muted">세금 규칙 등 코드 계산</span>', pill(*PLAN_KO.get(it.get("plan"), ("-", ""))), state])
-    return table(["유형", "시리즈", "글", "쓰는 데이터 (지금 상태)", "계획 문서의 준비 상태", "데이터 상태"], rows, "data")
+                     chips or '<span class="muted">세금 규칙 등 코드 계산</span>', pill(*PLAN_KO.get(it.get("plan"), ("-", ""))), state,
+                     esc(SOURCE_KO.get(it.get("source"), it.get("source", "-"))), pill(*PROGRESS_KO.get(it.get("status", "planned"), (it.get("status", "-"), "")))])
+    return table(["유형", "시리즈", "글", "쓰는 데이터 (지금 상태)", "계획 때 준비 상태", "데이터 상태", "들어온 길", "진행"], rows, "data")
 
 
 def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
@@ -704,9 +705,29 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
     plan = ""
     if items:
         n_pilot = sum(1 for it in items if it.get("pilot"))
-        plan = (f'<details class="plan" open><summary>콘텐츠 계획과 데이터 준비 상태 <span class="muted">({len(items)}개 — 심층 시리즈·트래커·뉴스, 시범 {n_pilot}편 · 출처: 개편 계획 문서)</span></summary>'
+        src = Counter(SOURCE_KO.get(it.get("source"), "기타") for it in items)
+        plan = (f'<details class="plan"><summary>콘텐츠 계획과 데이터 준비 상태 <span class="muted">({len(items)}개, 시범 {n_pilot}편 — {esc(" · ".join(f"{k} {v}" for k, v in src.most_common()))} · 원본 <code>{esc(short(P(d["content_plan"])))}</code>)</span></summary>'
                 + content_plan_table(items, by_name) + "</details>")
     return head + plan + '<h3>카테고리</h3><div class="grid cats">' + "".join(cards) + "</div>" + legend + "".join(sections) + extra
+
+
+SOURCE_KO = {"template": "틀에서 자동", "approved": "제안 → 승인", "request": "직접 요청", "plan": "계획 문서"}
+PROGRESS_KO = {"planned": ("계획", ""), "draft": ("초안", "run"), "review": ("승인 대기", "warn"), "published": ("발행", "ok")}
+
+
+def load_plan(path) -> list:
+    """Planned content of one business (the engine's content_plan.yaml): explicit items + series templates × cars."""
+    if not path:
+        return []
+    d = yaml.safe_load(read(P(path))) or {}
+    out = []
+    for sid, t in (d.get("series_templates") or {}).items():
+        for car in t.get("cars") or []:
+            for part in t.get("parts") or []:
+                out.append({"id": f"{sid}-{car}-{part['part']}", "type": t.get("type", "심층 시리즈"), "series": t.get("series", sid), "name": f"{car} {part['part']} {part['name']}",
+                            "plan": part.get("plan", "ready"), "pilot": f"{car} {part['part']}" in (t.get("pilot") or []), "source": "template", "status": "planned",
+                            "tables": part.get("tables", []), "order": (t.get("cars").index(car), part["part"])})
+    return out + list(d.get("items") or [])
 
 
 def data_panels(cfg: dict, jobs: list[dict]) -> list:
@@ -714,7 +735,7 @@ def data_panels(cfg: dict, jobs: list[dict]) -> list:
     out = []
     for d in cfg.get("data") or []:
         try:
-            body = data_business(d, jobs, cats.get(d["id"], []), (cats.get("content") or {}).get(d["id"], []))
+            body = data_business(d, jobs, cats.get(d["id"], []), load_plan(d.get("content_plan")))
         except Exception as ex:  # noqa: BLE001
             body = f'<div class="card"><h3>읽는 중 오류</h3><p class="muted">{esc(type(ex).__name__)}: {esc(ex)}</p></div>'
         out.append((f'data-{d["id"]}', d.get("tab", d["name"]), '<p class="lead">어떤 데이터가 있고, 어디서·언제 수집되고, 지금 신선한지, 어디에 쓰이는지 — 주제별 카테고리로 묶어 봅니다.</p>' + body))

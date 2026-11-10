@@ -47,6 +47,7 @@ data:
     health: ~/projects/cadam/cadam-pipeline/data/health/latest.md
     registry: ~/projects/cadam/docs/data-registry.md
     counts: ~/projects/cadam/docs/data-registry-counts.md
+    content_plan: ~/projects/blog-engine/brands/rentailor/content_plan.yaml   # which posts are planned and which data each one uses
     usage:
       블로그 글감·사실 묶음: [~/projects/cadam/cadam-pipeline/scripts/content]
       블로그 글쓰기(엔진): [~/projects/blog-engine/brands/rentailor]
