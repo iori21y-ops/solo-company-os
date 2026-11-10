@@ -46,4 +46,15 @@
   검증: 옮긴 6개 함수 소스 해시 동일, records·league dry-run 동일, 21:12·21:17 poll 정상(문제 0건). 영상 제안·제작 경로는 실제 실행 안 함(현재 proposed/failed 상태 글 0건, 자동 제안은 꺼져 있음).
 - 5·6번 때 주의: videoflow는 글 상태 파일(`data/posts/*.json`)의 `video` 항목을 읽고 쓴다(poststate). 상태 파일이 엔진 outbox로 가면 poststate의 경로(C.STATE_DIR)만 바꾸면 되지만, "football-blog가 엔진 작업 파일에 쓴다"는 점은 규칙상 정리가 필요(영상 상태를 football-blog 쪽 별도 파일로 떼는 안).
 - review.py에 남은 football-blog 의존(4번 창구 대상): brain.add_post·update_timeline, collect.collect, topics.rank·pick_auto, insta.screen·entities_in(morning prescreen), records.save_evergreen(같이 이사), poststate, discordutil.
-- 다음: ② 4번(football 데이터 창구 `football-blog/facts_cli.py`).
+- **2026-11-10 21:35 — ② 4번 완료** (football-blog `1f5409f`, 직전 checkpoint `2a5f17d`, push 안 함): `football-blog/facts_cli.py` 신설(기존 코드 변경 없음, 아직 아무도 안 부름). 명령 24개.
+  - 읽기 20: constants(config 19개 값 + COMPS + LEAGUES), brain_context/load, insights_block, topics_rank/pick_auto/entity_of, fdorg_find_team/upcoming/kst, warehouse_standings/recent, insta_entities_in/index, image_log, photo_count, header_block(`{"block","paths","commons"}`), photo_block, add_section_photos, recheck_photos(`{"notes","body","images"}` — 상태 저장은 부르는 쪽).
+  - 상태 변경 4(`COMMANDS`): brain_add_post, brain_update_timeline, collect, insta_screen.
+  - 검증: 읽기 명령 49건(선수 3·팀 5·리그 3·저장된 글 2편 등) 창구 답 = 직접 호출 결과. 상태 변경 4개는 실행 안 하고 인자 전달만 확인.
+- 5번에서 sources.py 쓸 때 주의:
+  1. JSON이라 tuple·set이 list로 온다(TEAMS 값 `(fd, csv)` → `[fd, csv]`, header_block paths). avoid·only 인자는 list로 넘긴다.
+  2. 창구는 답 한 줄 안의 줄 구분 문자(U+2028, U+2029, U+0085)를 이스케이프한다 — 인스타 캡션에 들어 있어 `splitlines()`가 줄을 자르기 때문. **렌테일러 facts_cli에는 이 처리가 없다**(같은 문자가 답에 들어오면 `sources._facts`가 잘못 읽을 수 있음 → ③에서 공용화할 때 반영).
+  3. 호출마다 파이썬 프로세스 1개(약 0.3~1초). records.players_now처럼 선수마다 find_team·upcoming·kst를 부르는 곳은 수십 번이 되므로 묶음 명령(창구 쪽에서 한 번에 계산)으로 바꾸는 편이 낫다.
+  4. KST·rule()은 창구에 없다(엔진이 직접 정의, rule은 engine/rules.py).
+  5. media.gather/save_media는 GATHER_MEDIA=False라 창구에 넣지 않았다. 옮길 때 그 죽은 분기를 지울지는 사장님 확인.
+  6. collect.db·warehouse.db 직접 SQL은 엔진이 DB 파일을 읽기 전용으로 직접 연다.
+- 다음: ② 5번(6개 파일을 blog-engine/brands/football/로, sources.py, brand.yaml 명령, launchd 교체 — launchd 변경은 사장님 사전 확인 필요). 시작 전 조건: 11/11 07:40 morning이 1~3번 변경 상태로 정상 실행된 것 확인.
