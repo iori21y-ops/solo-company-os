@@ -1,0 +1,36 @@
+# Engines shown on the dashboard (python3 build.py → index.html). One entry per engine; `status: planned` shows a placeholder tab.
+# kind: which reader in build.py fills the tab (blog-engine = brands/<brand>/brand.yaml, rules/, outbox/).
+engines:
+  - id: blog
+    name: 블로그 엔진
+    status: active
+    kind: blog-engine
+    root: ~/projects/blog-engine
+    summary: 글감 → 초안 → 검수·승인 → 발행. 브랜드별 규칙·도구·작업 파일.
+    brands:
+      rentailor:
+        business: ~/projects/cadam            # the business project that owns the collectors and data
+        facts_cli: ~/projects/cadam/cadam-pipeline/scripts/content/facts_cli.py
+        registry: ~/projects/cadam/docs/data-registry.md
+        registry_counts: ~/projects/cadam/docs/data-registry-counts.md
+        job_patterns: ["blog-engine/run.py rentailor", "blog-engine/publishers/naver", "blog-engine/brands/rentailor"]
+      football:
+        business: ~/projects/football-blog
+        facts_cli: ~/projects/football-blog/facts_cli.py
+        registry: ~/projects/football-blog/docs/data-registry.md
+        health_state: ~/projects/football-blog/data/health/state.json
+        job_patterns: ["football-blog/run.py", "blog-engine/run.py football", "football-blog/tools"]
+  - id: shorts
+    name: 쇼츠 엔진
+    status: planned
+    summary: 예정 — 쇼츠 기획·제작·업로드(렌테일러 my-shorts, 해외파 shorts-lab)를 같은 모양으로 묶을 계획.
+    will_show: [브랜드별 채널·보류 스위치, 기획 규칙(plan_rules), 제작·업로드 이력, 예약 작업, 조회·유지율 수집 상태]
+  - id: video
+    name: 영상 엔진
+    status: planned
+    summary: 예정 — 긴 영상(가로) 기획·제작.
+    will_show: [브랜드별 채널, 대본 규칙, 제작 이력, 예약 작업]
+
+# launchd labels listed on the 예약 작업 tab (prefix match)
+job_prefixes: [com.cadam., com.rentailor., com.iori21y., com.blogengine., com.kim.]
+compat_list: ~/projects/_meta/governance/COMPAT_LIST.md
