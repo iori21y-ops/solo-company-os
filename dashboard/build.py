@@ -666,6 +666,7 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
         unused = [r for r in rs if not has_use(r)]
         mine = [it for it in items if any(r["table"] in it.get("tables", []) for r in rs)]
         ntype = Counter(it["type"] for it in mine)
+        trackers = [it for it in mine if it["type"] == "트래커"]   # the flow box lists trackers only (owner 2026-11-10); every piece is in the plan table
         aid = f'cat-{d["id"]}-{cdef["id"]}'
         cards.append(f'<a class="card cat {worst}" href="#{aid}"><h3>{esc(cdef["name"])} <span class="muted">{len(rs)}</span></h3><p class="small muted">{esc(cdef.get("desc", ""))}</p>'
                      f'<p class="small">{dots(rs)}</p>'
@@ -690,7 +691,7 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
         right = "".join(f'<span class="chip use">{esc(k)} <b>{v}</b></span>' for k, v in ulab.most_common()) + (f'<span class="chip muted">읽는 곳 없음 {len(unused)}</span>' if unused else "")
         sections.append(f'<section class="catsec" id="{aid}"><h3 class="cath">{esc(cdef["name"])} <span class="muted">{len(rs)}개</span> {dots(rs)}</h3><p class="muted small">{esc(cdef.get("desc", ""))}</p>'
                         f'<div class="flow"><div><h4>수집 (누가 · 언제)</h4>{left or "<span class=muted>-</span>"}</div><div class="arrow">→</div><div><h4>데이터</h4>{mid}</div><div class="arrow">→</div>'
-                        f'<div><h4>활용 (지금 읽는 곳)</h4>{right or UNUSED}</div><div class="arrow">→</div><div class="cbox"><h4>이 자료로 만드는 콘텐츠</h4>{content_box(mine, cdef.get("content", ""))}</div></div>'
+                        f'<div><h4>활용 (지금 읽는 곳)</h4>{right or UNUSED}</div><div class="arrow">→</div><div class="cbox"><h4>{"이 자료로 만드는 트래커" if items else "이 자료로 만드는 콘텐츠"}</h4>{content_box(trackers, cdef.get("content", "")) if not items or trackers else '<span class="muted">트래커 없음' + (f" (심층 시리즈 {ntype['심층 시리즈']}편은 위 계획표에)" if ntype["심층 시리즈"] else "") + "</span>"}</div></div>'
                         f'<details><summary>자세히 <span class="muted">({len(rs)}개 — 최신 자료·행 수·수집기·읽는 곳·계획된 콘텐츠)</span></summary>{detail_table(rs)}</details></section>')
     legend = ('<p class="small muted">색: <span class="dot ok"></span>정상 <span class="dot warn"></span>주의 <span class="dot bad"></span>문제 <span class="dot none"></span>점검 대상 아님 · '
               '카드를 누르면 그 카테고리로 이동 · 데이터 이름 아래 파란 밑줄 = 계획된 콘텐츠가 있는 데이터 · "읽는 곳"은 표 이름이 코드에 적힌 경우만 찾으므로 "없음"은 확인이 필요한 목록입니다 · 카테고리와 콘텐츠 연결표는 <code>_meta/dashboard/data_categories.yaml</code>(제안)</p>')
