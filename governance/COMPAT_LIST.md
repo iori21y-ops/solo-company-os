@@ -19,6 +19,7 @@
 | 사본 | 원본 | 내용 | 하나로 합치는 방법 | 기한 |
 |---|---|---|---|---|
 | `blog-engine/brands/rentailor/trend_api.py` | `cadam-pipeline/scripts/trends/trend_collector.py` | norm·strip_tags·apihub_headers·fetch_news_evidence·CAR_TERMS·searchad_related | 6개를 `solo_common`으로 옮기고 양쪽이 거기서 가져다 씀 | 2026-12-15 |
+| `blog-engine/brands/football/` llmutil.py·discordutil.py·poststate.py | `football-blog/football/` 같은 이름 | Claude 호출·JSON 파싱·로그 / 디스코드 채널·반응 확인 / 글 상태 파일 읽기·저장 (import 한 줄만 다름, 양쪽이 같이 씀: 엔진=글, football-blog=영상·쇼츠·수집) | 엔진 공용 단계(인계 ③)로 합치거나 `solo_common`으로 옮김. 영상 상태를 글 상태 파일에서 떼면 poststate 사본은 없어짐 | 2026-12-15 |
 | `cadam/collectors/lib/` ego_browser.py·ego_bridge.js·polite.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기 (ego_browser는 이미 내용이 다름) | 차이를 합친 뒤 lib 쪽을 호환 파일로 | 2026-12-15 |
 
 ## C. 아직 규칙을 어기는 곳 (다른 프로젝트 코드를 직접 불러 씀)
@@ -27,9 +28,12 @@
 |---|---|---|---|
 | `my-shorts/datashorts/run.py` notify() | cadam-pipeline `common.telegram_notifier` | 알림을 `solo_common.notify`로 (my-shorts에 다른 작업의 미커밋 변경이 많아 11/10엔 손대지 않음) | my-shorts 다음 작업 때 |
 | `import-lease/crawler/` fetch_official_pdfs·encar_used_prices·lease_fallback·run_daily.sh | cadam `collectors/lib`(ego_browser·notify), `price_crawler` 코드, `linear_alert.py` | lib → `solo_common`, price_crawler 재사용분은 사본 정리 또는 데이터 창구 | 2026-12-15 |
-| `football-blog/tools/upgrade_posts.py` | 렌테일러 브랜드 코드 `naver_rewrite.naver_markup` (수동 일회용 도구) | 다음에 쓸 일이 생기면 blog-engine으로 옮김 | 쓸 때 |
-| `football-blog/football/` 글쓰기 7개 파일 | (위반은 아님) 아직 엔진으로 못 옴 | `blog-engine/brands/football/README.md`의 3단계 | 별도 세션 |
+| `football-blog/tools/upgrade_posts.py` | 렌테일러 브랜드 코드 `naver_rewrite.naver_markup` (수동 일회용 도구). 2026-11-10부터 `football.draft`도 없어 **지금은 실행 안 됨** | 다음에 쓸 일이 생기면 blog-engine으로 옮김 | 쓸 때 |
+| `football-blog/tools/swap_insta_photos.py` | (위반은 아님) `football.draft`를 불러 쓰는데 그 파일이 2026-11-10 엔진으로 이사해 **지금은 실행 안 됨**(수동 일회용 도구) | 다시 쓸 일이 생기면 `draft.header_block` → `postphotos.header_block`으로 고침 | 쓸 때 |
+| `blog-engine/brands/football/` (엔진) → `football-blog/data/` | (위반은 아님) 엔진이 아직 football-blog 폴더에 글쓰기 작업 파일을 쓴다: `data/posts`·`candidates`·`cards`·`records`·`evergreen.json`·`hold_cursor.json` | 인계 ② 6번(작업 파일을 `brands/football/outbox/`로) | 2026-11-24 |
+| launchd `com.iori21y.football-morning`·`-poll` | (위반은 아님) 아직 `football-blog/run.py`를 실행하고, 그 안에서 엔진(`blog-engine/run.py football …`)을 부른다 | 며칠 안정 확인 뒤 사장님 확인을 받아 엔진 직접 실행으로 교체(자동 점검·잠금·영상 poll을 어떻게 나눌지 같이 결정) | 2026-11-24 |
 
 ## D. 끝난 것 (참고)
 - 2026-11-10: football-blog·keyword-scan의 `cadam-pipeline/scripts` sys.path 제거 → `solo_common`.
+- 2026-11-10: 해외파 글쓰기 6개 파일(draft·review·series·records·preview·leaguepost)을 `blog-engine/brands/football/`로 이동, 데이터는 `football-blog/facts_cli.py` 창구. 옛 파일은 `_archive/2026-11-10/football-blog/`(11/17 이후 사장님 확인 후 비움).
 - 2026-11-10: 렌테일러 글쓰기 작업 파일(글감 후보·네이버 초안·사진 작업)과 실행 기록을 `blog-engine`으로 이동.

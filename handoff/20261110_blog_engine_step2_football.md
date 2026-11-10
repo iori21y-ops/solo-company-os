@@ -57,4 +57,12 @@
   4. KST·rule()은 창구에 없다(엔진이 직접 정의, rule은 engine/rules.py).
   5. media.gather/save_media는 GATHER_MEDIA=False라 창구에 넣지 않았다. 옮길 때 그 죽은 분기를 지울지는 사장님 확인.
   6. collect.db·warehouse.db 직접 SQL은 엔진이 DB 파일을 읽기 전용으로 직접 연다.
-- 다음: ② 5번(6개 파일을 blog-engine/brands/football/로, sources.py, brand.yaml 명령, launchd 교체 — launchd 변경은 사장님 사전 확인 필요). 시작 전 조건: 11/11 07:40 morning이 1~3번 변경 상태로 정상 실행된 것 확인.
+- **2026-11-10 21:50 — ② 5번 완료(launchd 교체만 남김)** — 사장님이 "5번 지금 진행" 지시. football-blog `db3d90a`(직전 checkpoint `49938c3`), blog-engine `f5b7fc1`(직전 checkpoint `b1cf7b7`), push 안 함.
+  - 6개 파일을 `blog-engine/brands/football/`로(본문 그대로, import 줄만 변경 — 옛 파일과 157개 이름 비교: 다른 것은 import 줄이 든 함수 4개와 안 쓰는 재노출 이름 4개뿐). `sources.py`(창구 호출 + DB 2개 읽기 전용), `cli.py`(morning·poll·records·series·preview·league·draft-test·draft-one), brand.yaml 명령 8개.
+  - `football-blog/run.py`의 morning·poll·records·series·preview·league는 잠금·자동 점검을 유지한 채 `blog-engine/run.py football <명령>`을 실행하고 출력을 그대로 흘려보낸다(`_engine`, 환경변수 `FOOTBALL_BLOG_LOCK=held`). poll은 이어서 `videoflow.poll()`. **launchd plist는 그대로**.
+  - 옛 6개 파일 + `tools/draft_test.py`·`draft_one.py`는 `_archive/2026-11-10/football-blog/`로 이동(11/17 이후 사장님 확인 후 비움). `tools/swap_insta_photos.py`·`upgrade_posts.py`는 옛 `football.draft`를 불러 지금 실행 안 됨(COMPAT_LIST C).
+  - 창구 constants에 DB_PATH·WH_PATH·UA 추가(총 24개 값).
+  - 검증: 자료 구성 함수 44건 옛 코드 = 엔진 코드(2건은 양쪽 다 "PL 일정 없음" 데이터 사유), records·league dry-run 동일(엔진 직접 / football-blog run.py 경유 둘 다), series·preview 같은 사유로 건너뜀, 같은 글감(72시간 안 아스널)으로 초안 1편씩 — 상태 키 18개·사진 2장·소제목 7개 동일, 엔진 poll 직접 1회 + launchd poll 2회 정상.
+  - **실전에서 아직 안 돌아 본 것**: 엔진을 거친 morning 전체(창구의 collect·brain_update_timeline·insta_screen 명령, 디스코드 후보·초안 게시), 승인 → 발행(보류 중이라 실행 안 됨), 발행 뒤 brain_add_post. 11/11 07:40 morning이 첫 실전.
+  - 되돌리기: football-blog에서 `git revert db3d90a`(옛 파일과 옛 run.py가 돌아옴, 엔진 쪽 파일은 남아도 아무도 안 부름).
+- 다음: 11/11 아침 실행 확인 → ② 6번(작업 파일 outbox 이동, 로그 위치, graphics 되돌리기) → launchd 교체(사장님 확인) → ③.
