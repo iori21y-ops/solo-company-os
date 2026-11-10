@@ -74,3 +74,4 @@
   - 안 한 것: 실행 기록을 `blog-engine/logs/`로(launchd가 football-blog/run.py를 실행하는 동안은 못 옮김 — launchd 교체와 함께).
   - 되돌리기(작업 파일): 잠금 잡고 링크 2개 지운 뒤 outbox의 6개를 `football-blog/data/`로 되옮기고 blog-engine에서 `git revert 68e0255`.
 - 남은 일: ① 11/11 07:40 morning 실전 확인(엔진 경유 첫 실행) ② launchd를 엔진 직접 실행으로 교체 + 로그 위치(사장님 확인) ③ 링크 2개·사본 3개 정리(COMPAT_LIST 12/15) ④ 인계 ③ 공용 도구 합치기 ⑤ `_archive/2026-11-10/football-blog/` 11/17 이후 확인 후 비우기.
+- Linear(2026-11-10 등록): 기록 REN-132(완료), 후속 REN-133(11/11 첫 실전 확인), REN-134(launchd 교체), REN-135(링크·사본·보관함), REN-136(③ 공용화).
