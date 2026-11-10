@@ -545,22 +545,52 @@ def use_chips(uses: list) -> str:
     return "".join(f'<span class="chip use" title="{esc(", ".join(f))}">{esc(label)} <b>{len(f)}</b></span>' for label, f in uses)
 
 
+def coll_grid(collectors: list) -> str:
+    """Collector name and schedule in two aligned columns."""
+    if not collectors:
+        return ""
+    return '<div class="coll">' + "".join(
+        f'<code>{esc(n)}</code><span>{esc(s)}{" " + pill(st, k) if k in ("bad", "off") else ""}</span>' for n, s, st, k in collectors) + "</div>"
+
+
+PLAN_KO = {"ready": ("데이터 준비됨", "ok"), "check": ("검증·확인 필요", "warn"), "wait": ("데이터 쌓이는 중", "off")}
+TYPE_ORDER = ["심층 시리즈", "트래커", "뉴스·이슈", "운영"]
+
+
+def item_label(it: dict) -> str:
+    return f'{it.get("series", "")} {it["name"]}'.strip()
+
+
+def content_chip(it: dict, short_name: bool = False) -> str:
+    k = PLAN_KO.get(it.get("plan"), ("", ""))[1]
+    name = it["name"] if not short_name else re.split(r" — | \(|,", it["name"])[0]
+    return (f'<div class="citem"><span class="ctype t-{TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9}">{esc(it["type"])}</span>'
+            f'<span><b>{esc(it.get("series", ""))}</b> {esc(name)}{" " + pill("시범", "run") if it.get("pilot") else ""}{" " + pill(PLAN_KO[it["plan"]][0], k) if it.get("plan") in ("check", "wait") else ""}</span></div>')
+
+
+def content_box(items: list, fallback: str = "") -> str:
+    if not items:
+        return f'<span class="muted">{esc(fallback) if fallback else "정해진 콘텐츠 없음"}</span>'
+    items = sorted(items, key=lambda it: (TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9, it.get("series", ""), it["name"]))
+    return "".join(content_chip(it, True) for it in items)
+
+
 def detail_table(rows: list) -> str:
     out = []
     for r in rows:
-        coll = (md_inline(r["collect"]) if r["collect"] else '<span class="muted">-</span>') + "".join(
-            f'<div class="small"><code>{esc(n)}</code> {esc(s)} {pill(st, k) if k in ("bad", "off") else ""}</div>' for n, s, st, k in r["collectors"])
+        coll = (md_inline(r["collect"]) if r["collect"] else '<span class="muted">-</span>') + coll_grid(r["collectors"])
         fresh = esc(r["fresh"] or "-") + (f"<div class='small muted'>{r['age']}일 전 · 허용 {esc(r['allow'])}일</div>" if r["age"] is not None and r["allow"] else
                                           (f"<div class='small muted'>주기 {esc(r['allow'])}일</div>" if r["allow"] and not r["fresh"] else ""))
         uses = "".join(f'<div class="small">{md_inline(s)}</div>' for s in r["site"]) + use_chips(r["uses"])
+        plan = "".join(f'<div class="small">{esc(item_label(it))}</div>' for it in r.get("content", []))
         out.append([f"<b>{esc(r['title'])}</b><div class='small'>{md_inline(r['table_md'])}</div>", esc(r["kind"]) + (f"<div class='small muted'>{esc(r['since'])}~</div>" if r["since"] else ""),
                     coll, fresh, esc(r["nrows"]), pill(STATE_KO[r["status"]], r["status"] if r["status"] != "none" else "") + (f"<div class='small'>{esc(r.get('problem', ''))}</div>" if r.get("problem") else ""),
                     (pill(r["blog"][0], r["blog"][1]) + (f"<div class='small muted'>{esc(r['blog_note'][:70])}</div>" if r["blog_note"] else "")) if r["blog"] else '<span class="muted">-</span>',
-                    uses or UNUSED])
-    return table(["데이터", "구분", "어디서·언제 수집", "최신 자료", "행 수", "상태", "콘텐츠 사용", "어디에 쓰이나"], out, "data")
+                    uses or UNUSED, plan or '<span class="muted">-</span>'])
+    return table(["데이터", "구분", "어디서·언제 수집", "최신 자료", "행 수", "상태", "콘텐츠 사용 조건", "지금 읽는 곳", "계획된 콘텐츠"], out, "data")
 
 
-UNUSED = '<span class="muted">수집·보관만 — 읽는 코드를 못 찾음</span>'
+UNUSED = '<span class="muted">읽는 코드를 못 찾음</span>'
 
 
 def has_use(r: dict) -> bool:
@@ -572,9 +602,34 @@ def dots(rows: list) -> str:
     return "".join(f'<span class="dot {k}" title="{STATE_KO[k]}"></span>{c[k]} ' for k in ("bad", "warn", "ok", "none") if c[k])
 
 
-def data_business(d: dict, jobs: list[dict], cats: list) -> str:
+def tightest(rows: list):
+    """The dataset closest to its allowed delay (age / allowance) — a yearly statistic 300 days old is not the worry, a daily one 3 days old is."""
+    aged = [(r["age"] / int(r["allow"]), r) for r in rows if r["age"] is not None and r["allow"].isdigit() and int(r["allow"])]
+    return max(aged, key=lambda x: x[0]) if aged else None
+
+
+def content_plan_table(items: list, by_name: dict) -> str:
+    """Planned content × the current state of the data each piece needs."""
+    rows = []
+    for it in sorted(items, key=lambda it: (TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9, it.get("series", ""), it["name"])):
+        need = [by_name[t] for t in it.get("tables", []) if t in by_name]
+        missing = [t for t in it.get("tables", []) if t not in by_name]
+        bad = [r for rs in need for r in rs if r["status"] in ("bad", "warn")]
+        late = [r for rs in need for r in rs if r["age"] is not None and r["allow"].isdigit() and int(r["allow"]) and r["age"] > int(r["allow"])]
+        state = pill("데이터 문제", "bad") if bad or late or missing else pill("데이터 정상", "ok") if need else pill("데이터 없이 계산", "")
+        chips = "".join(f'<span class="chip st-{rs[0]["status"]}" title="{esc(rs[0]["fresh"] or rs[0]["nrows"])}">{esc(rs[0]["title"])}</span>' for rs in need) + "".join(f'<span class="chip bad">{esc(t)} 없음</span>' for t in missing)
+        rows.append([f'<span class="ctype t-{TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9}">{esc(it["type"])}</span>', f"<b>{esc(it.get('series', ''))}</b>", esc(it["name"]) + (" " + pill("시범", "run") if it.get("pilot") else ""),
+                     chips or '<span class="muted">세금 규칙 등 코드 계산</span>', pill(*PLAN_KO.get(it.get("plan"), ("-", ""))), state])
+    return table(["유형", "시리즈", "글", "쓰는 데이터 (지금 상태)", "계획 문서의 준비 상태", "데이터 상태"], rows, "data")
+
+
+def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
     rows, meta, extra = cadam_rows(d, jobs) if d.get("kind") == "cadam" else football_rows(d, jobs)
     by_table = {t: c["id"] for c in cats for t in c.get("tables", [])}
+    by_name: dict = {}
+    for r in rows:
+        by_name.setdefault(r["table"], []).append(r)
+        r["content"] = [it for it in items if r["table"] in it.get("tables", [])]
     groups = {c["id"]: [] for c in cats}
     loose = []
     for r in rows:
@@ -585,52 +640,66 @@ def data_business(d: dict, jobs: list[dict], cats: list) -> str:
         if r["status"] in ("bad", "warn"):
             watch.append((0, f'{pill(STATE_KO[r["status"]], r["status"])} <b>{esc(r["title"])}</b> — {esc(r.get("problem") or r["fresh"] or "점검 결과 확인")}'))
         elif r["age"] is not None and r["allow"].isdigit() and int(r["allow"]) and r["age"] >= 0.8 * int(r["allow"]):
-            watch.append((1, f'{pill("곧 기한", "warn")} <b>{esc(r["title"])}</b> — 최신 자료가 {r["age"]}일 전 (허용 {esc(r["allow"])}일)'))
+            watch.append((1, f'{pill("곧 기한", "warn")} <b>{esc(r["title"])}</b> — 최신 자료가 {r["age"]}일 전 (허용 {esc(r["allow"])}일)'
+                             + (f' · 쓰는 글: {esc(", ".join(item_label(it) for it in r["content"][:2]))}' if r["content"] else "")))
         for n, s, st, k in r["collectors"]:
             if k in ("bad", "off"):
                 watch.append((0, f'{pill(st, k)} 수집기 <code>{esc(n)}</code> ({esc(s)}) — <b>{esc(r["title"])}</b>'))
     watch = list(dict.fromkeys(w for _, w in sorted(watch)))
-    n_unused = sum(1 for r in rows if not has_use(r))
+    idle = [r for r in rows if not has_use(r)]
+    idle_noplan = [r for r in idle if not r["content"]]
     c = Counter(r["status"] for r in rows)
     head = (f'<p class="muted">{meta["note"]}</p>'
             f'<div class="stats"><div><b>{len(rows)}</b><span>데이터 묶음</span></div><div><b>{c["ok"]}</b><span>정상</span></div><div><b>{c["warn"] + c["bad"]}</b><span>주의·문제</span></div>'
-            f'<div><b>{c["none"]}</b><span>점검 대상 아님</span></div><div><b>{n_unused}</b><span>수집·보관만</span></div><div><b>{len(loose)}</b><span>미분류</span></div></div>'
-            + '<div class="card watch"><h3>지금 봐야 할 것</h3>' + ("<ul>" + "".join(f"<li>{w}</li>" for w in watch[:12]) + "</ul>" if watch else '<p class="muted">없음 — 점검에 걸린 데이터와 멈춘 수집기가 없습니다.</p>') + "</div>")
+            f'<div><b>{c["none"]}</b><span>점검 대상 아님</span></div><div><b>{len(idle)}</b><span>읽는 코드 없음</span></div>'
+            + (f'<div><b>{len(idle_noplan)}</b><span>그중 계획된 콘텐츠도 없음</span></div>' if items else "")
+            + f'<div><b>{len(loose)}</b><span>미분류</span></div></div>'
+            + '<div class="card watch"><h3>지금 봐야 할 것</h3>' + ("<ul>" + "".join(f"<li>{w}</li>" for w in watch[:12]) + "</ul>" if watch else '<p class="muted">없음 — 점검에 걸린 데이터와 멈춘 수집기가 없습니다.</p>') + "</div>"
+            + f'<input class="filter" data-for="p-data-{esc(d["id"])}" placeholder="데이터 이름·표·수집기·글 제목으로 걸러 보기 (자세히 표가 열립니다)">')
     cards, sections = [], []
-    for cdef in cats + ([{"id": "loose", "name": "미분류", "desc": "카테고리가 정해지지 않은 데이터. data_categories.yaml에 추가해야 합니다.", "content": ""}] if loose else []):
+    for cdef in cats + ([{"id": "loose", "name": "미분류", "desc": "카테고리가 정해지지 않은 데이터. data_categories.yaml에 추가해야 합니다."}] if loose else []):
         rs = loose if cdef["id"] == "loose" else groups[cdef["id"]]
         if not rs:
             continue
         worst = "bad" if any(r["status"] == "bad" for r in rs) else "warn" if any(r["status"] == "warn" for r in rs) else "ok" if any(r["status"] == "ok" for r in rs) else "none"
-        aged = [r for r in rs if r["age"] is not None]
-        oldest = max(aged, key=lambda r: r["age"]) if aged else None
+        tight = tightest(rs)
         unused = [r for r in rs if not has_use(r)]
+        mine = [it for it in items if any(r["table"] in it.get("tables", []) for r in rs)]
+        ntype = Counter(it["type"] for it in mine)
         aid = f'cat-{d["id"]}-{cdef["id"]}'
         cards.append(f'<a class="card cat {worst}" href="#{aid}"><h3>{esc(cdef["name"])} <span class="muted">{len(rs)}</span></h3><p class="small muted">{esc(cdef.get("desc", ""))}</p>'
                      f'<p class="small">{dots(rs)}</p>'
-                     + (f'<p class="small">가장 오래된 최신 자료: {esc(oldest["title"])} {oldest["age"]}일 전</p>' if oldest else "")
-                     + f'<p class="small">{"읽는 곳 있음 " + str(len(rs) - len(unused)) + " · 보관만 " + str(len(unused))}</p></a>')
+                     + (f'<p class="small">기한에 가장 가까운 자료: {esc(tight[1]["title"])} (허용 {esc(tight[1]["allow"])}일 중 {tight[1]["age"]}일)</p>' if tight else "")
+                     + f'<p class="small">읽는 곳 있음 {len(rs) - len(unused)} · 없음 {len(unused)}</p>'
+                     + (f'<p class="small">콘텐츠: {esc(" · ".join(f"{t} {ntype[t]}" for t in TYPE_ORDER if ntype[t]))}</p>' if mine else (f'<p class="small muted">콘텐츠: {esc(cdef.get("content", "정해진 것 없음"))}</p>')) + "</a>")
         colls = Counter()
         for r in rs:
             for n, s, st, k in r["collectors"]:
-                colls[(n, s, k)] += 1
-        no_coll = sum(1 for r in rs if not r["collectors"])
-        left = "".join(f'<span class="chip {"bad" if k in ("bad", "off") else ""}"><b>{esc(n)}</b> {esc(s)}</span>' for (n, s, k), _ in colls.most_common()) + (f'<span class="chip muted">예약 작업을 못 찾은 것 {no_coll}개</span>' if no_coll else "")
-        mid = "".join(f'<span class="chip st-{r["status"]}" title="{esc(r["table"])} · {esc(r["fresh"] or r["nrows"])}">{esc(r["title"])}</span>' for r in rs)
+                colls[(n, s, st, k)] += 1
+        frozen = sum(1 for r in rs if not r["collectors"] and re.search("1회|동결|파생|사본|우리 코드", r["kind"]))
+        no_coll = sum(1 for r in rs if not r["collectors"]) - frozen
+        left = (coll_grid([k for k, _ in colls.most_common()]) + (f'<div class="small muted">수집이 끝났거나 우리 코드가 만드는 것 {frozen}개</div>' if frozen else "")
+                + (f'<div class="small muted">수집 일정을 못 찾은 것 {no_coll}개</div>' if no_coll else ""))
+        mid = "".join(f'<span class="chip st-{r["status"]}{" planned" if r["content"] else ""}" title="{esc(r["table"])} · {esc(r["fresh"] or r["nrows"])}">{esc(r["title"])}</span>' for r in rs)
         ulab = Counter()
         for r in rs:
             for label, _f in r["uses"]:
                 ulab[label] += 1
             if r["site"]:
                 ulab["사이트 페이지"] += 1
-        right = "".join(f'<span class="chip use">{esc(k)} <b>{v}</b></span>' for k, v in ulab.most_common()) + (f'<span class="chip muted">보관만 {len(unused)}</span>' if unused else "")
-        content = f'<p class="small"><b>이 자료로 만드는 콘텐츠</b>: {esc(cdef["content"])}</p>' if cdef.get("content") else ""
-        sections.append(f'<section class="catsec" id="{aid}"><h3 class="cath">{esc(cdef["name"])} <span class="muted">{len(rs)}개</span> {dots(rs)}</h3><p class="muted small">{esc(cdef.get("desc", ""))}</p>{content}'
-                        f'<div class="flow"><div><h4>수집 (누가 · 언제)</h4>{left or "<span class=muted>-</span>"}</div><div class="arrow">→</div><div><h4>데이터</h4>{mid}</div><div class="arrow">→</div><div><h4>활용 (읽는 곳)</h4>{right or UNUSED}</div></div>'
-                        f'<details><summary>자세히 <span class="muted">({len(rs)}개 — 최신 자료·행 수·수집기·쓰는 곳)</span></summary>{detail_table(rs)}</details></section>')
+        right = "".join(f'<span class="chip use">{esc(k)} <b>{v}</b></span>' for k, v in ulab.most_common()) + (f'<span class="chip muted">읽는 곳 없음 {len(unused)}</span>' if unused else "")
+        sections.append(f'<section class="catsec" id="{aid}"><h3 class="cath">{esc(cdef["name"])} <span class="muted">{len(rs)}개</span> {dots(rs)}</h3><p class="muted small">{esc(cdef.get("desc", ""))}</p>'
+                        f'<div class="flow"><div><h4>수집 (누가 · 언제)</h4>{left or "<span class=muted>-</span>"}</div><div class="arrow">→</div><div><h4>데이터</h4>{mid}</div><div class="arrow">→</div>'
+                        f'<div><h4>활용 (지금 읽는 곳)</h4>{right or UNUSED}</div><div class="arrow">→</div><div class="cbox"><h4>이 자료로 만드는 콘텐츠</h4>{content_box(mine, cdef.get("content", ""))}</div></div>'
+                        f'<details><summary>자세히 <span class="muted">({len(rs)}개 — 최신 자료·행 수·수집기·읽는 곳·계획된 콘텐츠)</span></summary>{detail_table(rs)}</details></section>')
     legend = ('<p class="small muted">색: <span class="dot ok"></span>정상 <span class="dot warn"></span>주의 <span class="dot bad"></span>문제 <span class="dot none"></span>점검 대상 아님 · '
-              '카드를 누르면 그 카테고리로 이동 · "읽는 곳"은 표 이름이 코드에 적힌 경우만 찾으므로 "보관만"은 확인이 필요한 목록입니다 · 카테고리는 <code>_meta/dashboard/data_categories.yaml</code>(제안)</p>')
-    return head + '<h3>카테고리</h3><div class="grid cats">' + "".join(cards) + "</div>" + legend + "".join(sections) + extra
+              '카드를 누르면 그 카테고리로 이동 · 데이터 이름 아래 파란 밑줄 = 계획된 콘텐츠가 있는 데이터 · "읽는 곳"은 표 이름이 코드에 적힌 경우만 찾으므로 "없음"은 확인이 필요한 목록입니다 · 카테고리와 콘텐츠 연결표는 <code>_meta/dashboard/data_categories.yaml</code>(제안)</p>')
+    plan = ""
+    if items:
+        n_pilot = sum(1 for it in items if it.get("pilot"))
+        plan = (f'<details class="plan" open><summary>콘텐츠 계획과 데이터 준비 상태 <span class="muted">({len(items)}개 — 심층 시리즈·트래커·뉴스, 시범 {n_pilot}편 · 출처: 개편 계획 문서)</span></summary>'
+                + content_plan_table(items, by_name) + "</details>")
+    return head + plan + '<h3>카테고리</h3><div class="grid cats">' + "".join(cards) + "</div>" + legend + "".join(sections) + extra
 
 
 def data_panels(cfg: dict, jobs: list[dict]) -> list:
@@ -638,7 +707,7 @@ def data_panels(cfg: dict, jobs: list[dict]) -> list:
     out = []
     for d in cfg.get("data") or []:
         try:
-            body = data_business(d, jobs, cats.get(d["id"], []))
+            body = data_business(d, jobs, cats.get(d["id"], []), (cats.get("content") or {}).get(d["id"], []))
         except Exception as ex:  # noqa: BLE001
             body = f'<div class="card"><h3>읽는 중 오류</h3><p class="muted">{esc(type(ex).__name__)}: {esc(ex)}</p></div>'
         out.append((f'data-{d["id"]}', d.get("tab", d["name"]), '<p class="lead">어떤 데이터가 있고, 어디서·언제 수집되고, 지금 신선한지, 어디에 쓰이는지 — 주제별 카테고리로 묶어 봅니다.</p>' + body))
@@ -672,9 +741,13 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:600;padding:8px 0}detai
 a.card.cat{display:block;text-decoration:none;color:var(--ink);border-left:5px solid var(--off)}a.card.cat.ok{border-left-color:var(--ok)}a.card.cat.warn{border-left-color:var(--warn)}a.card.cat.bad{border-left-color:var(--bad)}a.card.cat p{margin:4px 0}a.card.cat:hover{border-color:var(--run)}
 .card.watch{margin:12px 0}.card.watch ul{margin:6px 0 0;padding-left:18px}.card.watch li{margin:4px 0}
 .catsec{border-top:1px solid var(--line);margin-top:22px;padding-top:6px;scroll-margin-top:120px}.cath{font-size:16px;margin:10px 0 4px}
-.flow{display:grid;grid-template-columns:1fr 28px 1.4fr 28px 1fr;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}.flow h4{margin:0 0 6px}.flow .arrow{align-self:center;text-align:center;color:var(--muted);font-size:20px}.flow .chip{display:inline-block;margin:2px 3px 2px 0;font-family:inherit}
+.flow{display:grid;grid-template-columns:1.05fr 22px 1.2fr 22px .8fr 22px 1.5fr;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}.flow h4{margin:0 0 6px}.flow .arrow{align-self:center;text-align:center;color:var(--muted);font-size:20px}.flow .chip{display:inline-block;margin:2px 3px 2px 0;font-family:inherit}
 .chip.st-ok{border-color:var(--ok);background:var(--okbg);color:var(--ok)}.chip.st-warn{border-color:var(--warn);background:var(--warnbg);color:var(--warn)}.chip.st-bad{border-color:var(--bad);background:var(--badbg);color:var(--bad)}.chip.st-none{background:var(--offbg);color:var(--off)}.chip.bad{border-color:var(--bad);color:var(--bad)}.chip.muted{color:var(--muted)}
-@media(max-width:800px){.flow{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
+@media(max-width:1000px){.flow{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
+.coll{display:grid;grid-template-columns:max-content 1fr;gap:3px 12px;align-items:baseline;font-size:12.5px;margin-top:2px}.coll code{white-space:nowrap}.coll span{white-space:nowrap}table.data{min-width:1240px}
+.cbox{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}.citem{display:grid;grid-template-columns:78px 1fr;gap:8px;font-size:12.5px;padding:3px 0;border-top:1px dashed var(--line)}.citem:first-of-type{border-top:0}
+.ctype{display:inline-block;font-size:11px;border-radius:4px;padding:1px 6px;text-align:center;align-self:start;background:var(--offbg);color:var(--off);white-space:nowrap}.ctype.t-0{background:var(--runbg);color:var(--run)}.ctype.t-1{background:var(--okbg);color:var(--ok)}.ctype.t-2{background:var(--warnbg);color:var(--warn)}
+.chip.planned{box-shadow:inset 0 -2px 0 var(--run)}details.plan{margin:14px 0}
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
 """
@@ -684,7 +757,7 @@ document.body.classList.add('js');
 function show(id){document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+id));document.querySelectorAll('.tabs a').forEach(b=>b.classList.toggle('on',b.dataset.t===id));try{localStorage.setItem('tab',id)}catch(e){}}
 document.querySelectorAll('.tabs a').forEach(b=>b.onclick=function(ev){ev.preventDefault();show(b.dataset.t);window.scrollTo(0,0)});
 var saved=null;try{saved=localStorage.getItem('tab')}catch(e){};if(saved&&document.getElementById('p-'+saved))show(saved);
-document.querySelectorAll('input.filter[data-for]').forEach(function(i){i.oninput=function(){var q=i.value.toLowerCase();document.querySelectorAll('#'+i.dataset.for+' tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''})}});
+document.querySelectorAll('input.filter[data-for]').forEach(function(i){i.oninput=function(){var q=i.value.toLowerCase(),root=document.getElementById(i.dataset.for);root.querySelectorAll('table.data tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''});if(q)root.querySelectorAll('details').forEach(function(d){d.open=true})}});
 var f=document.getElementById('jobfilter');if(f)f.oninput=function(){var q=f.value.toLowerCase();document.querySelectorAll('#alljobs tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''})};
 """
 

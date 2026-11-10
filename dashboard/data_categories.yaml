@@ -7,60 +7,49 @@ rentailor:
   - id: rent
     name: 렌트료·견적
     desc: 실제로 받은 월 렌트료 견적과 그 요약. 남이 갖기 어려운 핵심 자산.
-    content: 차종 해부 ③ 조건 조합 · 숫자로 보는 장기렌트(선납금·주행거리·기간) · 월 렌트료 트래커
     tables: [chazm_estimates, chazm_trims, rent_summary, chazm_lowest, chazm_car_summary]
   - id: vehicle
     name: 차량·가격표
     desc: 차종·트림·옵션 제원과 제조사 가격표가 바뀐 기록.
-    content: 차종 해부 ① 가격·트림 계단 ② 옵션 · 시장 리포트(가격 인상 기록)
     tables: [sb_vehicles, sb_vehicle_trims, sb_trim_options, vehicle_name_map, price_change_log, price_changes]
   - id: offers
     name: 혜택·출고
     desc: 제조사 월 혜택, 출고 대기, 출시 예정. "지금 계약할까"에 답하는 자료.
-    content: 이달의 제조사 혜택 트래커 · 출고 대기 트래커
     tables: [maker_offers_history, maker_offers_monthly, delivery_wait_posts, launch_mentions]
   - id: market
     name: 판매·등록
     desc: 월별 판매 대수와 국토부·통계청 등록 통계.
-    content: 시장 리포트(역대·순위) · 월간 판매 순위 트래커 · 전기차 등록 변화
     tables: [danawa_sales_monthly, car_sales_monthly, molit_reg_fuel_stock, molit_new_registration, molit_import_sigungu, molit_owner_age,
              molit_passenger_displacement, molit_reg_model_year, molit_transfer_registration, molit_deregistration,
              kosis_car_registration_sido, kosis_car_inspection, kosis_population]
   - id: used
     name: 중고·감가·승계
     desc: 중고 시세와 매물 수, 승계 매물, 중고 장기렌트 상품.
-    content: 전기차 감가 · 중고차 장기렌트 비교 · 승계 vs 신규
     tables: [vehicle_used_prices, encar_listing_counts, kb_used_listings, succession_listings, used_rent_offers]
   - id: safety
     name: 보험·안전·리콜
     desc: 보험 통계와 차종별 보험등급, 충돌안전도, 리콜·결함, 사고 통계.
-    content: 세금·보험 시리즈(보험등급 순위) · 차종 해부 ④ 타는 동안 드는 돈
     tables: [insurance_stats, auto_insurance_loss_ratio, kidi_model_grade, kncap_results, recalls, defect_reports_model_year, defect_report_stats,
              traffic_accident_stats, kosis_traffic_accident_age, kosis_driver_license_age]
   - id: ev
     name: 전기차·연료
     desc: 지역별 보조금, 인증 주행거리, 충전 요금, 유가, 평균 주행거리.
-    content: 전기차 계산 시리즈(보조금·에너지비) · 지역별 보조금 트래커 · 주행거리 계약 고르기
     tables: [ev_subsidy_regions, ev_certified_range, ev_charge_prices, ev_chargers, fuel_prices, kosis_mileage_fuel]
   - id: finance
     name: 금융·물가
     desc: 금리, 할부·리스 시장, 차량 관련 물가.
-    content: 렌트료는 언제 내려갈까(금리와 월 렌트료)
     tables: [ecos_rates, crefia_auto_finance, cpi_car_items, kosis_cpi]
   - id: industry
     name: 렌터카 업계
     desc: 렌터카 등록 대수, 조합·공제조합 공시, 렌터카 회사 재무.
-    content: (아직 정해진 글 없음)
     tables: [rental_industry_stats, rental_seoul_companies, krma_disclosures, dart_financials]
   - id: demand
     name: 뉴스·검색 수요
     desc: 수집 기사와 거기서 뽑은 사실, 검색량·급상승 키워드. 무엇을 쓸지 정하는 자료.
-    content: 글감 선정 · 종합뉴스 · 심층 주제 우선순위(검색량)
     tables: [crawled_articles, article_tags, article_insights, digest_story_log, trend_keywords, kw_search_volume]
   - id: growth
     name: 유입·성과
     desc: 사이트 방문·유입 경로. 콘텐츠가 상담으로 이어지는지 보는 자료.
-    content: 측정(글 → 방문 → 상담)
     tables: [growth_ga_site_daily]
 
 football:
@@ -94,3 +83,37 @@ football:
     desc: 우리 유튜브 영상 통계와 경쟁 채널 영상.
     content: 측정 · 쇼츠 형식 선택
     tables: [yt_stats, yt_competitors]
+
+# 콘텐츠 계획 ↔ 데이터 연결표. 출처: cadam/docs/strategy/naver-post-plan-20261110.md (2026-11-10 확정).
+# type: 심층 시리즈 / 트래커 / 뉴스·이슈 / 운영.  plan: ready(데이터 준비됨) / check(검증·확인 필요) / wait(데이터 쌓이는 중) — 계획 문서의 ✅ 🔶 ⏳.
+# tables: 이 글이 쓰는 데이터(표 이름). 화면은 이 표들의 지금 상태를 읽어 "데이터 상태"를 따로 계산한다.
+content:
+  rentailor:
+    - {type: 심층 시리즈, series: S1 차종 해부, name: "① 가격·트림 계단 — 어디서 값이 뛰나", plan: ready, pilot: true, tables: [sb_vehicles, sb_vehicle_trims, price_change_log]}
+    - {type: 심층 시리즈, series: S1 차종 해부, name: "② 옵션 — 넣을 것과 뺄 것", plan: ready, tables: [sb_trim_options, sb_vehicle_trims]}
+    - {type: 심층 시리즈, series: S1 차종 해부, name: "③ 장기렌트 조건 조합 (실측 27조건)", plan: ready, tables: [chazm_estimates, chazm_trims, rent_summary]}
+    - {type: 심층 시리즈, series: S1 차종 해부, name: "④ 타는 동안 드는 돈 (세금·보험등급·안전도·감가)", plan: ready, tables: [kidi_model_grade, kncap_results, vehicle_used_prices, sb_vehicles]}
+    - {type: 심층 시리즈, series: S1 차종 해부, name: "⑤ 경쟁차 대결", plan: ready, tables: [sb_vehicle_trims, rent_summary, vehicle_name_map]}
+    - {type: 심층 시리즈, series: S2 숫자로 보는 장기렌트, name: "#11 선납금 30%, 0%와 연 6%로 갈린다", plan: ready, pilot: true, tables: [chazm_estimates]}
+    - {type: 심층 시리즈, series: S2 숫자로 보는 장기렌트, name: "#12 연 1만km 계약, 나한테 맞나", plan: ready, tables: [kosis_mileage_fuel, chazm_estimates]}
+    - {type: 심층 시리즈, series: S2 숫자로 보는 장기렌트, name: "#13 48개월과 60개월, 월액과 총액", plan: check, tables: [chazm_estimates]}
+    - {type: 심층 시리즈, series: S2 숫자로 보는 장기렌트, name: "#14 중고차 장기렌트는 신차보다 얼마나 쌀까", plan: check, tables: [used_rent_offers, chazm_estimates]}
+    - {type: 심층 시리즈, series: S2 숫자로 보는 장기렌트, name: "#15 장기렌트 승계, 신규보다 이득일까", plan: check, tables: [succession_listings, chazm_estimates]}
+    - {type: 심층 시리즈, series: S2 숫자로 보는 장기렌트, name: "#16 렌트료는 언제 내려갈까 (금리와 월 렌트료)", plan: wait, tables: [ecos_rates, rent_summary]}
+    - {type: 심층 시리즈, series: S3 전기차 계산, name: "#17 17개 시도 전기차 보조금 차이", plan: ready, pilot: true, tables: [ev_subsidy_regions]}
+    - {type: 심층 시리즈, series: S3 전기차 계산, name: "#18 전기차 vs 하이브리드 1년 에너지비", plan: check, tables: [ev_charge_prices, fuel_prices, sb_vehicles]}
+    - {type: 심층 시리즈, series: S3 전기차 계산, name: "#19 4년간 연료별 등록 변화", plan: ready, tables: [molit_reg_fuel_stock]}
+    - {type: 심층 시리즈, series: S3 전기차 계산, name: "#20 전기차는 정말 빨리 감가될까", plan: check, tables: [vehicle_used_prices]}
+    - {type: 심층 시리즈, series: S4 세금·보험, name: "#21 배기량 경계를 넘은 차들 (자동차세)", plan: ready, tables: [sb_vehicles]}
+    - {type: 심층 시리즈, series: S4 세금·보험, name: "#22 자동차세 차령 경감 표", plan: ready, tables: []}
+    - {type: 심층 시리즈, series: S4 세금·보험, name: "#23 보험등급이 좋은 차, 나쁜 차", plan: ready, tables: [kidi_model_grade]}
+    - {type: 심층 시리즈, series: S5 시장 리포트, name: "#24 58개월 중 32번 1위, 쏘렌토", plan: ready, pilot: true, tables: [danawa_sales_monthly]}
+    - {type: 심층 시리즈, series: S5 시장 리포트, name: "#25 올해 가격이 가장 많이 오른 차", plan: check, tables: [price_changes, price_change_log]}
+    - {type: 트래커, series: 1차, name: "월간 판매 순위 (국산·수입 TOP10 + 월 렌트료 최저)", plan: ready, tables: [danawa_sales_monthly, rent_summary]}
+    - {type: 트래커, series: 1차, name: "차종별 월 렌트료", plan: ready, tables: [rent_summary]}
+    - {type: 트래커, series: 2차, name: "출고 대기", plan: ready, tables: [delivery_wait_posts]}
+    - {type: 트래커, series: 2차, name: "이달의 제조사 혜택", plan: ready, tables: [maker_offers_monthly, maker_offers_history]}
+    - {type: 트래커, series: 2차, name: "지역별 전기차 보조금", plan: ready, tables: [ev_subsidy_regions]}
+    - {type: 뉴스·이슈, series: 종합뉴스, name: "종합뉴스 하루 3편 (A 종합 / B 업계·이슈 / C 묶음)", plan: ready, tables: [crawled_articles, article_tags, article_insights, digest_story_log, launch_mentions]}
+    - {type: 운영, series: 글감 선정, name: "심층 주제 우선순위·글감 후보 (검색량·급상승)", plan: ready, tables: [kw_search_volume, trend_keywords]}
+    - {type: 운영, series: 측정, name: "글 → 사이트 방문 → 상담", plan: check, tables: [growth_ga_site_daily]}
