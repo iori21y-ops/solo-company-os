@@ -621,7 +621,7 @@ def content_plan_table(items: list, by_name: dict) -> str:
         rows.append([f'<span class="ctype t-{TYPE_ORDER.index(it["type"]) if it["type"] in TYPE_ORDER else 9}">{esc(it["type"])}</span>', f"<b>{esc(it.get('series', ''))}</b>", esc(it["name"]) + (" " + pill("시범", "run") if it.get("pilot") else ""),
                      chips or '<span class="muted">세금 규칙 등 코드 계산</span>', pill(*PLAN_KO.get(it.get("plan"), ("-", ""))), state,
                      esc(SOURCE_KO.get(it.get("source"), it.get("source", "-"))), pill(*PROGRESS_KO.get(it.get("status", "planned"), (it.get("status", "-"), "")))])
-    return table(["유형", "시리즈", "글", "쓰는 데이터 (지금 상태)", "계획 때 준비 상태", "데이터 상태", "들어온 길", "진행"], rows, "data")
+    return table(["유형", "시리즈", "글", "쓰는 데이터 (지금 상태)", "계획 때 준비 상태", "데이터 상태", "들어온 길", "진행"], rows, "plantab")
 
 
 def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
@@ -776,6 +776,8 @@ a.card.cat{display:block;text-decoration:none;color:var(--ink);border-left:5px s
 .cbox{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}.citem{display:grid;grid-template-columns:78px 1fr;gap:8px;font-size:12.5px;padding:3px 0;border-top:1px dashed var(--line)}.citem:first-of-type{border-top:0}
 .ctype{display:inline-block;font-size:11px;border-radius:4px;padding:1px 6px;text-align:center;align-self:start;background:var(--offbg);color:var(--off);white-space:nowrap}.ctype.t-0{background:var(--runbg);color:var(--run)}.ctype.t-1{background:var(--okbg);color:var(--ok)}.ctype.t-2{background:var(--warnbg);color:var(--warn)}
 .chip.planned{box-shadow:inset 0 -2px 0 var(--run)}details.plan{margin:14px 0}
+table .chip{display:inline-block;white-space:nowrap;margin:2px 4px 2px 0;font-family:inherit}
+table.plantab{min-width:1080px}table.plantab td{vertical-align:top}table.plantab td:nth-child(1){width:84px}table.plantab td:nth-child(2){width:150px}table.plantab td:nth-child(3){min-width:210px}table.plantab td:nth-child(4){min-width:330px}table.plantab td:nth-child(n+5){white-space:nowrap}
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
 """
