@@ -40,6 +40,7 @@ compat_list: ~/projects/_meta/governance/COMPAT_LIST.md
 data:
   - id: rentailor
     name: 렌테일러 (cadam)
+    tab: 렌테일러 데이터
     kind: cadam
     store: 로컬 PostgreSQL `cadam` (warehouse·data 스키마) + Supabase(사이트 노출값)
     catalog: ~/projects/cadam/docs/data-catalog.md
@@ -55,6 +56,7 @@ data:
       사이트 API(파이프라인 서버): [~/projects/cadam/cadam-pipeline/scripts/api_server.py]
   - id: football
     name: 해외파 리포트 (football-blog)
+    tab: 해외파 데이터
     kind: football
     store: SQLite `football-blog/data/warehouse.sqlite3` (경기·기록) + `articles.sqlite3` (기사 제목·링크)
     registry: ~/projects/football-blog/docs/data-registry.md

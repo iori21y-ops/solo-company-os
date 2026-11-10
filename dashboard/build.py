@@ -397,7 +397,7 @@ def planned_engine(e: dict) -> str:
     return f'<div class="card"><h3>{esc(e["name"])} — 아직 연결 전</h3><p>{esc(e.get("summary", ""))}</p><p class="muted">연결되면 보일 것:</p><ul>{items}</ul><p class="muted small">추가 방법: <code>_meta/dashboard/engines.yaml</code>에서 status를 active로 바꾸고 build.py에 읽는 함수를 붙입니다.</p></div>'
 
 
-# ── data catalog tab ─────────────────────────────────────────────────────
+# ── data tabs: one per business, grouped by topic category (data_categories.yaml) ──────────────────
 def code_texts(usage: dict) -> dict:
     """label → [(file name, text)] for every .py under the listed folders / files (shallow: generated and vendor folders skipped)."""
     out = {}
@@ -412,34 +412,34 @@ def code_texts(usage: dict) -> dict:
     return out
 
 
-def used_by(table: str, texts: dict, sql_only: bool) -> str:
-    """Chips: which groups of code read this table (file names in the tooltip). sql_only: FROM/JOIN context only (plain-word table names)."""
+def used_by(table: str, texts: dict, sql_only: bool) -> list:
+    """[(label, [file names])] — groups of code that read this table. sql_only: FROM/JOIN context only (plain-word table names)."""
     t = re.escape(table)
     pat = re.compile(rf"(?:FROM|JOIN)\s+(?:\w+\.)?{t}\b" if sql_only else rf"(?:FROM|JOIN)\s+(?:\w+\.)?{t}\b|[\"'](?:\w+\.)?{t}[\"']", re.I)
-    chips = []
+    out = []
     for label, files in texts.items():
         hit = sorted({n for n, txt in files if pat.search(txt)})
         if hit:
-            chips.append(f'<span class="chip use" title="{esc(", ".join(hit))}">{esc(label)} <b>{len(hit)}</b></span>')
-    return "".join(chips)
+            out.append((label, hit))
+    return out
 
 
-def job_for(text: str, jobs: list[dict]) -> str:
-    """Schedules of the launchd jobs a '수집' note names (matched on the label's last parts)."""
+def job_for(text: str, jobs: list[dict]) -> list:
+    """[(collector name, schedule, state, kind)] of the launchd jobs a '수집' note names (matched on the label's last parts)."""
     out = []
     for j in jobs:
         suffix = j["label"].split(".", 2)[-1]
         last = suffix.split(".")[-1]
-        if (suffix in text or (len(last) >= 5 and re.search(rf"(?<![\w-]){re.escape(last)}(?![\w-])", text))) and j["schedule"] not in ("수동",):
-            out.append(f'<div class="small"><code>{esc(suffix)}</code> {esc(j["schedule"])} {pill(j["state"], j["kind"]) if j["kind"] in ("bad", "off") else ""}</div>')
-    return "".join(dict.fromkeys(out))
+        if (suffix in text or (len(last) >= 5 and re.search(rf"(?<![\w-]){re.escape(last)}(?![\w-])", text))) and j["schedule"] != "수동":
+            out.append((suffix, j["schedule"], j["state"], j["kind"]))
+    return list(dict.fromkeys(out))
 
 
-UNUSED = '<span class="muted">수집·보관만 — 사이트·글·쇼츠 코드에서 읽는 곳을 못 찾음</span>'
 BLOG_USE = {"✅": ("출처 표기하고 사용", "ok"), "🔒": ("출처 이름 없이 통계로만", "warn"), "⏸": ("결정 전 사용 금지", "off"), "⛔": ("사용 금지", "bad")}
+STATE_KO = {"ok": "정상", "warn": "주의", "bad": "문제", "none": "점검 대상 아님"}
 
 
-def cadam_data(d: dict, jobs: list[dict]) -> str:
+def cadam_rows(d: dict, jobs: list[dict]) -> tuple[list, dict, str]:
     cat = md_tables(read(P(d["catalog"])))
     health = {}
     for t in md_tables(read(P(d["health"]))):
@@ -455,14 +455,14 @@ def cadam_data(d: dict, jobs: list[dict]) -> str:
     counts = dict(re.findall(r"([a-z_]+) ([\d,]+)", read(P(d["counts"]))))
     texts = code_texts(d.get("usage"))
 
-    def site_use(name: str) -> str:
+    def site_use(name: str) -> list:
         out = []
         for t in site:
             for r in t["rows"]:
                 names = re.findall(r"[a-z][a-z_]*\*?", r[0])
                 if name in names or any(n.endswith("*") and name.startswith(n[:-1]) for n in names):
-                    out.append(f'<div class="small">{md_inline(" · ".join(c for c in r[2:4] if c))}</div>')
-        return "".join(out[:2])
+                    out.append(" · ".join(c for c in r[2:4] if c))
+        return out[:2]
 
     rows = []
     for t in cat[:1]:
@@ -470,21 +470,16 @@ def cadam_data(d: dict, jobs: list[dict]) -> str:
             r = r + [""] * (7 - len(r))
             name = re.sub(r"`", "", r[0]).split(" ")[0].split(".")[-1]   # `data.kosis_x` → kosis_x
             h = health.get(r[1], {})
-            use = BLOG_USE.get(r[5].strip(), (r[5], ""))
-            state = {"✅": pill("정상", "ok"), "⚠️": pill("주의", "warn"), "❌": pill("문제", "bad")}.get(h.get("worst"), pill("점검 대상 아님", ""))
-            fresh = re.sub(r"\(.*?허용.*?\)", "", h.get("fresh", "")).strip()
             agem = re.search(r"\((\d+)일 전", h.get("fresh", ""))
-            rows.append([f"<b>{esc(r[1])}</b><div class='small'>{md_inline(r[0])}</div>", esc(r[2]) + (f"<div class='small muted'>{esc(r[3])}~</div>" if r[3] else ""),
-                         (md_inline(r[6]) if r[6] else '<span class="muted">-</span>') + job_for(r[6], jobs),
-                         f"{esc(fresh or '-')}" + (f"<div class='small muted'>{agem.group(1)}일 전 · 허용 {esc(r[4])}일</div>" if agem and r[4] else ""),
-                         esc(h.get("rows", "-")), state, pill(use[0], use[1]) if r[5].strip() else "", (site_use(name) + used_by(name, texts, False)) or UNUSED])
+            flag = r[5].strip()[:1]
+            rows.append({"table": name, "table_md": r[0], "title": r[1], "kind": r[2], "since": r[3], "allow": r[4].strip(), "collect": r[6],
+                         "collectors": job_for(r[6], jobs), "fresh": re.sub(r"\(.*?허용.*?\)", "", h.get("fresh", "")).strip(),
+                         "age": int(agem.group(1)) if agem else None, "nrows": h.get("rows", "-"),
+                         "status": {"✅": "ok", "⚠️": "warn", "❌": "bad"}.get(h.get("worst"), "none"),
+                         "blog": BLOG_USE.get(flag, (r[5].strip(), "")) if flag else None, "blog_note": r[5].strip()[1:].strip(),
+                         "site": site_use(name), "uses": used_by(name, texts, False)})
     head_note = next((ln for ln in read(P(d["health"])).split("\n") if ln.startswith("점검 ")), "")
-    n_unused = sum(1 for r in rows if r[-1] == UNUSED)
-    out = [f'<p class="muted">저장: {md_inline(d.get("store", ""))} · 상태 점검: {esc(head_note)} ({esc(day(mtime(P(d["health"]))))}) · 원본 <code>{esc(short(P(d["catalog"])))}</code></p>',
-           f'<div class="stats"><div><b>{len(rows)}</b><span>데이터 묶음</span></div><div><b>{len(rows) - n_unused}</b><span>사이트·글·쇼츠·파생에서 읽음</span></div>'
-           f'<div><b>{n_unused}</b><span>수집·보관만 (읽는 코드 못 찾음)</span></div><div><b>{sum(1 for r in rows if "문제" in r[5] or "주의" in r[5])}</b><span>상태 주의·문제</span></div></div>',
-           f'<input class="filter" data-for="dt-{esc(d["id"])}" placeholder="이름·표·수집기로 걸러 보기 (예: 렌트료, 판매, kosis, 보관만)">',
-           f'<div id="dt-{esc(d["id"])}">' + table(["데이터", "구분", "어디서·언제 수집", "최신 자료", "행 수", "상태", "블로그 사용", "어디에 쓰이나"], rows, "data") + "</div>"]
+    meta = {"note": f'저장: {md_inline(d.get("store", ""))} · 상태 점검: {esc(head_note)} ({esc(day(mtime(P(d["health"]))))}) · 목록 원본 <code>{esc(short(P(d["catalog"])))}</code>'}
     # Supabase tables the site reads (registry §2): table → API → pages, + who writes them (§1) + row counts
     coll = next((t for t in reg if t["head"] and t["head"][0].startswith("수집기")), None)
     srows = []
@@ -498,16 +493,16 @@ def cadam_data(d: dict, jobs: list[dict]) -> str:
                     writers.append(f'<div class="small"><code>{esc(re.sub(r" *[(].*", "", c[0]))}</code> {esc(c[1][:40])}</div>')
             cnt = " · ".join(f"{n} {counts[n]}" for n in names if n in counts)
             srows.append([md_inline(r[0]) + (f"<div class='small muted'>{esc(cnt)}</div>" if cnt else ""), "".join(writers[:3]) or '<span class="muted">사이트·운영에서 생성</span>',
-                          md_inline(r[1]), md_inline(r[2]), md_inline(r[3]) + used_by(names[0], texts, False) if names else md_inline(r[3])])
-    out.append(f'<details><summary>사이트가 읽는 표 (Supabase) <span class="muted">({len(srows)}묶음 — 표 → API → 페이지)</span></summary>'
-               + table(["표 · 행 수", "채우는 수집기", "읽는 API", "쓰는 페이지", "활용"], srows, "data") + "</details>")
-    return "".join(out)
+                          md_inline(r[1]), md_inline(r[2]), md_inline(r[3])])
+    extra = (f'<details><summary>사이트가 읽는 표 (Supabase) <span class="muted">({len(srows)}묶음 — 표 → API → 페이지. 신선도 점검 대상이 아니라 상태는 모름)</span></summary>'
+             + table(["표 · 행 수", "채우는 수집기", "읽는 API", "쓰는 페이지", "활용"], srows, "data") + "</details>")
+    return rows, meta, extra
 
 
-def football_data(d: dict, jobs: list[dict]) -> str:
+def football_rows(d: dict, jobs: list[dict]) -> tuple[list, dict, str]:
     reg = md_tables(read(P(d["registry"])))
     texts = code_texts(d.get("usage"))
-    live = {}
+    live, art = {}, (None, "")
     try:
         import sqlite3
         con = sqlite3.connect(f"file:{P(d['warehouse'])}?mode=ro", uri=True, timeout=10)
@@ -530,34 +525,124 @@ def football_data(d: dict, jobs: list[dict]) -> str:
             seen.add(name)
             bad = [str(p) for p in probs if name in str(p)]
             job = next((j for j in jobs if j["label"].endswith(run_job.get(r[3], "~"))), None)
-            rows.append([f"<b>{esc(r[0])}</b><div class='small'><code>{esc(name)}</code></div>", esc(r[2]),
-                         f"{esc(r[3])}" + (f"<div class='small'><code>{esc(job['label'].split('.', 2)[-1])}</code> {pill(job['state'], job['kind'])}</div>" if job else "") + f"<div class='small muted'>수동: {md_inline(r[6])}</div>",
-                         f"{esc(r[4])}일" if r[4].strip("- ") else "-", f"{live.get(name, 0):,}" if name in live else esc(r[5]),
-                         pill("문제", "bad") + f"<div class='small'>{esc('; '.join(bad)[:160])}</div>" if bad else pill("정상", "ok"),
-                         used_by(name, texts, True) or '<span class="muted">아직 글·쇼츠에서 안 씀</span>'])
-    extra = [[f"<code>{esc(n)}</code>", f"{c:,}", used_by(n, texts, True) or '<span class="muted">-</span>'] for n, c in sorted(live.items()) if n not in seen]
+            rows.append({"table": name, "table_md": f"`{name}`", "title": r[0], "kind": r[2], "since": "", "allow": r[4].strip("- "), "collect": f"{r[3]} · 수동: {r[6]}",
+                         "collectors": [(job["label"].split(".", 2)[-1], job["schedule"], job["state"], job["kind"])] if job else [],
+                         "fresh": "", "age": None, "nrows": f"{live[name]:,}행" if name in live else r[5], "status": "bad" if bad else "ok",
+                         "problem": "; ".join(bad)[:160], "blog": None, "blog_note": "", "site": [], "uses": used_by(name, texts, True)})
+    aux = [[f"<code>{esc(n)}</code>", f"{c:,}", use_chips(used_by(n, texts, True)) or '<span class="muted">-</span>'] for n, c in sorted(live.items()) if n not in seen]
     dd = P(d["data_dir"])
     files = [["기사 제목·요약·링크 (RSS)", f"<code>{esc(short(P(d['articles'])))}</code>", f"{art[0]:,}건 · 최신 {esc(str(art[1])[:16].replace('T', ' '))}" if art[0] is not None else esc(art[1]), "매일 07:40 morning (수집) → 글감 순위"],
              ["선수·구단 페이지 (brain)", f"<code>{esc(short(dd / 'entities'))}/</code>", f"{sum(1 for _ in (dd / 'entities').glob('*.json')):,}개", "월요일 06:10 brain → 초안 배경 자료·내부 링크"],
              ["공식 인스타 사진 창고", f"<code>{esc(short(dd / 'media/insta'))}/</code>", f"사진 목록 {len(read_json(dd / 'media/insta/index.json', []) or []):,}장 · {esc(day(mtime(dd / 'media/insta/index.json')))}", "매일 07:00 data → 썸네일·본문 사진"]]
-    return "".join([
-        f'<p class="muted">저장: {md_inline(d.get("store", ""))} · 품질 점검: {esc((chk.get("at") or "")[:16].replace("T", " "))} ({esc(chk.get("level", ""))}) 문제 {len(probs)}건 · 원본 <code>{esc(short(P(d["registry"])))}</code></p>',
-        f'<input class="filter" data-for="dt-{esc(d["id"])}" placeholder="이름·표로 걸러 보기 (예: 순위, 이적, fbref)">',
-        f'<div id="dt-{esc(d["id"])}">' + table(["데이터", "구분", "언제 수집", "주기", "행 수(지금)", "상태", "어디에 쓰이나"], rows, "data") + "</div>",
-        "<h4>표가 아닌 자료</h4>" + table(["자료", "위치", "분량·최신", "언제·어디에"], files),
-        f'<details><summary>목록에 없는 보조 표 <span class="muted">({len(extra)}개 — 수집 기록·점검용 등)</span></summary>' + table(["표", "행 수", "쓰는 곳"], extra) + "</details>"])
+    meta = {"note": f'저장: {md_inline(d.get("store", ""))} · 품질 점검: {esc((chk.get("at") or "")[:16].replace("T", " "))} ({esc(chk.get("level", ""))}) 문제 {len(probs)}건 · 목록 원본 <code>{esc(short(P(d["registry"])))}</code>'
+                    ' · 표별 "최신 자료 날짜"는 이 목록에 없어 점검 통과 여부만 표시'}
+    extra = ("<h3>표가 아닌 자료</h3>" + table(["자료", "위치", "분량·최신", "언제·어디에"], files)
+             + f'<details><summary>목록에 없는 보조 표 <span class="muted">({len(aux)}개 — 수집 기록·점검용 등)</span></summary>' + table(["표", "행 수", "쓰는 곳"], aux) + "</details>")
+    return rows, meta, extra
 
 
-def data_panel(cfg: dict, jobs: list[dict]) -> str:
-    out = ['<p class="lead">어떤 데이터가 있고, 어디서·언제 수집되고, 어디에 쓰이는지. 각 프로젝트의 데이터 목록 문서·점검 결과·실제 DB·코드를 읽어 만듭니다. '
-           '"어디에 쓰이나"의 작은 칸은 그 표를 읽는 코드 묶음이고 숫자는 파일 수입니다(마우스를 올리면 파일 이름).</p>']
+def use_chips(uses: list) -> str:
+    return "".join(f'<span class="chip use" title="{esc(", ".join(f))}">{esc(label)} <b>{len(f)}</b></span>' for label, f in uses)
+
+
+def detail_table(rows: list) -> str:
+    out = []
+    for r in rows:
+        coll = (md_inline(r["collect"]) if r["collect"] else '<span class="muted">-</span>') + "".join(
+            f'<div class="small"><code>{esc(n)}</code> {esc(s)} {pill(st, k) if k in ("bad", "off") else ""}</div>' for n, s, st, k in r["collectors"])
+        fresh = esc(r["fresh"] or "-") + (f"<div class='small muted'>{r['age']}일 전 · 허용 {esc(r['allow'])}일</div>" if r["age"] is not None and r["allow"] else
+                                          (f"<div class='small muted'>주기 {esc(r['allow'])}일</div>" if r["allow"] and not r["fresh"] else ""))
+        uses = "".join(f'<div class="small">{md_inline(s)}</div>' for s in r["site"]) + use_chips(r["uses"])
+        out.append([f"<b>{esc(r['title'])}</b><div class='small'>{md_inline(r['table_md'])}</div>", esc(r["kind"]) + (f"<div class='small muted'>{esc(r['since'])}~</div>" if r["since"] else ""),
+                    coll, fresh, esc(r["nrows"]), pill(STATE_KO[r["status"]], r["status"] if r["status"] != "none" else "") + (f"<div class='small'>{esc(r.get('problem', ''))}</div>" if r.get("problem") else ""),
+                    (pill(r["blog"][0], r["blog"][1]) + (f"<div class='small muted'>{esc(r['blog_note'][:70])}</div>" if r["blog_note"] else "")) if r["blog"] else '<span class="muted">-</span>',
+                    uses or UNUSED])
+    return table(["데이터", "구분", "어디서·언제 수집", "최신 자료", "행 수", "상태", "콘텐츠 사용", "어디에 쓰이나"], out, "data")
+
+
+UNUSED = '<span class="muted">수집·보관만 — 읽는 코드를 못 찾음</span>'
+
+
+def has_use(r: dict) -> bool:
+    return bool(r["site"] or r["uses"])
+
+
+def dots(rows: list) -> str:
+    c = Counter(r["status"] for r in rows)
+    return "".join(f'<span class="dot {k}" title="{STATE_KO[k]}"></span>{c[k]} ' for k in ("bad", "warn", "ok", "none") if c[k])
+
+
+def data_business(d: dict, jobs: list[dict], cats: list) -> str:
+    rows, meta, extra = cadam_rows(d, jobs) if d.get("kind") == "cadam" else football_rows(d, jobs)
+    by_table = {t: c["id"] for c in cats for t in c.get("tables", [])}
+    groups = {c["id"]: [] for c in cats}
+    loose = []
+    for r in rows:
+        (groups[by_table[r["table"]]] if r["table"] in by_table else loose).append(r)
+    # what needs a look right now (monitoring first)
+    watch = []
+    for r in rows:
+        if r["status"] in ("bad", "warn"):
+            watch.append((0, f'{pill(STATE_KO[r["status"]], r["status"])} <b>{esc(r["title"])}</b> — {esc(r.get("problem") or r["fresh"] or "점검 결과 확인")}'))
+        elif r["age"] is not None and r["allow"].isdigit() and int(r["allow"]) and r["age"] >= 0.8 * int(r["allow"]):
+            watch.append((1, f'{pill("곧 기한", "warn")} <b>{esc(r["title"])}</b> — 최신 자료가 {r["age"]}일 전 (허용 {esc(r["allow"])}일)'))
+        for n, s, st, k in r["collectors"]:
+            if k in ("bad", "off"):
+                watch.append((0, f'{pill(st, k)} 수집기 <code>{esc(n)}</code> ({esc(s)}) — <b>{esc(r["title"])}</b>'))
+    watch = list(dict.fromkeys(w for _, w in sorted(watch)))
+    n_unused = sum(1 for r in rows if not has_use(r))
+    c = Counter(r["status"] for r in rows)
+    head = (f'<p class="muted">{meta["note"]}</p>'
+            f'<div class="stats"><div><b>{len(rows)}</b><span>데이터 묶음</span></div><div><b>{c["ok"]}</b><span>정상</span></div><div><b>{c["warn"] + c["bad"]}</b><span>주의·문제</span></div>'
+            f'<div><b>{c["none"]}</b><span>점검 대상 아님</span></div><div><b>{n_unused}</b><span>수집·보관만</span></div><div><b>{len(loose)}</b><span>미분류</span></div></div>'
+            + '<div class="card watch"><h3>지금 봐야 할 것</h3>' + ("<ul>" + "".join(f"<li>{w}</li>" for w in watch[:12]) + "</ul>" if watch else '<p class="muted">없음 — 점검에 걸린 데이터와 멈춘 수집기가 없습니다.</p>') + "</div>")
+    cards, sections = [], []
+    for cdef in cats + ([{"id": "loose", "name": "미분류", "desc": "카테고리가 정해지지 않은 데이터. data_categories.yaml에 추가해야 합니다.", "content": ""}] if loose else []):
+        rs = loose if cdef["id"] == "loose" else groups[cdef["id"]]
+        if not rs:
+            continue
+        worst = "bad" if any(r["status"] == "bad" for r in rs) else "warn" if any(r["status"] == "warn" for r in rs) else "ok" if any(r["status"] == "ok" for r in rs) else "none"
+        aged = [r for r in rs if r["age"] is not None]
+        oldest = max(aged, key=lambda r: r["age"]) if aged else None
+        unused = [r for r in rs if not has_use(r)]
+        aid = f'cat-{d["id"]}-{cdef["id"]}'
+        cards.append(f'<a class="card cat {worst}" href="#{aid}"><h3>{esc(cdef["name"])} <span class="muted">{len(rs)}</span></h3><p class="small muted">{esc(cdef.get("desc", ""))}</p>'
+                     f'<p class="small">{dots(rs)}</p>'
+                     + (f'<p class="small">가장 오래된 최신 자료: {esc(oldest["title"])} {oldest["age"]}일 전</p>' if oldest else "")
+                     + f'<p class="small">{"읽는 곳 있음 " + str(len(rs) - len(unused)) + " · 보관만 " + str(len(unused))}</p></a>')
+        colls = Counter()
+        for r in rs:
+            for n, s, st, k in r["collectors"]:
+                colls[(n, s, k)] += 1
+        no_coll = sum(1 for r in rs if not r["collectors"])
+        left = "".join(f'<span class="chip {"bad" if k in ("bad", "off") else ""}"><b>{esc(n)}</b> {esc(s)}</span>' for (n, s, k), _ in colls.most_common()) + (f'<span class="chip muted">예약 작업을 못 찾은 것 {no_coll}개</span>' if no_coll else "")
+        mid = "".join(f'<span class="chip st-{r["status"]}" title="{esc(r["table"])} · {esc(r["fresh"] or r["nrows"])}">{esc(r["title"])}</span>' for r in rs)
+        ulab = Counter()
+        for r in rs:
+            for label, _f in r["uses"]:
+                ulab[label] += 1
+            if r["site"]:
+                ulab["사이트 페이지"] += 1
+        right = "".join(f'<span class="chip use">{esc(k)} <b>{v}</b></span>' for k, v in ulab.most_common()) + (f'<span class="chip muted">보관만 {len(unused)}</span>' if unused else "")
+        content = f'<p class="small"><b>이 자료로 만드는 콘텐츠</b>: {esc(cdef["content"])}</p>' if cdef.get("content") else ""
+        sections.append(f'<section class="catsec" id="{aid}"><h3 class="cath">{esc(cdef["name"])} <span class="muted">{len(rs)}개</span> {dots(rs)}</h3><p class="muted small">{esc(cdef.get("desc", ""))}</p>{content}'
+                        f'<div class="flow"><div><h4>수집 (누가 · 언제)</h4>{left or "<span class=muted>-</span>"}</div><div class="arrow">→</div><div><h4>데이터</h4>{mid}</div><div class="arrow">→</div><div><h4>활용 (읽는 곳)</h4>{right or UNUSED}</div></div>'
+                        f'<details><summary>자세히 <span class="muted">({len(rs)}개 — 최신 자료·행 수·수집기·쓰는 곳)</span></summary>{detail_table(rs)}</details></section>')
+    legend = ('<p class="small muted">색: <span class="dot ok"></span>정상 <span class="dot warn"></span>주의 <span class="dot bad"></span>문제 <span class="dot none"></span>점검 대상 아님 · '
+              '카드를 누르면 그 카테고리로 이동 · "읽는 곳"은 표 이름이 코드에 적힌 경우만 찾으므로 "보관만"은 확인이 필요한 목록입니다 · 카테고리는 <code>_meta/dashboard/data_categories.yaml</code>(제안)</p>')
+    return head + '<h3>카테고리</h3><div class="grid cats">' + "".join(cards) + "</div>" + legend + "".join(sections) + extra
+
+
+def data_panels(cfg: dict, jobs: list[dict]) -> list:
+    cats = yaml.safe_load(read(HERE / "data_categories.yaml")) or {}
+    out = []
     for d in cfg.get("data") or []:
         try:
-            body = cadam_data(d, jobs) if d.get("kind") == "cadam" else football_data(d, jobs)
+            body = data_business(d, jobs, cats.get(d["id"], []))
         except Exception as ex:  # noqa: BLE001
             body = f'<div class="card"><h3>읽는 중 오류</h3><p class="muted">{esc(type(ex).__name__)}: {esc(ex)}</p></div>'
-        out.append(f'<section class="brand"><h2>{esc(d["name"])}</h2>{body}</section>')
-    return "".join(out)
+        out.append((f'data-{d["id"]}', d.get("tab", d["name"]), '<p class="lead">어떤 데이터가 있고, 어디서·언제 수집되고, 지금 신선한지, 어디에 쓰이는지 — 주제별 카테고리로 묶어 봅니다.</p>' + body))
+    return out
 
 
 CSS = """
@@ -583,6 +668,13 @@ details{margin:10px 0}summary{cursor:pointer;font-weight:600;padding:8px 0}detai
 .stats{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}.stats div{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 14px;min-width:92px}.stats b{display:block;font-size:18px}.stats span{color:var(--muted);font-size:12px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font:12px ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:6px;padding:2px 7px;background:var(--card)}.chip.cmd{border-color:var(--warn);color:var(--warn)}
 .chip.use{border-color:var(--run);color:var(--run);margin:2px 3px 0 0;display:inline-block;font-family:inherit}table.data td{min-width:90px}table.data td:first-child{min-width:190px}table.data td:last-child{min-width:230px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin:0 3px 0 6px;background:var(--off)}.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--bad)}
+a.card.cat{display:block;text-decoration:none;color:var(--ink);border-left:5px solid var(--off)}a.card.cat.ok{border-left-color:var(--ok)}a.card.cat.warn{border-left-color:var(--warn)}a.card.cat.bad{border-left-color:var(--bad)}a.card.cat p{margin:4px 0}a.card.cat:hover{border-color:var(--run)}
+.card.watch{margin:12px 0}.card.watch ul{margin:6px 0 0;padding-left:18px}.card.watch li{margin:4px 0}
+.catsec{border-top:1px solid var(--line);margin-top:22px;padding-top:6px;scroll-margin-top:120px}.cath{font-size:16px;margin:10px 0 4px}
+.flow{display:grid;grid-template-columns:1fr 28px 1.4fr 28px 1fr;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0}.flow h4{margin:0 0 6px}.flow .arrow{align-self:center;text-align:center;color:var(--muted);font-size:20px}.flow .chip{display:inline-block;margin:2px 3px 2px 0;font-family:inherit}
+.chip.st-ok{border-color:var(--ok);background:var(--okbg);color:var(--ok)}.chip.st-warn{border-color:var(--warn);background:var(--warnbg);color:var(--warn)}.chip.st-bad{border-color:var(--bad);background:var(--badbg);color:var(--bad)}.chip.st-none{background:var(--offbg);color:var(--off)}.chip.bad{border-color:var(--bad);color:var(--bad)}.chip.muted{color:var(--muted)}
+@media(max-width:800px){.flow{grid-template-columns:1fr}.flow .arrow{transform:rotate(90deg)}}
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
 """
@@ -617,8 +709,9 @@ def main() -> int:
                   + (f"<h3>오류 난 작업</h3>{jobs_table(bad)}" if bad else "")
                   + '<input id="jobfilter" class="filter" placeholder="이름·프로젝트·스크립트로 걸러 보기 (예: football, crawler, 07:)"><div id="alljobs">'
                   + jobs_table(sorted(jobs, key=lambda j: (j["project"], j["label"]))) + "</div>")
-    tabs += [("data", "데이터", ""), ("jobs", "예약 작업 전체", ""), ("compat", "임시 연결·남은 일", "")]
-    panels += [("data", data_panel(cfg, jobs)), ("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0])]
+    dps = data_panels(cfg, jobs)
+    tabs += [(i, n, "") for i, n, _ in dps] + [("jobs", "예약 작업 전체", ""), ("compat", "임시 연결·남은 일", "")]
+    panels += [(i, b) for i, _, b in dps] + [("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0])]
     first = tabs[0][0]
     names = {i: n for i, n, _ in tabs}
     page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'

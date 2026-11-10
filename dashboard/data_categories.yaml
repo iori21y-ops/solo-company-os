@@ -1,0 +1,96 @@
+# 데이터 카테고리 안 (v0.1 제안, 2026-11-10) — 사업별·주제별. 대시보드의 사업별 데이터 화면이 이 파일대로 묶어 보여 준다.
+# 여기 적는 것은 "어느 표가 어느 카테고리인가"와 카테고리 설명뿐이다. 이름·주기·상태·쓰는 곳은 전부 각 프로젝트의 목록·점검 결과에서 읽는다.
+# 목록에 있는데 여기 없는 표는 화면에 '미분류'로 따로 나온다(새 데이터가 생기면 눈에 띄게).
+# 확정되면 카테고리 칸을 각 프로젝트의 데이터 목록 원본(렌테일러 monitoring/data_catalog.py, 해외파 datacheck.REGISTRY)으로 옮긴다.
+
+rentailor:
+  - id: rent
+    name: 렌트료·견적
+    desc: 실제로 받은 월 렌트료 견적과 그 요약. 남이 갖기 어려운 핵심 자산.
+    content: 차종 해부 ③ 조건 조합 · 숫자로 보는 장기렌트(선납금·주행거리·기간) · 월 렌트료 트래커
+    tables: [chazm_estimates, chazm_trims, rent_summary, chazm_lowest, chazm_car_summary]
+  - id: vehicle
+    name: 차량·가격표
+    desc: 차종·트림·옵션 제원과 제조사 가격표가 바뀐 기록.
+    content: 차종 해부 ① 가격·트림 계단 ② 옵션 · 시장 리포트(가격 인상 기록)
+    tables: [sb_vehicles, sb_vehicle_trims, sb_trim_options, vehicle_name_map, price_change_log, price_changes]
+  - id: offers
+    name: 혜택·출고
+    desc: 제조사 월 혜택, 출고 대기, 출시 예정. "지금 계약할까"에 답하는 자료.
+    content: 이달의 제조사 혜택 트래커 · 출고 대기 트래커
+    tables: [maker_offers_history, maker_offers_monthly, delivery_wait_posts, launch_mentions]
+  - id: market
+    name: 판매·등록
+    desc: 월별 판매 대수와 국토부·통계청 등록 통계.
+    content: 시장 리포트(역대·순위) · 월간 판매 순위 트래커 · 전기차 등록 변화
+    tables: [danawa_sales_monthly, car_sales_monthly, molit_reg_fuel_stock, molit_new_registration, molit_import_sigungu, molit_owner_age,
+             molit_passenger_displacement, molit_reg_model_year, molit_transfer_registration, molit_deregistration,
+             kosis_car_registration_sido, kosis_car_inspection, kosis_population]
+  - id: used
+    name: 중고·감가·승계
+    desc: 중고 시세와 매물 수, 승계 매물, 중고 장기렌트 상품.
+    content: 전기차 감가 · 중고차 장기렌트 비교 · 승계 vs 신규
+    tables: [vehicle_used_prices, encar_listing_counts, kb_used_listings, succession_listings, used_rent_offers]
+  - id: safety
+    name: 보험·안전·리콜
+    desc: 보험 통계와 차종별 보험등급, 충돌안전도, 리콜·결함, 사고 통계.
+    content: 세금·보험 시리즈(보험등급 순위) · 차종 해부 ④ 타는 동안 드는 돈
+    tables: [insurance_stats, auto_insurance_loss_ratio, kidi_model_grade, kncap_results, recalls, defect_reports_model_year, defect_report_stats,
+             traffic_accident_stats, kosis_traffic_accident_age, kosis_driver_license_age]
+  - id: ev
+    name: 전기차·연료
+    desc: 지역별 보조금, 인증 주행거리, 충전 요금, 유가, 평균 주행거리.
+    content: 전기차 계산 시리즈(보조금·에너지비) · 지역별 보조금 트래커 · 주행거리 계약 고르기
+    tables: [ev_subsidy_regions, ev_certified_range, ev_charge_prices, ev_chargers, fuel_prices, kosis_mileage_fuel]
+  - id: finance
+    name: 금융·물가
+    desc: 금리, 할부·리스 시장, 차량 관련 물가.
+    content: 렌트료는 언제 내려갈까(금리와 월 렌트료)
+    tables: [ecos_rates, crefia_auto_finance, cpi_car_items, kosis_cpi]
+  - id: industry
+    name: 렌터카 업계
+    desc: 렌터카 등록 대수, 조합·공제조합 공시, 렌터카 회사 재무.
+    content: (아직 정해진 글 없음)
+    tables: [rental_industry_stats, rental_seoul_companies, krma_disclosures, dart_financials]
+  - id: demand
+    name: 뉴스·검색 수요
+    desc: 수집 기사와 거기서 뽑은 사실, 검색량·급상승 키워드. 무엇을 쓸지 정하는 자료.
+    content: 글감 선정 · 종합뉴스 · 심층 주제 우선순위(검색량)
+    tables: [crawled_articles, article_tags, article_insights, digest_story_log, trend_keywords, kw_search_volume]
+  - id: growth
+    name: 유입·성과
+    desc: 사이트 방문·유입 경로. 콘텐츠가 상담으로 이어지는지 보는 자료.
+    content: 측정(글 → 방문 → 상담)
+    tables: [growth_ga_site_daily]
+
+football:
+  - id: match
+    name: 경기·순위
+    desc: 리그 경기 결과, 순위표, 득점 순위, 일정, 경기 리포트.
+    content: 주간 기록 글 · 리그 리뷰·프리뷰 · 순위 레이스 쇼츠
+    tables: [matches, match_extra, elo, fd_standings, fd_scorers, fd_matches, kl_matches, intl_matches, fb_schedule, fb_reports]
+  - id: player
+    name: 선수 기록
+    desc: 해외파와 리그 선수들의 경기별·시즌별 기록.
+    content: 데일리 시리즈 · 선수 총정리(아카이브) · 선수 비교 쇼츠
+    tables: [fb_player_matches, fb_league_players, fb_player_seasons, fm_player_stats, off_player_stats, tm_season_stats]
+  - id: money
+    name: 이적·시장가치·연봉
+    desc: 이적·임대와 이적료, 시장가치 변화, 연봉 추정.
+    content: 이적시장 글 · 시장가치 그래프
+    tables: [tm_players, tm_transfers, tm_club_seasons, tm_value_history, cap_wages, transfers]
+  - id: club
+    name: 감독·구단
+    desc: 감독 재임 이력, 홈구장.
+    content: 심층(감독 교체 효과 등)
+    tables: [tm_managers, managers, club_venues]
+  - id: ids
+    name: 이름·ID 통일표
+    desc: 출처마다 다른 구단·선수 이름을 하나로 잇는 표. 다른 데이터를 합칠 때 쓰는 열쇠.
+    content: (직접 글이 되지 않음 — 다른 데이터의 연결용)
+    tables: [clubs, club_alias, players, player_alias, player_names]
+  - id: channel
+    name: 채널 성과
+    desc: 우리 유튜브 영상 통계와 경쟁 채널 영상.
+    content: 측정 · 쇼츠 형식 선택
+    tables: [yt_stats, yt_competitors]
