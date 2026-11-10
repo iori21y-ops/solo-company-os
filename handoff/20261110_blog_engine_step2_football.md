@@ -32,3 +32,10 @@
 
 ## ③ 공용 도구 합치기 (②가 끝난 뒤)
 두 브랜드가 똑같이 하는 단계를 `blog-engine/engine/`로: Claude 호출+JSON 파싱, 보류 스위치, 디스코드 승인(✅/❌·답장) 처리, 네이버 발행 호출(:3100), 중복 검사, 금액 표기·숫자 검증, 발행 간격 대기열. 먼저 겹치는 함수 목록을 만들고(렌테일러 naver_rewrite·wp_writer vs 해외파 draft·review), 가장 단순한 것(Claude 호출·JSON 파싱·발행 호출)부터 하나씩 합친다. 합칠 때마다 전후 결과 비교.
+
+## 진행 기록
+- **2026-11-10 20:48 — ② 1번 완료** (football-blog `52582b5`, 직전 checkpoint `23c6cf2`, push 안 함): `football/llmutil.py`(ask_claude·parse_json·log), `football/discordutil.py`(channel·dc·owner_reacted) 신설, 본문 그대로. draft·review는 같은 이름을 계속 노출. media·official·video·healthcheck·rosterwatch·shortsflow·matchreview가 새 모듈을 씀, insta.screen의 안 쓰는 `from . import draft` 삭제 → 남는 모듈 → 글쓰기 방향 import 0건(run.py·tools 제외).
+  검증: 함수 소스 해시 전후 동일, records·league dry-run 전후(코드가 만드는 줄 21/36개 동일, 상태 키 동일), series·preview는 전후 같은 사유로 건너뜀(오늘 수집 없음·일정 없음), 20:47 poll 정상.
+- 주의(다음 단계 시험): `run.py morning --dry-run`은 dry-run이어도 `data/candidates/<오늘>.json`을 디스코드 메시지 번호 없이 새로 쓰고 collect·brain 타임라인·사진 판정을 실제로 실행한다 → 낮에 후보가 게시된 날에는 돌리지 말 것. draft 경로 시험은 `tools/draft_test.py <이름>`(상태 저장 없음)으로.
+- 2026-11-10 07:40 morning은 잠금 충돌("another run in progress")로 실행되지 않음 — 오늘자 후보·초안 없음(이 작업과 무관, 미조치).
+- 다음: ② 2번(`football/postphotos.py`).
