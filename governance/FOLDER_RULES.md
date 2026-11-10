@@ -62,6 +62,8 @@ blog-engine/
 
 ## 4. 데이터 창고
 
+> 데이터 한 건을 어떻게 적고(카테고리·이용 등급·쓰는 곳), 언제 늘리고 줄이는지는 `DATA_RULES.md`(v0.1 초안). 현황 화면은 `_meta/dashboard`.
+
 - 숫자 데이터: 로컬 PostgreSQL 하나(현재 DB `cadam`). 사업마다 schema를 나눈다(`warehouse`=렌테일러, `data`=KOSIS, 해외파는 추후 `football`).
 - 백업은 한 경로로: `_meta` 백업 스크립트 → `<사업>/backups/postgres/` 30일 + iCloud 사본. 겹치는 백업은 없앤다.
 - SQLite 등 옛 저장소는 이전이 확인되면 `_archive`로.
