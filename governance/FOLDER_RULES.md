@@ -26,7 +26,7 @@
   launchd/        이 사업의 launchd plist 원본 사본 (설치본과 동일하게 유지)
   docs/           운영 문서
 ```
-- 수집기 출력 규칙은 `cadam-n8n/COLLECTOR_CONVENTION.md`(→ 이전 후 `<사업>/collectors/CONVENTION.md`)를 따른다: 숫자 → PostgreSQL, 맥락 → second-brain, 사이트 노출값 → Supabase.
+- 수집기 출력 규칙은 `cadam/collectors/COLLECTOR_CONVENTION.md`를 따른다: 숫자 → PostgreSQL, 맥락 → second-brain, 사이트 노출값 → Supabase.
 - 다른 프로젝트 폴더를 `sys.path`에 넣지 않는다(다른 프로젝트의 코드를 import하지 않는다). 공용 코드는 `_shared/solo_common`만.
 - 다른 사업의 데이터가 필요하면 아래 **세 가지 길**로만 읽는다:
   1. DB (Supabase, 로컬 PostgreSQL schema)

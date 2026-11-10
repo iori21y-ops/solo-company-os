@@ -21,7 +21,7 @@
 |---|---|---|---|---|
 | `blog-engine/brands/rentailor/trend_api.py` | `cadam-pipeline/scripts/trends/trend_collector.py` | norm·strip_tags·apihub_headers·fetch_news_evidence·CAR_TERMS·searchad_related | 6개를 `solo_common`으로 옮기고 양쪽이 거기서 가져다 씀 | 2026-12-15 |
 | `blog-engine/brands/football/` llmutil.py·discordutil.py·poststate.py | `football-blog/football/` 같은 이름 | Claude 호출·JSON 파싱·로그 / 디스코드 채널·반응 확인 / 글 상태 파일 읽기·저장 (import 한 줄만 다름, 양쪽이 같이 씀: 엔진=글, football-blog=영상·쇼츠·수집) | 엔진 공용 단계(인계 ③)로 합치거나 `solo_common`으로 옮김. 영상 상태를 글 상태 파일에서 떼면 poststate 사본은 없어짐 | 2026-12-15 |
-| `cadam/collectors/lib/` ego_browser.py·ego_bridge.js·polite.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기 (ego_browser는 이미 내용이 다름) | 차이를 합친 뒤 lib 쪽을 호환 파일로 | 2026-12-15 |
+| `cadam/collectors/lib/` ego_browser.py·polite.py·notify.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기·알림 (세 파일 모두 내용이 다름, 2026-11-11 확인. ego_bridge.js는 같음) | 차이를 합친 뒤 lib 쪽을 호환 파일로 | 2026-12-15 |
 
 ## C. 아직 규칙을 어기는 곳 (다른 프로젝트 코드를 직접 불러 씀)
 
@@ -32,8 +32,9 @@
 | `football-blog/tools/upgrade_posts.py` | 렌테일러 브랜드 코드 `naver_rewrite.naver_markup` (수동 일회용 도구). 2026-11-10부터 `football.draft`도 없어 **지금은 실행 안 됨** | 다음에 쓸 일이 생기면 blog-engine으로 옮김 | 쓸 때 |
 | `football-blog/tools/swap_insta_photos.py` | (위반은 아님) `football.draft`를 불러 쓰는데 그 파일이 2026-11-10 엔진으로 이사해 **지금은 실행 안 됨**(수동 일회용 도구) | 다시 쓸 일이 생기면 `draft.header_block` → `postphotos.header_block`으로 고침 | 쓸 때 |
 | `football-blog` → `blog-engine/brands/football/outbox/` | (위반은 아님) football-blog 코드가 엔진 작업 파일에 **쓴다**: videoflow가 글 상태 파일의 `video` 항목, `insta.header_crop`이 `cards/headers/` (위 A의 링크 두 줄과 같은 일) | A의 두 링크를 없앨 때 같이 해결 | 2026-12-15 |
+| `cadam-pipeline/scripts/common/writing_pause.py` | `blog-engine/brands/rentailor/writing_pause.py` | 글쓰기 보류 스위치 도우미. 내용이 다르고 cadam 안에서 부르는 곳이 없음(2026-11-11 확인) | 부르는 곳이 정말 없는지 한 번 더 본 뒤 보관함으로 | 2026-12-15 |
 | 해외파 글쓰기 실행 기록 | (위반은 아님) 엔진 작업인데 기록이 `football-blog/logs/morning.log`·`poll.log`에 남는다(launchd가 football-blog/run.py를 실행하므로) | launchd 교체 때 `blog-engine/logs/`로 | 2026-11-24 |
-| launchd `com.iori21y.football-morning`·`-poll` | (위반은 아님) 아직 `football-blog/run.py`를 실행하고, 그 안에서 엔진(`blog-engine/run.py football …`)을 부른다 | 며칠 안정 확인 뒤 사장님 확인을 받아 엔진 직접 실행으로 교체(자동 점검·잠금·영상 poll을 어떻게 나눌지 같이 결정) | 2026-11-24 |
+| launchd `com.iori21y.football-morning`·`-poll` | (위반은 아님) **2026-11-11부터 운영 보류로 내려 둠** — 다시 켜기 전까지 기한 보류. 켜지면 `football-blog/run.py`를 실행하고, 그 안에서 엔진(`blog-engine/run.py football …`)을 부른다 | 며칠 안정 확인 뒤 사장님 확인을 받아 엔진 직접 실행으로 교체(자동 점검·잠금·영상 poll을 어떻게 나눌지 같이 결정) | 2026-11-24 |
 
 ## D. 끝난 것 (참고)
 - 2026-11-10: football-blog·keyword-scan의 `cadam-pipeline/scripts` sys.path 제거 → `solo_common`.
