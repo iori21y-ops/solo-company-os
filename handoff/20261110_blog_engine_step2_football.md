@@ -42,4 +42,8 @@
   검증: 옮긴 15개 소스 해시 동일, 저장된 글 8편으로 header_block·photo_block·recheck_photos·compose_body·add_section_photos 결과 전후 완전 동일, records·league dry-run 동일, 21:07 poll 정상. 초안 전체 경로(draft.write)는 오늘 글감 0건이라 시험 못 함 → 글감이 있는 날 `tools/draft_test.py <이름>`로 확인 필요.
 - draft.py에 남은 football-blog 의존(4번 데이터 창구 대상): brain.context·brain.load(related_fallback), insights.block, collect.UA, media.gather/save_media(GATHER_MEDIA=False라 죽은 코드), config(C).
 - series(insta.image_log·index)·review(insta.entities_in·screen)의 insta 직접 호출은 그대로 — 3·4번에서 postphotos/창구로.
-- 다음: ② 3번(review.py 나누기: 글 승인·발행 vs 영상·쇼츠).
+- **2026-11-10 21:18 — ② 3번 완료** (football-blog 커밋 "review.py split into post approval/publish and videoflow", 직전 checkpoint `39d3da8`, push 안 함): `football/videoflow.py`(propose_video·start_video·check_videos·make_video + `poll()` = 옛 review.poll의 뒷부분: check_videos, shortsflow.check_scheduled/check_notices, matchreview.check_pending), `football/poststate.py`(save·all_posts — review와 videoflow가 같이 씀). review.py는 video·shortsflow·matchreview를 더는 import하지 않음. `run.py poll` = review.poll() → videoflow.poll() (owner_id 조회가 poll당 2회로 늘어남). run.py video / video-propose는 videoflow를 부름.
+  검증: 옮긴 6개 함수 소스 해시 동일, records·league dry-run 동일, 21:12·21:17 poll 정상(문제 0건). 영상 제안·제작 경로는 실제 실행 안 함(현재 proposed/failed 상태 글 0건, 자동 제안은 꺼져 있음).
+- 5·6번 때 주의: videoflow는 글 상태 파일(`data/posts/*.json`)의 `video` 항목을 읽고 쓴다(poststate). 상태 파일이 엔진 outbox로 가면 poststate의 경로(C.STATE_DIR)만 바꾸면 되지만, "football-blog가 엔진 작업 파일에 쓴다"는 점은 규칙상 정리가 필요(영상 상태를 football-blog 쪽 별도 파일로 떼는 안).
+- review.py에 남은 football-blog 의존(4번 창구 대상): brain.add_post·update_timeline, collect.collect, topics.rank·pick_auto, insta.screen·entities_in(morning prescreen), records.save_evergreen(같이 이사), poststate, discordutil.
+- 다음: ② 4번(football 데이터 창구 `football-blog/facts_cli.py`).
