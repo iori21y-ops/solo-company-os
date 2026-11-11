@@ -22,3 +22,9 @@
 
 주의: `_meta/dashboard/build.py`에 다른 세션의 미커밋 변경(11/11)이 있음 — 건드릴 땐 그 변경과 섞지 말 것(커밋은 `git commit -- <경로>`).
 미push 커밋(11/11 오전 점검분): cadam `5111291`, cadam-pipeline `2e2c07c`, football-blog `2a7a580 5e7362a`, _shared `89ec49d`, _meta `4b624b4`, blog-engine `07ab4cb`(다른 세션 커밋과 섞임).
+
+## A 결과 요약 (규칙 전수 조사, 2026-11-11)
+종류 20개: 소통·작업방식 / 사전승인 / 절대금지 / 동시 세션 / 저장위치·폴더 / 정리·삭제 / git·커밋 / 배포 / DB·Supabase·비밀 / 수집·웹도구 / 데이터 창고 / 문서·노션·세션종료 / Linear / 세션관리 / 글쓰기 / 위키 / 결재·보고 / 비용 / 실행환경 / 백업.
+모순(사장님 결정 필요): ①커밋 메시지 언어(전역 영어 vs cadam-web·security 한국어) ②배포(security "가이드만" vs CLAUDE "승인 후 push=배포") ③승인 범위·launchd·삭제(security는 모든 변경 승인·launchd 금지 vs 실제 운영) ④백업 위치(~/backups vs ~/projects) ⑤약관상 금지 사이트 수집 예외(Transfermarkt·FBref·KB) ⑥시스템 문서 원본(cadam/docs vs 위키 system) ⑦소통(먼저 설명 vs 바로 실행).
+제가 정함: ISSUES.md 컬럼 규칙 이유를 cadam-erp로 정정 / 거버넌스 문서 한국어 파일명 허용(코드·프로젝트 파일만 영어) / /tmp는 잠금 파일만 허용 / Playwright 금지는 수집기 한정 / 실행환경 범위 명시(my-shorts .venv, 그 외 /usr/bin/python3) / 해외파 내부 모순(자동 업로드·언론사 사진·영상 삽입)은 재개 때 정리(REN-133에 기록).
+조사 원문: 이 세션 하위작업 보고(규칙 위치 file:line 전부) — 새 세션이면 다시 조사(Explore)로 재생성.
