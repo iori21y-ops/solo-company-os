@@ -43,7 +43,7 @@ skip:
   - "*/governance/합의메모-*"
 
 # 줄에 이 낱말이 있으면 '기록·호환 설명'으로 보고 넘어간다.
-history_markers: ["폐기", "기록용", "(옛)", "옛 ", "옛경로", "예전", "이전 이름", "호환", "링크", "~~", "보관함", "retired", "renamed", "was ", "→ `", "이사", "이동", "2026-11-10 제거", "구 `", "당시 기록"]
+history_markers: ["symlink", "폐기", "기록용", "(옛)", "옛 ", "옛경로", "예전", "이전 이름", "호환", "링크", "~~", "보관함", "retired", "renamed", "was ", "→ `", "이사", "이동", "2026-11-10 제거", "구 `", "당시 기록"]
 
 # 없어진 이름 → 지금 이름. pattern은 정규식.
 retired:
@@ -74,3 +74,38 @@ plist_copies:
 status_words:
   off: ["미설치", "설치 안 됨", "설치되지 않음", "내려 둠", "내려 두었", "unloaded", "NOT installed", "not installed"]
   on: ["설치·실행 중", "설치됨", "installed", "loaded"]
+
+# ── 코드 점검 (2026-11-11 추가, REN-158) ─────────────────────────────
+# 문서뿐 아니라 코드·예약 작업 설정에 남은 옛 경로·주소도 찾는다(링크를 지우기 전에 미리 잡기 위해).
+code:
+  - ~/projects/cadam/cadam-erp/src/**/*.ts
+  - ~/projects/cadam/cadam-erp/src/**/*.tsx
+  - ~/projects/cadam/cadam-erp/scripts/**/*.sh
+  - ~/projects/cadam/cadam-web/src/**/*.ts
+  - ~/projects/cadam/cadam-web/src/**/*.tsx
+  - ~/projects/cadam/cadam-pipeline/scripts/**/*.py
+  - ~/projects/cadam/cadam-pipeline/scripts/**/*.sh
+  - ~/projects/cadam/collectors/**/*.py
+  - ~/projects/cadam/collectors/**/*.sh
+  - ~/projects/cadam/*.sh
+  - ~/projects/blog-engine/**/*.py
+  - ~/projects/blog-engine/publishers/naver/*.js
+  - ~/projects/football-blog/**/*.py
+  - ~/projects/football-blog/**/*.sh
+  - ~/projects/_meta/scripts/**/*.py
+  - ~/projects/_meta/scripts/**/*.sh
+  - ~/projects/_meta/dashboard/*.py
+  - ~/projects/_meta/librarian/*.sh
+  - ~/Library/LaunchAgents/*.plist
+code_skip_dirs: [node_modules, .next, outbox, _archive, .venv, venv, __pycache__, data, backups, .git, _wt-consult-steps]
+# 코드에서는 '경로·주소'만 찾는다(낱말 n8n 자체는 찾지 않음). 호환 링크는 지우기 전에 고쳐야 하므로 같이 찾는다.
+code_retired:
+  - {pattern: 'cadam/cadam-naver', now: 'blog-engine/publishers/naver (링크 제거 예정 2026-11-17)'}
+  - {pattern: 'cadam-n8n/', now: 'cadam/collectors/ (링크 제거 예정 2026-12-15)'}
+  - {pattern: 'cadam-dashboard/', now: '보관됨(2026-11-10) — .env.local만 남음'}
+  - {pattern: 'projects/cadam/cadam/', now: '없는 폴더 — cadam-pipeline'}
+  - {pattern: ':5678\b|:3099\b|:3101\b', now: '없어진 포트(n8n·prompt-bff·옛 대시보드)'}
+  - {pattern: 'scripts/content/(wp_writer|topic_candidates|topic_selector|naver_rewrite|naver_digest|blog_images|blog_cards|blog_refresh|monthly_roundup|daytime_publish)', now: 'blog-engine/brands/rentailor/'}
+  - {pattern: 'scripts/common/(blog_graphics|explainer|writing_pause)', now: 'blog-engine/'}
+  - {pattern: '/Users/kim/backup_cadam\.sh', now: '~/projects/cadam/backup_cadam.sh'}
+code_markers: ["legacy", "retired", "renamed", "compat", "was ", "옛", "폐기", "호환", "(구 "]

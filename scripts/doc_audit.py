@@ -178,11 +178,43 @@ def check_status(files, reg) -> list[dict]:
     return out
 
 
+def code_files(reg: dict) -> list[Path]:
+    skip = set(reg.get("code_skip_dirs", []))
+    seen, out = set(), []
+    for pat in reg.get("code", []):
+        for f in glob.glob(expand(pat), recursive=True):
+            if f in seen or not os.path.isfile(f) or skip.intersection(Path(f).parts):
+                continue
+            seen.add(f)
+            out.append(Path(f))
+    return sorted(out)
+
+
+def check_code(reg) -> list[dict]:
+    rules = [(re.compile(r["pattern"]), r) for r in reg.get("code_retired", [])]
+    markers = reg.get("code_markers", [])
+    out = []
+    for f in code_files(reg):
+        try:
+            text = f.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        for i, line in enumerate(text.splitlines(), 1):
+            if len(line) > 400 or any(m in line for m in markers):
+                continue
+            for rx, r in rules:
+                if rx.search(line):
+                    out.append({"file": short(f), "line": i, "text": line.strip()[:160], "why": f"옛 경로·주소 → {r['now']}"})
+                    break
+    return out
+
+
 CHECKS = {
     "retired": "없어진 이름·경로가 현재처럼 적힌 줄",
     "missing": "적힌 경로가 실제로 없음",
     "plist": "예약 작업 설정 사본이 원본과 다름",
     "status": "예약 작업 상태가 문서와 실제가 다름",
+    "code": "코드·예약 작업 설정에 남은 옛 경로·주소",
 }
 
 
@@ -212,6 +244,7 @@ def main() -> int:
         "missing": check_missing_paths(files, reg),
         "plist": check_plists(reg),
         "status": check_status(files, reg),
+        "code": check_code(reg),
     }
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     OUT_MD.parent.mkdir(parents=True, exist_ok=True)

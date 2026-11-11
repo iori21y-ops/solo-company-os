@@ -68,6 +68,7 @@
 ## 6. 구조 변경 후 문서 정리
 폴더 이동·이름 변경·서비스 폐기를 했으면 그 작업 끝에:
 1. `~/projects/_meta/governance/doc_registry.yaml`의 `retired:`에 옛 이름 → 새 이름 한 줄 추가.
+   - **경로·주소**가 바뀌었으면 `code_retired:`에도 추가 — 코드(ERP·사이트·파이프라인·수집기·엔진)와 예약 작업 설정에서 옛 경로를 찾는다. **호환 링크(바로가기)를 지우기 전에 반드시 코드 점검 0건 확인** (2026-11-11: 문서만 보다가 ERP가 `cadam-naver` 링크를 쓰는 걸 놓친 일이 있었다).
 2. `python3 ~/projects/_meta/scripts/doc_audit.py` 실행.
 3. 결과 `~/projects/_meta/logs/doc_audit.md` 목록을 **원본 문서부터** 고친다. 규칙은 [RULES_MAP.md](RULES_MAP.md)의 원본 파일만 고치고, 다른 문서는 원본을 가리키게.
 4. **0건이 될 때까지** 2~3을 반복. 기록으로 남길 문단은 `> ⚠️ … 폐기 — 기록용` 으로 표시하면 점검이 넘어간다.
