@@ -130,3 +130,9 @@ Supabase 무료 플랜 Log Ingestion 0.85/1GB(11/21 초기화). REN-155 일괄 �
 - cadam-web: 로컬 브랜치 alimtalk-quote-button을 origin/main(3720882, JSON 원본) 위로 rebase. 커밋 c956fac·9b94081·7df1442·c9ee2b1 + 다른 세션 eabaf35. 충돌 2곳(car-insight·catalog-specs)은 JSON 경로 유지+hydrogen_eff 추가. 타입 검사 통과(빌드는 Supabase 조회라 생략). 이전 상태: backup/ren155-site-before-rebase-20261112
 - ERP 65b134b(잔존율)는 아직 Supabase vehicle_trims(동결본)를 읽음 — 로컬 원본 전환 3단계 때 함께 확인
 - 보류(§9) 유지: push·Storage 업로드는 11/21 이후
+
+## 11. 재개 (2026-11-12, 사장님 승인 전달)
+- 보류 해제: 차량 표 쓰기는 로컬 DB(공용 경로 ts._sb·patch_grouped)만. 사진 업로드는 여전히 Supabase(11/21 전엔 하루 수백 장 이내). cadam-web push는 승인 필요
+- car_publish dry-run에서 hydrogen_eff 열 추가가 '파일 형식 이상'으로 전체 배포를 보류시키던 문제 → parse(live=True)가 뒤에 붙인 열 허용으로 수정. 다른 세션 커밋 04605f8에 함께 들어감. dry-run: 보류 없음, powertrains만 변경. kick 안 함(12:30 정기 실행)
+- ERP 차량 목록·견적 화면은 아직 Supabase(동결본)를 읽어 REN-155 반영분이 ERP에는 당분간 안 보일 수 있음
+- 남은 일: 스타리아 라운지·리무진 가격표 월간 수집 등록(사장님 답 대기), cadam-web 사이트 커밋 push 승인, ERP 65b134b
