@@ -1,10 +1,10 @@
 # 안전 규칙 (SAFETY_RULES)
 
 > 무엇을 정하는 파일: 승인이 필요한 일, 절대 하면 안 되는 일, DB 쓰기·삭제·백업·비밀 파일 다루는 법.
-> 마지막 갱신: 2026-11-11 · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 마지막 갱신: 2026-11-11 (사장님 결정 2 반영) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
 > cadam 상세(Supabase 단계별 확인·RLS·도구별 허용 표·오류별 대응)는 `~/projects/cadam/docs/security.md`. 내용이 다르면 이 파일이 우선.
 
-## 1. 승인 범위 (사장님 결정 3, 2026-11-11)
+## 1. 승인 범위 (사장님 결정 3·8·10·11, 2026-11-11)
 원칙: **되돌릴 수 없는 것만 승인**받는다. 나머지는 하고 나서 보고한다.
 
 | 승인 필요 (먼저 묻고 "예"를 받은 뒤 실행) | 승인 불필요 — 하고 나서 보고 |
@@ -14,7 +14,11 @@
 | 서비스 재시작 (`launchctl kickstart -k`, 서버 재시작) | 새 예약 작업(launchd) 등록, 예약 작업의 파일 경로 수정 |
 | 파일 삭제 (보관함 비우기 포함) | 다시 만들 수 있는 캐시 삭제 (`.next`, `__pycache__`, 병합된 worktree) |
 | 운영 중인 예약 작업 끄기 (`launchctl unload`) | 코드 수정·읽기·조회·백업 만들기 |
+| 운영 중인 예약 작업의 **실행 시각 변경** | 글쓰기 보류 스위치 **켜기**(`cadam-pipeline/data/WRITING_PAUSE` 만들기 = 발행 멈춤) |
+| 글쓰기 보류 스위치 **끄기**(재개 — WP·네이버 발행이 다시 시작됨) | |
 | 실행 중인 서비스의 설정 변경 (위 "경로 수정"은 제외 — 전역 규칙 "확인 없이 설정 변경 금지") | |
+
+- **"마무리해줘"(세션 종료 요청) = 문서·규칙 리포(cadam-doc·_meta·_shared 등) push 승인**으로 본다. 코드·사이트 리포(cadam-web·cadam-pipeline·blog-engine 등) push는 따로 승인 (결정 10).
 
 - 승인은 그때 그 일 하나에만 유효하다. 한 번 "예"가 다음 일까지 허락하지 않는다.
 - 확신이 없으면 승인 필요 쪽으로 본다 (판단 순서: 안전 > 정확 > 속도).
@@ -26,7 +30,7 @@
 | DB | `DROP TABLE`·`TRUNCATE` (표 통째 삭제·비우기) |
 | DB | `WHERE`(조건) 없는 `DELETE`·`UPDATE` |
 | DB | 백업 없이 스키마(표 구조) 바꾸기 |
-| DB | 운영 Supabase에 `psql` 등으로 직접 접속 — MCP 또는 Management API만 |
+| DB | 운영 Supabase에 `psql` 등으로 직접 접속 — 승인 받은 쓰기만 MCP 또는 Management API로 (결정 9) |
 | DB | 브라우저용 anon 클라이언트(공개 키)로 UPDATE·DELETE — 서버 API(service_role) 경유 |
 | 비밀 | `.env`·`.env.local`·API 키·토큰·비밀번호를 git에 커밋하거나 화면·로그에 출력 |
 | 비밀 | 비밀 파일(`.env`, `~/.cadam-secrets/`, 발행 서버 `config.json`·쿠키) 옮기기·복사 — 제자리에서 읽기만 |
@@ -38,7 +42,7 @@
 
 안전장치: `~/.claude/hooks/block_dangerous_sql.py`가 DROP·TRUNCATE·WHERE 없는 DELETE/UPDATE를 자동으로 막는다. 막혀도 규칙은 그대로 — 채팅 승인은 따로 받는다.
 
-## 3. DB 쓰기 절차
+## 3. DB 쓰기 절차 (운영 DB 쓰기는 승인 후 MCP·Management API로만, WHERE 필수·사전 조회 — 결정 9)
 1. 바꿀 대상의 **지금 상태**를 조회해 보여 준다 (UPDATE·DELETE는 같은 WHERE로 SELECT 먼저, 영향 행 수 확인).
 2. 무엇을 바꾸는지 **요약**한다 (변경 전/후 대조).
 3. **되돌리는 법**을 적는다 (백업 SELECT·파일).
@@ -65,6 +69,9 @@
 | 자동 백업 (예약 작업이 만드는 것) | `~/projects/<사업>/backups/` (예: DB 덤프 `backups/postgres/`) |
 | 일회성 백업 (작업 전 손으로 뜨는 것) | `~/projects/<사업>/backups-manual/` |
 | 기존 `~/backups/` | 옮기지 않는다. **읽기 전용 보관** — 새 백업을 여기 만들지 않는다 |
+| 로컬 PostgreSQL DB (`cadam`) | `~/projects/cadam/backup_cadam.sh`: 로컬 최근 **30개** + iCloud Drive 사본 **주 1회, 최근 8개**(약 2달) |
+| blog-engine `outbox/` 글쓰기 파일(json·md) | 같은 스크립트가 매일 `blog-engine-outbox.tar.gz`로 묶어 cadam `backups/`에 |
+| `_meta`·`blog-engine`·`_shared` 코드·문서 | 사업 폴더가 아니므로 따로 backups 폴더를 두지 않는다 — **GitHub 리모트가 백업** (커밋·push로 보관) |
 
 - 파일 이름: `{원본파일명}_{YYYYMMDD}_{HHMMSS}.bak`
 - 설정 파일(plist·`brand.yaml`·`config.json` 등)은 고치기 전에 백업 → 고친 뒤 `diff`로 확인. JSON이면 `python3 -m json.tool`로 문법 확인.

@@ -1,14 +1,14 @@
 # git·배포 규칙 (GIT_DEPLOY_RULES)
 
 > 무엇을 정하는 파일: 커밋 메시지, 저장소(리포) 목록, 커밋에 넣을 파일 고르기, push와 배포.
-> 마지막 갱신: 2026-11-11 · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 마지막 갱신: 2026-11-11 (사장님 결정 2 반영) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
 > 배포 상세(Vercel 설정·환경변수·도메인)는 `~/projects/cadam/docs/deploy.md`.
 
 ## 1. 커밋 (사장님 결정 1, 2026-11-11)
 - 커밋 메시지·코드 주석 = **영어**. (문서 본문은 한국어)
 - **파일을 고치기 전에** 그 저장소에서 먼저 커밋: `checkpoint: <작업 설명>`
 - Linear 이슈 번호를 넣는다: 진행 중 `Refs REN-N`, 끝났으면 `Fixes REN-N` (push 때 이슈 자동 연결·완료).
-- 위키(second-brain) 작업 커밋: `ingest: …` / `query: …` / `lint: …`
+- 위키(second-brain) 커밋 메시지: `ingest: …` / `query: …` / `lint: …`. iCloud 볼트 자체는 git이 아니다 — 미러 `~/second-brain-git`이 밤마다 볼트를 복사(rsync)한 뒤 커밋·push한다.
 - 커밋은 승인 없이 하고 보고한다 ([SAFETY_RULES.md](SAFETY_RULES.md) §1).
 - `node_modules`, `.next`, `__pycache__`, `.env` 류는 커밋하지 않는다.
 
@@ -42,6 +42,7 @@
 
 ## 4. push (사장님 결정 3)
 - push는 **승인 후**. 승인 대상은 커밋이 아니라 push다.
+- **"마무리해줘" = 문서·규칙 리포(cadam-doc·_meta·_shared 등) push 승인** (결정 10). 코드·사이트 리포(cadam-web·cadam-pipeline·blog-engine·football-blog 등)는 따로 승인.
 - push 전 `git log --oneline -5`로 올라갈 커밋 확인. 남의 커밋이 섞였으면 보고.
 - push 후 `git log --oneline origin/main -3`으로 원격 반영 확인.
 - 강제 push·`reset --hard` 금지. merge·rebase도 승인 후.
@@ -50,7 +51,7 @@
 | 리포 | push하면 | 규칙 |
 |---|---|---|
 | cadam-web | **즉시 프로덕션 배포** (rentailor.co.kr, Vercel Git 연동) | 사장님 승인 → **로컬 빌드 확인 필수**(`npm run build`) → Claude가 push → `npx vercel ls`로 새 배포 시각 확인 |
-| cadam-doc | GitHub Actions가 바뀐 `docs/*.md`를 노션에 복사 | 승인 후 push → 노션 반영 확인 ([DOCS_RULES.md](DOCS_RULES.md) §2) |
+| cadam-doc | GitHub Actions가 바뀐 `docs/*.md`를 노션에 복사 | 승인 후 push("마무리해줘"면 승인된 것) → 노션 반영 확인 ([DOCS_RULES.md](DOCS_RULES.md) §2) |
 | 그 밖 | 원격 저장만 (Linear 이슈 연결) | 승인 후 push |
 
 - 자동 배포 켜짐/꺼짐은 바뀐 적이 있다 → 배포 여부가 중요하면 문서 말고 `npx vercel ls`로 실측.

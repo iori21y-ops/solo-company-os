@@ -60,19 +60,14 @@
 2. 원본 파일 맨 위 "마지막 갱신" 날짜를 바꾼다.
 3. `python3 ~/projects/_meta/scripts/doc_audit.py` 실행 → `~/projects/_meta/logs/doc_audit.md`에 걸린 곳을 고친다 ([DOCS_RULES.md](DOCS_RULES.md) §6).
 
-## 확인 필요 (출처끼리 다르고 사장님 결정으로도 정해지지 않은 것)
+## 후속 확인 (Linear) — 수집 예외 미확인 6건
+사장님 결정 2(2026-11-11): 아래는 Linear 후속 이슈로 확인한다. 확인 전까지 [COLLECT_RULES.md](COLLECT_RULES.md) 예외 표에 넣지 않는다.
 1. **Transfermarkt 감독 이력**(`tm_managers`) 수집 승인일이 기록에 없음.
-2. **Capology** 연봉 수집(사용자 결정 2026-11-10, robots `use=reference` 준수) — 약관상 자동 수집 금지인지 기록이 없음. 승인 예외 표에 넣을지.
-3. **리그 공식 사이트** 수집: `football-blog/CLAUDE.md`에 "보류(premierleague.com 약관이 DB 생성 금지)"와 "추가 수집 `official.py`(2026-11-09 사용자 지시)"가 함께 있음. 약관 상태와 표에 넣을지.
-4. **엔카 웹 시세** 수집(`scrape_encar.py`): 수집기 규약은 "엔카 API는 자동 수집 금지라 안 씀"만 적혀 있고 웹 페이지 약관 상태는 기록이 없음. 예외 표 대상인지.
-5. **인스타그램** 공식 계정 사진 수집(2026-11-06 사용자 결정, 수집 전용 계정) — 약관 상태 기록 없음. 예외 표에 넣을지.
-6. **무공해차 통합누리집 충전요금**(ego 수집): 규약에 "약관 미확인 → 노출 전 확인"으로 남아 있음.
-7. **위키 커밋 위치**: 전역 규칙은 "위키 작업 후 git commit"인데 iCloud 볼트는 git 리포가 아니고 미러 `~/second-brain-git`만 리포(야간 복사가 덮어씀). 어디서 커밋할지.
-8. **글쓰기 보류 스위치**(`WRITING_PAUSE`) 만들기·지우기: `security.md`는 승인 필요. 결정 3의 "운영 중 예약 작업 끄기"에 들어가는지, 다시 켜기(재개)도 승인인지.
-9. **"프로덕션 DB 직접 수정 금지"**(전역) vs 결정 3 "DB 쓰기는 승인 후": SAFETY_RULES는 "psql 직접 접속 금지 + 승인 받은 쓰기는 MCP·Management API로 허용"으로 해석함. 맞는지.
-10. **백업 위치 — 사업 폴더가 아닌 곳**: `_meta`·`blog-engine`·`_shared`의 백업은 어디에 둘지 (결정 4는 `~/projects/<사업>/backups`만 정함).
-11. **DB 백업 보관 개수**: `FOLDER_RULES.md` §4 "30일 + iCloud 사본" vs `COLLECTOR_CONVENTION.md` "로컬 4개 + iCloud 8개".
-12. **세션 종료 때 cadam-doc push**: 옛 규칙은 바로 push, 결정 3은 push 승인 필요. "마무리해줘" 요청 자체를 push 승인으로 볼지.
-13. **운영 중 예약 작업의 시각(스케줄) 변경**: 결정 3은 "새 등록·경로 수정"만 승인 불필요라고 정함. 시각 변경은 SAFETY_RULES에서 "실행 중인 서비스 설정 변경 = 승인 필요"로 둠. 맞는지.
-14. **Linear 연결 도구**: 전역 CLAUDE.md는 productivity 플러그인 Linear, 메모리 `project_linear.md`는 design 플러그인 Linear(productivity는 미인증)라고 적음.
-15. **cadam 리포 목록이 낡음**: `cadam/CLAUDE.md` "cadam 안 3개 + 밖 3개"에 `cadam/collectors`·`cadam/cadam-erp`(각각 별도 리포)가 빠짐 — GIT_DEPLOY_RULES §2에 추가해 둠, CLAUDE.md 정리 때 반영.
+2. **Capology** 연봉 수집(사용자 결정 2026-11-10, robots `use=reference` 준수) — 약관상 자동 수집 금지인지 기록이 없음.
+3. **리그 공식 사이트**: `football-blog/CLAUDE.md`에 "보류(premierleague.com 약관이 DB 생성 금지)"와 "추가 수집 `official.py`(2026-11-09 사용자 지시)"가 함께 있음.
+4. **엔카 웹 시세**(`scrape_encar.py`): 수집기 규약은 "엔카 API 금지"만 적혀 있고 웹 페이지 약관 상태는 기록이 없음.
+5. **인스타그램** 공식 계정 사진 수집(2026-11-06 사용자 결정, 수집 전용 계정) — 약관 상태 기록 없음.
+6. **무공해차 통합누리집 충전요금**(ego 수집): 규약에 "약관 미확인 → 노출 전 확인".
+
+## 알려진 불일치 (원본이 맞고, 다른 문서를 고칠 차례)
+- `cadam/collectors/COLLECTOR_CONVENTION.md` 2.2는 창고 백업을 `warehouse_backup.sh`(로컬 4개 + iCloud 8개)로 적었으나, 그 예약 작업 plist가 `~/Library/LaunchAgents`에 없다(2026-11-11 확인). 실제 DB 백업은 `cadam/backup_cadam.sh`(로컬 30개 + iCloud 주 1회 8개). 원본: [SAFETY_RULES.md](SAFETY_RULES.md) §6.
