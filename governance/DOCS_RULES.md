@@ -18,6 +18,7 @@
 - `~/projects/cadam/docs/*.md`를 고쳐 `cadam-doc` 리포에 push → GitHub Actions(`.github/workflows/sync-notion.yml`)가 **바뀐 파일만** 노션 위키에 복사.
 - push는 승인 후 ([GIT_DEPLOY_RULES.md](GIT_DEPLOY_RULES.md) §4).
 - 수동 재실행: `gh workflow run sync-notion.yml -R iori21y-ops/cadam-doc -f files=<파일>`
+- 로컬에서 직접 실행: `NOTION_TOKEN=<토큰> python3 ~/projects/cadam/scripts/sync_notion.py [파일명]` (토큰 값은 화면에 남기지 않는다). 동기화 스크립트 `cadam/scripts/sync_notion.py`.
 - 노션 위키: https://www.notion.so/Wiki-3529fc8f3ff28026a166e678ef75adf7
 
 ## 3. "docs 반영해줘" 절차

@@ -1,5 +1,7 @@
 # CLAUDE.md — 에이전트 학습 vault 운영 규칙
 
+> 공통 규칙 원본: ~/projects/_meta/governance/RULES_MAP.md (규칙 지도). 여기에는 꼭 지킬 핵심과 이 프로젝트에만 있는 내용만 둔다.
+
 이 파일은 에이전트 학습 vault의 운영 규칙을 정의한다.
 모든 학습 작업(사이클 기록, 인사이트 추출, 승격, 린트)은 이 스키마를 따른다.
 
@@ -390,9 +392,8 @@ vault 커밋·푸시 전 민감정보 패턴 포함 파일이 없는지 확인�
 
 vault 외부에 민감정보를 보관할 경우 `.cadam-secrets/` 디렉토리를 사용한다.
 
-- 위치: `~/projects/_meta/agents/.cadam-secrets/` (로컬 전용)
-- 현재 상태: 폴더 미생성, `agents/.gitignore` 패턴 미등록
-- **별도 작업 필요**: `agents/.gitignore`에 `.cadam-secrets/` 패턴 추가 후 사용
+- 위치: **`~/.cadam-secrets/`** (홈 바로 아래, git 밖, 로컬 전용 — 2026-11-11 정정). vault 안에 만들지 않는다.
+- 옮기기·복사 금지, 제자리에서 읽기만 (원본 규칙 `~/projects/_meta/governance/SAFETY_RULES.md` §7)
 
 ---
 
