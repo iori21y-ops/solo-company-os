@@ -46,3 +46,5 @@
 - 11/21 이후: 5(아반떼 N·니로 EV 구성기 코드 매핑 → option_images 수집 → option_media_build/sync 업로드), 6(테슬라·폴스타 칩 소스 신규, 나머지는 이름 별칭 + 업로드)
 - 후속: 넥쏘 kW 사이트 표시(cadam-web car-insight.ts isEv, push 승인 필요), 아이오닉6 N은 11/21 수집부터 가격표 옵션 4개로 교체(정상)
 - 커밋(collectors, 미push): 03f5887 · 14a2ea3 · 4900bf1. car_publish kick 08:15
+- 08:40~ 추가: 니로 EV 옵션 사진 4장(니로 HEV 부품 사진, 수동 확인)·GV80 쿠페 칩 1(NAME_ALIAS)·넥쏘 kW 사이트 표시(cadam-web b353436 배포). 아반떼 N 사진은 공식 출처 없음.
+- collectors a305460(색상 별칭) 미push — 같은 리포에 다른 세션 미push 커밋 4개(aa0dccd·d05c1f4·f2d3e53·1456294)가 앞에 있어 함께 나가므로 보류
