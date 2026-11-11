@@ -974,7 +974,7 @@ def docaudit_panel() -> tuple[str, int]:
     if not d:
         return '<p class="muted">아직 결과 없음 — <code>python3 ~/projects/_meta/scripts/doc_audit.py</code></p>', 0
     names = {"retired": "없어진 이름·경로가 현재처럼 적힌 줄", "missing": "적힌 경로가 실제로 없음",
-             "plist": "예약 작업 설정 사본이 원본과 다름", "status": "예약 작업 상태가 문서와 실제가 다름"}
+             "plist": "예약 작업 설정 사본이 원본과 다름", "status": "예약 작업 상태가 문서와 실제가 다름", "code": "코드·예약 작업 설정에 남은 옛 경로·주소"}
     total = sum(d.get("counts", {}).values())
     out = [f'<p class="lead">규칙·매뉴얼이 실제 시스템과 어긋난 곳 {total}건 (문서 {d.get("docs", 0)}개, {esc(d.get("at", ""))} 점검). '
            f'고치는 법: <code>_meta/governance/DOCS_RULES.md</code> · 전체 목록 <code>_meta/logs/doc_audit.md</code></p>']
