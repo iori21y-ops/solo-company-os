@@ -11,12 +11,12 @@
 - [ ] A. 규칙 전수 조사(어느 파일에 어떤 규칙, 겹침·충돌) → 충돌은 사장님께 질문
 - [ ] B. `_meta/governance/` 종류별 규칙 파일 + `RULES_MAP.md`
 - [ ] C. CLAUDE.md 슬림화(전역 `~/.claude/CLAUDE.md`, cadam, cadam-pipeline, football-blog 등) + 참조표. 전역의 ego_browser 경로 정정(제안 5)
-- [ ] D. 추적 도구: `_meta/governance/doc_registry.yaml`(문서 목록·없어진 이름) + `_meta/scripts/doc_audit.py`(옛 이름·plist 사본 불일치(제안 2)·상태 중복) + 주간 launchd + 대시보드 표시 + Linear
+- [x] D. (62f6755: doc_audit.py·doc_registry.yaml·launchd com.solo.doc-audit 월 09:05 설치·대시보드 '문서 점검' 탭. DOCS_RULES.md 절차 문서는 B에서) 추적 도구: `_meta/governance/doc_registry.yaml`(문서 목록·없어진 이름) + `_meta/scripts/doc_audit.py`(옛 이름·plist 사본 불일치(제안 2)·상태 중복) + 주간 launchd + 대시보드 표시 + Linear
 - [ ] E. 상태는 한 곳(제안 1): 해외파·엔진 운영 상태 원본 1곳, 나머지 문서는 링크
-- [ ] F. AGENTS.md → CLAUDE.md 가리키는 한 줄(제안 3; my-shorts 영상 폴더별 자동 생성분은 제외)
+- [x] F. (cadam·cadam-pipeline AGENTS.md(미추적)·football-blog f9e2fc0, 옛 본 _archive/2026-11-11/agents-md) AGENTS.md → CLAUDE.md 가리키는 한 줄(제안 3; my-shorts 영상 폴더별 자동 생성분은 제외)
 - [ ] G. cadam 세션 종료 규칙 → `docs/PROGRESS.md`(제안 4)
-- [ ] H. 노션에 블로그 엔진 페이지(제안 6): docs/blog-engine.md + sync_notion 매핑(노션에 빈 페이지 먼저 필요 — 스크립트는 페이지를 만들지 않음)
-- [ ] I. writing_pause.py 보관함(제안 7)
+- [x] H. (cadam 커밋: docs/blog-engine.md + sync_notion이 없는 페이지 생성 — push 후 노션에 생김) 노션에 블로그 엔진 페이지(제안 6): docs/blog-engine.md + sync_notion 매핑(노션에 빈 페이지 먼저 필요 — 스크립트는 페이지를 만들지 않음)
+- [x] I. (cadam-pipeline fe12cb8, _archive/2026-11-11/MOVED.txt) writing_pause.py 보관함(제안 7)
 - [ ] J. n8n 시절 섹션 재작성(제안 8): architecture 그림·data-flow·security, 위키 crm-sheets·알람 인벤토리 확인
 - [ ] K. push(사장님 확인) → 노션 동기화 확인 → REN-152 기록
 
