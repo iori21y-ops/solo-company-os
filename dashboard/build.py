@@ -72,7 +72,8 @@ def table(head: list, rows: list, cls: str = "") -> str:
     if not rows:
         return '<p class="muted">없음</p>'
     th = "".join(f"<th>{esc(h)}</th>" for h in head)
-    tr = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in rows)
+    labels = [esc(h) for h in head]   # data-label: phones show each row as a card with these labels
+    tr = "".join("<tr>" + "".join(f'<td data-label="{labels[i] if i < len(labels) else ""}">{c}</td>' for i, c in enumerate(r)) + "</tr>" for r in rows)
     return f'<div class="tw"><table class="{cls}"><thead><tr>{th}</tr></thead><tbody>{tr}</tbody></table></div>'
 
 
@@ -287,6 +288,80 @@ def rentailor_outbox(outbox: Path) -> dict:
             "dirs": table(["작업 폴더", "파일", "마지막 변경"], dirs)}
 
 
+def env_file(p: Path) -> dict:
+    env = {}
+    for line in read(p).splitlines():
+        if "=" in line and not line.lstrip().startswith("#"):
+            k, v = line.split("=", 1)
+            env[k.strip()] = v.strip().strip("\"'")
+    return env
+
+
+def http_json(url: str, headers: dict) -> tuple:
+    """GET only. Returns (json, response headers)."""
+    import urllib.request
+    req = urllib.request.Request(url, headers={"User-Agent": "engine-dashboard", **headers})
+    with urllib.request.urlopen(req, timeout=15) as r:
+        return json.load(r), r.headers
+
+
+def wp_date(s: str | None) -> str:
+    """'2026-11-09T23:04:50+00:00' (UTC, Supabase) → local 'MM-DD HH:MM'; WordPress dates without a zone are already site time."""
+    if not s:
+        return "-"
+    try:
+        d = datetime.fromisoformat(s)
+        return (d.astimezone() if d.tzinfo else d).strftime("%m-%d %H:%M")
+    except ValueError:
+        return s[5:16].replace("T", " ")
+
+
+def wordpress_block(wp: dict) -> tuple[str, dict]:
+    """WordPress queue, read-only: drafts / review / scheduled posts on the site (WP REST) + the topic queue in Supabase (curated_topics).
+    Credentials are read in place from the brand's env file and never written into the page."""
+    import base64
+    from urllib.parse import quote
+    env = env_file(P(wp.get("env", "")))
+    out, kpi = [], {}
+    # 1) WordPress posts that are not public yet
+    try:
+        base = env["WP_URL"].rstrip("/")
+        auth = {"Authorization": "Basic " + base64.b64encode(f'{env["WP_USER"]}:{env["WP_APP_PASSWORD"]}'.encode()).decode()}
+        lists = {}
+        for st in ("future", "pending", "draft", "publish"):
+            rows, hdr = http_json(f"{base}/wp-json/wp/v2/posts?status={st}&per_page=10&orderby={'modified' if st == 'draft' else 'date'}&_fields=id,date,modified,title,link,status", auth)
+            lists[st] = (int(hdr.get("X-WP-Total") or len(rows)), rows)
+        kpi.update({k: lists[k][0] for k in lists})
+        title = lambda r: html.unescape(re.sub("<[^>]+>", "", r["title"]["rendered"])) or "(제목 없음)"
+        edit = lambda r: f'<a href="{esc(base)}/wp-admin/post.php?post={r["id"]}&action=edit">{esc(title(r))}</a>'
+        waiting = [[pill({"future": "예약", "pending": "검토 대기", "draft": "초안"}[st], {"future": "run", "pending": "warn", "draft": ""}[st]), edit(r), esc(wp_date(r["date"] if st == "future" else r["modified"]))]
+                   for st in ("future", "pending", "draft") for r in lists[st][1]]
+        pubs = [[f'<a href="{esc(r["link"])}">{esc(title(r))}</a>', esc(wp_date(r["date"]))] for r in lists["publish"][1][:5]]
+        out.append(f'<div class="stats"><div><b>{lists["future"][0]}</b><span>예약 발행</span></div><div><b>{lists["pending"][0]}</b><span>검토 대기</span></div>'
+                   f'<div><b>{lists["draft"][0]}</b><span>초안</span></div><div><b>{lists["publish"][0]}</b><span>발행됨(전체)</span></div></div>'
+                   + "<h4>발행 안 된 글 (예약 → 검토 대기 → 초안, 최근 고친 순 최대 10개씩)</h4>" + table(["상태", "제목 (누르면 워드프레스 편집)", "예약일·고친 때"], waiting)
+                   + "<h4>최근 발행 5개</h4>" + table(["제목", "발행"], pubs))
+    except Exception as ex:  # noqa: BLE001
+        out.append(f'<p class="muted">워드프레스를 읽지 못했습니다 ({esc(type(ex).__name__)}).</p>')
+    # 2) topic queue the writer picks up (curated_topics)
+    try:
+        U, K = env["SUPABASE_URL"].rstrip("/"), env["SUPABASE_SERVICE_KEY"]
+        since = quote((NOW - timedelta(days=14)).strftime("%Y-%m-%d"))
+        rows, _ = http_json(f"{U}/rest/v1/curated_topics?select=keyword,article_type,status,priority,scheduled_for,created_at,updated_at&created_at=gte.{since}&order=created_at.desc&limit=200",
+                            {"apikey": K, "Authorization": "Bearer " + K})
+        c = Counter(r["status"] for r in rows)
+        kpi["queue"] = c["pending"] + c["writing"]
+        TOPIC = {"pending": ("대기", "warn"), "writing": ("쓰는 중", "run"), "published": ("발행됨", "ok"), "failed": ("실패", "bad"), "skipped": ("건너뜀", "")}
+        shown = [r for r in rows if r["status"] in ("writing", "pending")] + [r for r in rows if r["status"] not in ("writing", "pending")][:12]
+        trs = [[pill(*TOPIC.get(r["status"], (r["status"], ""))), esc(r["keyword"]), esc(r.get("article_type") or ""), esc(r.get("scheduled_for") or "-"), esc(wp_date(r.get("updated_at")))] for r in shown]
+        out.append(f'<h4>글감 대기열 <span class="muted">(Supabase curated_topics, 최근 14일 {len(rows)}건)</span></h4>'
+                   f'<div class="stats">{"".join(f"<div><b>{c[s]}</b><span>{TOPIC[s][0]}</span></div>" for s in ("pending", "writing", "published", "failed", "skipped"))}</div>'
+                   + table(["상태", "글감", "유형", "발행 예정일", "바뀐 때"], trs))
+    except Exception as ex:  # noqa: BLE001
+        out.append(f'<p class="muted">글감 대기열(Supabase)을 읽지 못했습니다 ({esc(type(ex).__name__)}).</p>')
+    return "".join(out), kpi
+
+
 def registry_block(cfg: dict) -> str:
     text = read(P(cfg.get("registry", "")))
     if not text:
@@ -360,9 +435,16 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
         elif outbox.exists():
             ro = rentailor_outbox(outbox)
             work = (f'<div class="stats">{"".join(f"<div><b>{n}</b><span>네이버 {esc(STATUS_KO.get(s, s))}</span></div>" for s, n in ro["counts"].most_common())}'
-                    f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div></div>' + ro["table"] + "<h4>작업 폴더</h4>" + ro["dirs"]
-                    + '<p class="muted small">워드프레스 발행 글·대기열은 Supabase(curated_topics, info_articles)에 있어 이 화면에는 아직 없습니다.</p>')
+                    f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div></div>' + ro["table"] + "<h4>작업 폴더</h4>" + ro["dirs"])
             kpis.append((b.get("display_name", name), f'네이버 초안 {ro["total"]}건', f'마지막 글감 후보 {ro["cand"][5:]}', "warn" if on else "ok", "글쓰기 보류 중" if on else "진행 중"))
+        wp = (b.get("publishers") or {}).get("wordpress")
+        if wp and wp.get("env"):
+            wp_html, wk = wordpress_block(wp)
+            work += f'<details open class="wp"><summary>워드프레스 대기 글 <span class="muted">({esc(wp.get("site", ""))})</span></summary>{wp_html}</details>'
+            if wk:
+                kpis.append((f'{b.get("display_name", name)} 워드프레스', f'초안 {wk.get("draft", "-")} · 예약 {wk.get("future", "-")}',
+                             f'검토 대기 {wk.get("pending", "-")} · 글감 대기열 {wk.get("queue", "-")}', "warn" if wk.get("pending") or wk.get("queue") else "ok",
+                             "확인할 글 있음" if wk.get("pending") or wk.get("queue") else "대기 없음"))
         else:
             work = '<p class="muted">작업 파일 없음</p>'
         bad_jobs = [j for j in mine if j["kind"] == "bad"]
@@ -783,6 +865,23 @@ table .chip{display:inline-block;white-space:nowrap;margin:2px 4px 2px 0;font-fa
 table.plantab{min-width:1080px}table.plantab td{vertical-align:top}table.plantab td:nth-child(1){width:84px}table.plantab td:nth-child(2){width:150px}table.plantab td:nth-child(3){min-width:210px}table.plantab td:nth-child(4){min-width:330px}table.plantab td:nth-child(n+5){white-space:nowrap}
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
+/* phones: one-row swipeable tabs, single-column cards, every table row becomes a labelled card (no sideways scrolling) */
+@media(max-width:700px){
+body{font-size:15px;-webkit-text-size-adjust:100%}
+header{padding:8px 12px 0;gap:6px}header h1{font-size:16px}header .gen{margin-left:0;width:100%;order:3;font-size:11px;padding-bottom:6px}header .gen code{display:none}
+.tabs{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs a{flex:0 0 auto;padding:8px 14px}
+main{padding:10px 12px 60px}h2{font-size:17px;margin:20px 0 8px}h2 .pill{margin-top:4px}
+.grid{grid-template-columns:1fr;gap:10px}.grid.kpis{grid-template-columns:1fr 1fr}.kpi .big{font-size:16px}.card{padding:12px}
+.kv{flex-wrap:wrap}.kv>span:last-child{text-align:left;word-break:break-all}
+.stats{gap:8px}.stats div{flex:1 1 calc(33% - 8px);min-width:0;padding:8px 10px}.stats b{font-size:17px}
+summary{padding:12px 0;font-size:15px}input.filter{max-width:none;font-size:16px}
+.tw{overflow:visible;border:0;background:none}table,table.data,table.plantab{min-width:0!important;width:100%;font-size:14px}
+thead{display:none}tbody,tr,td{display:block}tr{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0 0 10px}
+td,table.data td,table.plantab td,table.reg td{min-width:0!important;width:auto!important;white-space:normal!important;border:0;padding:5px 0 5px 100px;position:relative;overflow-wrap:anywhere}
+td::before{content:attr(data-label);position:absolute;left:0;top:7px;width:92px;color:var(--muted);font-size:12px;line-height:1.35}
+td:first-child{font-weight:600;padding:2px 0 8px;border-bottom:1px solid var(--line);margin-bottom:4px}td:first-child::before,td[data-label=""]::before{display:none}td[data-label=""]{padding-left:0}td:empty{display:none}.coll{grid-template-columns:1fr}.coll code,.coll span{white-space:normal}
+.flow{padding:10px}.citem{grid-template-columns:70px 1fr}.catsec,.panel{scroll-margin-top:120px}
+}
 """
 
 JS = """
@@ -838,7 +937,7 @@ def main() -> int:
     panels += [(i, b) for i, _, b in dps] + [("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0]), ("docs", audit[0])]
     first = tabs[0][0]
     names = {i: n for i, n, _ in tabs}
-    page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'
+    page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="엔진 대시보드"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'
             f'<header><h1>엔진 대시보드</h1><div class="tabs">'
             + "".join(f'<a href="#p-{esc(i)}" data-t="{esc(i)}" class="{"on" if i == first else ""}">{esc(n)}{f" <span class=muted>{esc(s)}</span>" if s else ""}</a>' for i, n, s in tabs)
             + f'</div><span class="gen">만든 때 {NOW:%Y-%m-%d %H:%M} · 다시 만들기 <code>python3 ~/projects/_meta/dashboard/build.py --open</code></span></header><main>'
@@ -846,6 +945,9 @@ def main() -> int:
             + f"</main><script>{JS}</script></body></html>")
     out = HERE / "index.html"
     out.write_text(page, encoding="utf-8")
+    # copy for the phone: serve.py shares only this folder (Tailscale address), so engine files / settings are never served
+    (HERE / "public").mkdir(exist_ok=True)
+    (HERE / "public" / "index.html").write_text(page, encoding="utf-8")
     print(f"{out}  ({len(page) // 1024} KB, 예약 작업 {len(jobs)}개, 임시 연결 {compat[1]}건)")
     if "--open" in sys.argv:
         subprocess.run(["open", str(out)])
