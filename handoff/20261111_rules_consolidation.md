@@ -9,12 +9,12 @@
 
 ## 체크리스트
 - [x] A. 규칙 전수 조사(어느 파일에 어떤 규칙, 겹침·충돌) → 충돌은 사장님께 질문
-- [ ] B. `_meta/governance/` 종류별 규칙 파일 + `RULES_MAP.md`
-- [ ] C. CLAUDE.md 슬림화(전역 `~/.claude/CLAUDE.md`, cadam, cadam-pipeline, football-blog 등) + 참조표. 전역의 ego_browser 경로 정정(제안 5)
+- [x] B. (b6d1cb7·df291c5·0cc8073) `_meta/governance/` 종류별 규칙 파일 + `RULES_MAP.md`
+- [x] C. (전역 81→50줄, cadam 186→95, 백업 _archive/2026-11-11/claude-md) CLAUDE.md 슬림화(전역 `~/.claude/CLAUDE.md`, cadam, cadam-pipeline, football-blog 등) + 참조표. 전역의 ego_browser 경로 정정(제안 5)
 - [x] D. (62f6755: doc_audit.py·doc_registry.yaml·launchd com.solo.doc-audit 월 09:05 설치·대시보드 '문서 점검' 탭. DOCS_RULES.md 절차 문서는 B에서) 추적 도구: `_meta/governance/doc_registry.yaml`(문서 목록·없어진 이름) + `_meta/scripts/doc_audit.py`(옛 이름·plist 사본 불일치(제안 2)·상태 중복) + 주간 launchd + 대시보드 표시 + Linear
-- [ ] E. 상태는 한 곳(제안 1): 해외파·엔진 운영 상태 원본 1곳, 나머지 문서는 링크
+- [x] E. (DOCS_RULES: 상태는 대시보드만, 문서는 구조·위치·사용법 / doc_audit status 검사가 모순 잡음) 상태는 한 곳(제안 1): 해외파·엔진 운영 상태 원본 1곳, 나머지 문서는 링크
 - [x] F. (cadam·cadam-pipeline AGENTS.md(미추적)·football-blog f9e2fc0, 옛 본 _archive/2026-11-11/agents-md) AGENTS.md → CLAUDE.md 가리키는 한 줄(제안 3; my-shorts 영상 폴더별 자동 생성분은 제외)
-- [ ] G. cadam 세션 종료 규칙 → `docs/PROGRESS.md`(제안 4)
+- [x] G. (cadam CLAUDE.md 2965f73) cadam 세션 종료 규칙 → `docs/PROGRESS.md`(제안 4)
 - [x] H. (cadam 커밋: docs/blog-engine.md + sync_notion이 없는 페이지 생성 — push 후 노션에 생김) 노션에 블로그 엔진 페이지(제안 6): docs/blog-engine.md + sync_notion 매핑(노션에 빈 페이지 먼저 필요 — 스크립트는 페이지를 만들지 않음)
 - [x] I. (cadam-pipeline fe12cb8, _archive/2026-11-11/MOVED.txt) writing_pause.py 보관함(제안 7)
 - [x] J. (cadam 87aeb9f·89d44c2 재작성, security c38a8c8·deploy 7aa6a06 결정 반영. 확인 필요: GPU Ollama 사용처, 상담 KPI 화면, 키워드 규칙 편집 화면) n8n 시절 섹션 재작성(제안 8): architecture 그림·data-flow·security, 위키 crm-sheets·알람 인벤토리 확인
@@ -45,3 +45,6 @@
 11. 운영 중 예약 작업 실행 시각 변경 = 승인 필요(경로 수정은 보고만)
 사실 확인: DB 백업 = 로컬 30개 + iCloud 주1회 8개(backup_cadam.sh) / Linear = productivity 플러그인 정상 / 위키 git = ~/second-brain-git(밤마다 iCloud 볼트를 rsync 후 커밋·push)
 수집 예외 미확인 6건(TM 감독 이력 승인일, Capology, 리그 공식 사이트, 엔카 웹, 인스타, 충전요금) → Linear 후속 이슈
+
+진행(2026-11-11): 남은 옛 이름 137건 정리 하위작업 진행 중 → 끝나면 K(push 승인).
+열린 질문: backup_cadam.sh가 네이버 config.json(비밀)을 매일 backups/로 복사 — SAFETY '비밀 파일 복사 금지'와 충돌, 사장님 판단 필요.
