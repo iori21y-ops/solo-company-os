@@ -136,3 +136,8 @@ Supabase 무료 플랜 Log Ingestion 0.85/1GB(11/21 초기화). REN-155 일괄 �
 - car_publish dry-run에서 hydrogen_eff 열 추가가 '파일 형식 이상'으로 전체 배포를 보류시키던 문제 → parse(live=True)가 뒤에 붙인 열 허용으로 수정. 다른 세션 커밋 04605f8에 함께 들어감. dry-run: 보류 없음, powertrains만 변경. kick 안 함(12:30 정기 실행)
 - ERP 차량 목록·견적 화면은 아직 Supabase(동결본)를 읽어 REN-155 반영분이 ERP에는 당분간 안 보일 수 있음
 - 남은 일: 스타리아 라운지·리무진 가격표 월간 수집 등록(사장님 답 대기), cadam-web 사이트 커밋 push 승인, ERP 65b134b
+
+## 12. push·스타리아 수집 (2026-11-12, 사장님 "모두 진행")
+- cadam-web: 다른 세션 커밋 eabaf35를 빼고 REN-155 커밋 3개만 origin/main 위에 체리픽 → 빌드 통과 → push b169790, Vercel Ready 확인. 실사이트 casper-ev·musso 새 사진 확인. 넥쏘 km/kg는 car_publish(12:30)가 powertrains.json에 hydrogen_eff를 넣은 뒤 보임
+- 로컬 브랜치 alimtalk-quote-button에는 같은 내용의 옛 해시 커밋 + eabaf35가 남아 있음(그쪽 세션이 rebase하면 중복은 자동으로 빠짐)
+- collectors 105df72: 스타리아 일렉트릭 추가 가격표(라운지·리무진)도 트림 사양 첨부 → 월간 재삽입 때 사양 유지(시뮬레이션 7트림 모두 첨부). 제원 행은 월간 수집이 안 건드려 유지
