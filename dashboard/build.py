@@ -271,29 +271,90 @@ def football_posts(outbox: Path) -> dict:
             "cand": cands[-1].stem if cands else "-"}
 
 
+MODE_KO = {"digest": "종합뉴스", "deep": "심층", "tracker": "트래커", "guide": "가이드", "only": "뉴스 단건", "same": "워드프레스판"}
+
+
+def news_mode(bdir: Path) -> str:
+    """brand.yaml news_mode (owner 2026-11-12): 'digest' = Naver 종합뉴스 3 a day, no candidate cards, WP = data pages only."""
+    return str((yaml.safe_load(read(bdir / "brand.yaml")) or {}).get("news_mode") or "topics")
+
+
+def naver_states(outbox: Path) -> list:
+    out = []
+    for p in sorted((outbox / "naver").glob("*.json")):
+        d = read_json(p, {})
+        if d.get("key"):
+            d["_mode"] = d.get("mode") or ("only" if d["key"][:2] == "20" else "")
+            d["_when"] = d.get("published_at") or d.get("updated_at") or d.get("drafted_on") or day(mtime(p))
+            out.append(d)
+    return out
+
+
 def rentailor_outbox(outbox: Path) -> dict:
-    drafts = [read_json(p, {}) for p in sorted((outbox / "naver").glob("20*.json"))]
-    drafts = [d for d in drafts if d.get("key")]
+    """Naver posts of every kind (종합뉴스·심층·트래커·가이드·옛 단건), today's 종합뉴스 or today's candidates, trackers, work folders."""
+    mode = news_mode(outbox.parent)
+    drafts = naver_states(outbox)
     rows = []
-    for d in sorted(drafts, key=lambda d: d.get("key", ""), reverse=True)[:15]:
+    for d in sorted(drafts, key=lambda d: d["_when"], reverse=True)[:20]:
         url = d.get("naver_url") or d.get("url") or ""
-        title = f'<a href="{esc(url)}">{esc(d.get("title", ""))}</a>' if str(url).startswith("http") else esc(d.get("title", ""))
-        rows.append([esc(d["key"]), esc(d.get("keyword", "")), title, esc(d.get("kind", "")),
-                     pill(STATUS_KO.get(d.get("status"), d.get("status", "")), STATUS_KIND.get(d.get("status"), ""))])
+        title = f'<a href="{esc(url)}">{esc(d.get("title", ""))}</a>' if str(url).startswith("http") else esc(d.get("title", "") or d.get("error", "")[:60])
+        rows.append([esc(MODE_KO.get(d["_mode"], d["_mode"] or "-")), f'<code>{esc(d["key"])}</code>', title, esc(d.get("category", "")),
+                     pill(STATUS_KO.get(d.get("status"), d.get("status", "")), STATUS_KIND.get(d.get("status"), "")), esc(str(d["_when"])[5:16].replace("T", " "))])
+    today = NOW.strftime("%Y-%m-%d")
     cands = sorted((outbox / "candidates").glob("20*.json"))
     cstate = read_json(cands[-1], {}) if cands else {}
-    CST = {"candidate": ("후보", "warn"), "selected": ("선택됨", "ok"), "auto_selected": ("자동 선택", "ok"), "dismissed": ("뺌", "")}
-    crows = [[f'<b>{esc(it.get("code", ""))}</b> {esc(it.get("title", ""))}', esc(it.get("kind") or ""), esc(f'{it.get("keyword", "")} · 월 {int(it["monthly_volume"]):,}회' if str(it.get("monthly_volume") or "").isdigit() else it.get("keyword", "")),
-              pill(*CST.get(it.get("status"), (it.get("status", ""), ""))) + (" " + pill("위험 주제", "bad") if it.get("risk") else ""),
-              acts("candidate", ["pick", "dismiss"], date=cstate.get("date", cands[-1].stem), code=it.get("code", "")) if it.get("status") == "candidate" else '<span class="muted">-</span>']
-             for it in (cstate.get("items") or [])]
+    today_cands = cands and cands[-1].stem == today
+    digest = [d for d in drafts if d["_mode"] == "digest" and d["key"].startswith(f"digest-{today}-")]
+    if mode == "digest":
+        drow = [[f'<b>{esc(d["key"][-1])}</b>', esc(d.get("digest_label") or ""), esc(d.get("title") or d.get("error", "")[:60]),
+                 f'{len(d.get("stories") or [])}건', pill(STATUS_KO.get(d.get("status"), d.get("status", "")), STATUS_KIND.get(d.get("status"), ""))]
+                for d in sorted(digest, key=lambda d: d["key"])]
+        head = (f'<h4>오늘의 종합뉴스 <span class="muted">({today}, 08시 이후 3편 · 디스코드 #콘텐츠기획 승인 카드)</span></h4>'
+                + (table(["글", "묶음", "제목", "소식", "상태"], drow) if drow else '<p class="muted">아직 없음 — 08시 이후 네이버 확인 작업이 씁니다(글쓰기 보류 중에는 안 씀).</p>'))
+    else:
+        head = ""
+    if not (mode == "digest" and not today_cands):   # candidate cards: the old flow, or a '주제:' request today
+        CST = {"candidate": ("후보", "warn"), "selected": ("선택됨", "ok"), "auto_selected": ("자동 선택", "ok"), "dismissed": ("뺌", "")}
+        crows = [[f'<b>{esc(it.get("code", ""))}</b> {esc(it.get("title", ""))}', esc(it.get("kind") or ""), esc(f'{it.get("keyword", "")} · 월 {int(it["monthly_volume"]):,}회' if str(it.get("monthly_volume") or "").isdigit() else it.get("keyword", "")),
+                  pill(*CST.get(it.get("status"), (it.get("status", ""), ""))) + (" " + pill("위험 주제", "bad") if it.get("risk") else "") + (" " + pill("네이버 전용", "run") if it.get("naver") == "only" else ""),
+                  acts("candidate", ["pick", "dismiss"], date=cstate.get("date", cands[-1].stem), code=it.get("code", "")) if it.get("status") == "candidate" else '<span class="muted">-</span>']
+                 for it in (cstate.get("items") or [])]
+        note = "요청 주제 후보 — 고르면 네이버 전용 글" if mode == "digest" else "디스코드 #콘텐츠기획과 같은 목록"
+        head += (f'<h4>{"요청 주제 후보" if mode == "digest" else "오늘의 글감 후보"} <span class="muted">({esc(cstate.get("date", "-"))}, {note})</span></h4>'
+                 + table(["후보", "유형", "검색어·월 검색량", "상태", "할 일"], crows))
     dirs = [[f"<code>{esc(p.name)}/</code>", f"{sum(1 for _ in p.iterdir()):,}개", esc(day(max((mtime(x) or 0 for x in p.iterdir()), default=0) or None))]
             for p in sorted(outbox.iterdir()) if p.is_dir()]
-    return {"counts": Counter(d.get("status") for d in drafts), "total": len(drafts),
-            "cands": (f'<h4>오늘의 글감 후보 <span class="muted">({esc(cstate.get("date", "-"))}, 디스코드 #콘텐츠기획과 같은 목록)</span></h4>'
-                      + table(["후보", "유형", "검색어·월 검색량", "상태", "할 일"], crows)),
-            "table": table(["네이버 초안", "글감", "제목", "유형", "상태"], rows), "cand": cands[-1].stem if cands else "-",
+    return {"counts": Counter(d.get("status") for d in drafts), "total": len(drafts), "mode": mode,
+            "digest_today": f"{sum(1 for d in digest if d.get('status') not in ('failed', 'skipped'))}/3",
+            "cands": head, "trackers": tracker_block(outbox, drafts),
+            "table": table(["종류", "키", "제목", "카테고리", "상태", "때"], rows), "cand": cands[-1].stem if cands else "-",
             "dirs": table(["작업 폴더", "파일", "마지막 변경"], dirs)}
+
+
+TRACKERS = {"T-sales": ("월간 판매순위", "car-sales-ranking"), "T-rent": ("차종별 월 렌트료", "monthly-rent-by-car")}
+
+
+def tracker_block(outbox: Path, drafts: list) -> str:
+    """Trackers (owner 2026-11-12): Naver = a new post each month (card), WordPress = one fixed page rewritten at publish."""
+    tdir = outbox / "tracker"
+    if not tdir.exists():
+        return ""
+    rows = []
+    for k, (name, slug) in TRACKERS.items():
+        meta = read_json(tdir / f"{slug}.json", {})
+        drafts_k = sorted(tdir.glob(f"{k}-*.json"))
+        last = read_json(drafts_k[-1], {}) if drafts_k else {}
+        ok = last and not last.get("unverified_numbers") and all(c.get("ok") for c in last.get("checklist", []) + last.get("data_checks", []))
+        st = next((d for d in sorted(drafts, key=lambda d: d["key"], reverse=True) if d["_mode"] == "tracker" and d["key"].startswith(f"tracker-{k}-")), {})
+        page = (f'<a href="https://www.rentailor.co.kr/blog/{esc(slug)}">/blog/{esc(slug)}</a>' if st.get("tracker_wp_id") else f'<code>/blog/{esc(slug)}</code> (아직 안 올림)')
+        rows.append([f"<b>{esc(name)}</b>", esc(meta.get("month") or meta.get("snap") or "-") + f' <span class="muted">({esc(meta.get("built_at", "-"))} 만듦)</span>',
+                     (f'<code>{esc(drafts_k[-1].stem)}</code> ' + (pill("점검 통과", "ok") if ok else pill("점검 미통과", "bad"))) if drafts_k else '<span class="muted">없음</span>',
+                     pill(STATUS_KO.get(st.get("status"), st.get("status", "카드 안 보냄")), STATUS_KIND.get(st.get("status"), "")) if st else '<span class="muted">카드 안 보냄</span>',
+                     page])
+    log = last_line(P("~/projects/blog-engine/logs/tracker_monthly.log"))
+    return ('<h4>트래커 <span class="muted">(네이버는 매달 새 글 · 워드프레스는 고정 페이지 1개, ✅ 때 먼저 고쳐 씀 · 매일 09:20 확인)</span></h4>'
+            + table(["트래커", "고정 페이지 기준", "마지막 초안", "네이버 카드", "워드프레스"], rows)
+            + (f'<p class="small muted">매일 확인 마지막 기록: {esc(log)}</p>' if log else ""))
 
 
 ACT_LABEL = {"publish": ("발행", "go"), "pick": ("선택·발행", "go"), "delete": ("완전 삭제", "del"), "dismiss": ("후보에서 빼기", "del")}
@@ -337,13 +398,34 @@ def wp_date(s: str | None) -> str:
         return s[5:16].replace("T", " ")
 
 
-def wordpress_block(wp: dict) -> tuple[str, dict]:
-    """WordPress queue, read-only: drafts / review / scheduled posts on the site (WP REST) + the topic queue in Supabase (curated_topics).
+def wordpress_block(wp: dict, bdir: Path | None = None) -> tuple[str, dict]:
+    """WordPress queue, read-only: data pages (car reference pages + tracker pages, owner 2026-11-12: WP = data pages only),
+    drafts / review / scheduled posts on the site (WP REST) + the topic queue in Supabase (curated_topics).
     Credentials are read in place from the brand's env file and never written into the page."""
     import base64
     from urllib.parse import quote
     env = env_file(P(wp.get("env", "")))
     out, kpi = [], {}
+    digest = bool(bdir) and news_mode(bdir) == "digest"
+    # 0) data pages: one fixed address each (car reference pages, trackers)
+    if bdir:
+        pages = [("자료집 · " + (read_json(f, {}).get("title") or f.name[3:-9])[:30], f'{f.name[3:-9]}-trim-option-rent') for f in sorted((bdir / "outbox" / "deep" / "wp").glob("S1-*-ref.json"))]
+        pages += [(f"트래커 · {n}", sl) for n, sl in TRACKERS.values()]
+        try:
+            base = env["WP_URL"].rstrip("/")
+            auth = {"Authorization": "Basic " + base64.b64encode(f'{env["WP_USER"]}:{env["WP_APP_PASSWORD"]}'.encode()).decode()}
+            found, _ = http_json(f"{base}/wp-json/wp/v2/posts?slug={','.join(sl for _, sl in pages)}&status=publish,draft,private,pending&context=edit&_fields=id,slug,status,modified", auth)
+            by = {r["slug"]: r for r in found}
+            prow = [[esc(n), f'<a href="https://www.rentailor.co.kr/blog/{esc(sl)}">/blog/{esc(sl)}</a>' if by.get(sl, {}).get("status") == "publish" else f"<code>/blog/{esc(sl)}</code>",
+                     pill({"publish": "공개", "draft": "초안"}.get(by[sl]["status"], by[sl]["status"]), "ok" if by[sl]["status"] == "publish" else "warn") if sl in by else '<span class="muted">아직 안 올림</span>',
+                     esc(wp_date(by[sl]["modified"])) if sl in by else "-"] for n, sl in pages]
+            out.append('<h4>데이터 페이지 <span class="muted">(주소 하나에 고쳐 씀 · 네이버 글이 ✅ 될 때 먼저 올라감)</span></h4>'
+                       + table(["페이지", "주소", "상태", "고친 때"], prow))
+        except Exception as ex:  # noqa: BLE001
+            out.append(f'<p class="muted">데이터 페이지를 읽지 못했습니다 ({esc(type(ex).__name__)}).</p>')
+    if digest:
+        out.append('<p class="small muted">워드프레스는 데이터 페이지(자료집·트래커)만 둡니다 — 매일 뉴스 글은 쓰지 않습니다(brand.yaml news_mode: digest, 2026-11-12). '
+                   '아래 대기열은 네이버 전용 글감만 처리됩니다.</p>')
     # 1) WordPress posts that are not public yet
     try:
         base = env["WP_URL"].rstrip("/")
@@ -383,10 +465,11 @@ def wordpress_block(wp: dict) -> tuple[str, dict]:
                 return acts("topic", [], "쓰는 중 — 건드리지 않음")
             if r["status"] == "skipped" and (r.get("nres") or r.get("nonly") in ("true", "True")):
                 return acts("topic", [], "네이버 글쓰기에 쓰이는 중")
-            dos = ([] if r["status"] == "published" or r.get("wpid") else ["publish"]) + ["delete"]
+            naver_only = r.get("nonly") in ("true", "True")
+            dos = ([] if r["status"] == "published" or r.get("wpid") or (digest and not naver_only) else ["publish"]) + ["delete"]
             return acts("topic", dos, id=r["id"])
         trs = [[pill(*TOPIC.get(r["status"], (r["status"], ""))), esc(r["keyword"]), esc(r.get("article_type") or ""), esc(r.get("scheduled_for") or "-"), esc(wp_date(r.get("updated_at"))), tbtn(r)] for r in shown]
-        out.append(f'<h4>글감 대기열 <span class="muted">(Supabase curated_topics, 최근 14일 {len(rows)}건)</span></h4>'
+        out.append(f'<h4>{"네이버 전용 글감 대기열" if digest else "글감 대기열"} <span class="muted">(Supabase curated_topics, 최근 14일 {len(rows)}건)</span></h4>'
                    f'<div class="stats">{"".join(f"<div><b>{c[s]}</b><span>{TOPIC[s][0]}</span></div>" for s in ("pending", "writing", "published", "failed", "skipped"))}</div>'
                    + table(["상태", "글감", "유형", "발행 예정일", "바뀐 때", "할 일"], trs))
     except Exception as ex:  # noqa: BLE001
@@ -472,13 +555,16 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
             kpis.append((b.get("display_name", name), f'최근 7일 발행 {fp["week"]}편', f'마지막 발행 {fp["last_pub"][5:16].replace("T", " ") or "-"}', "warn" if on else "ok", "발행 보류 중" if on else "진행 중"))
         elif outbox.exists():
             ro = rentailor_outbox(outbox)
+            last = (f'<div><b>{esc(ro["digest_today"])}</b><span>오늘 종합뉴스</span></div>' if ro["mode"] == "digest"
+                    else f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div>')
             work = (f'<div class="stats">{"".join(f"<div><b>{n}</b><span>네이버 {esc(STATUS_KO.get(s, s))}</span></div>" for s, n in ro["counts"].most_common())}'
-                    f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div></div>' + ro["cands"] + "<h4>네이버 초안</h4>" + ro["table"] + "<h4>작업 폴더</h4>" + ro["dirs"])
-            kpis.append((b.get("display_name", name), f'네이버 초안 {ro["total"]}건', f'마지막 글감 후보 {ro["cand"][5:]}', "warn" if on else "ok", "글쓰기 보류 중" if on else "진행 중"))
+                    f'{last}</div>' + ro["cands"] + ro["trackers"] + "<h4>네이버 글 (모든 종류, 최근 20개)</h4>" + ro["table"] + "<h4>작업 폴더</h4>" + ro["dirs"])
+            kpis.append((b.get("display_name", name), f'네이버 글 {ro["total"]}건',
+                         f'오늘 종합뉴스 {ro["digest_today"]}' if ro["mode"] == "digest" else f'마지막 글감 후보 {ro["cand"][5:]}', "warn" if on else "ok", "글쓰기 보류 중" if on else "진행 중"))
         wp = (b.get("publishers") or {}).get("wordpress")
         if wp and wp.get("env"):
-            wp_html, wk = wordpress_block(wp)
-            work += f'<details open class="wp"><summary>워드프레스 대기 글 <span class="muted">({esc(wp.get("site", ""))})</span></summary>{wp_html}</details>'
+            wp_html, wk = wordpress_block(wp, bdir.parent)
+            work += f'<details open class="wp"><summary>워드프레스 <span class="muted">({esc(wp.get("site", ""))})</span></summary>{wp_html}</details>'
             if wk:
                 kpis.append((f'{b.get("display_name", name)} 워드프레스', f'초안 {wk.get("draft", "-")} · 예약 {wk.get("future", "-")}',
                              f'검토 대기 {wk.get("pending", "-")} · 글감 대기열 {wk.get("queue", "-")}', "warn" if wk.get("pending") or wk.get("queue") else "ok",
@@ -851,7 +937,40 @@ def load_plan(path) -> list:
     prog = d.get("progress") or {}
     for it in out:
         it["status"] = prog.get(it["id"], it["status"])
-    return out + list(d.get("items") or [])
+    items = out + list(d.get("items") or [])
+    live_progress(items, P(path).parent / "outbox")
+    return items
+
+
+NAVER_TO_PROGRESS = {"published": "published", "edited": "published", "review": "review", "queued": "review", "publishing": "review", "drafting": "draft"}
+
+
+def live_progress(items: list, outbox: Path) -> None:
+    """'진행' from the real work files (owner 2026-11-12: the plan follows the posts by itself): the Naver state of the post
+    (deep-<id>, tracker-<id>-<month>, digest-<day>-X) wins, else a saved draft counts as 초안. Only ever moves forward."""
+    rank = {"planned": 0, "draft": 1, "review": 2, "published": 3}
+    naver = {st["key"]: st for st in naver_states(outbox)} if (outbox / "naver").exists() else {}
+    deep = {}
+    for f in (outbox / "deep").glob("*.json"):
+        dj = read_json(f, {})
+        if dj.get("key") and dj.get("series", "").startswith("S1") and dj.get("keyword") and dj.get("part"):
+            deep[f'S1-{dj["keyword"].split()[0]}-{dj["part"][0]}'] = dj["key"]   # 'S1-레이-①' → 'S1-ray-1'
+    for it in items:
+        iid = it.get("id", "")
+        keys, has_draft = [], False
+        if iid.startswith("S1-"):
+            k = deep.get(iid)
+            keys, has_draft = ([f"deep-{k}"], True) if k else ([], False)
+        elif iid[:2] in ("S2", "S3", "S4", "S5"):
+            keys, has_draft = [f"deep-{iid}"], (outbox / "deep" / f"{iid}.json").exists()
+        elif iid.startswith("T-"):
+            keys = sorted((k for k in naver if k.startswith(f"tracker-{iid}-")), reverse=True)[:1]
+            has_draft = any((outbox / "tracker").glob(f"{iid}-*.json")) if (outbox / "tracker").exists() else False
+        elif iid == "N-digest":
+            keys = sorted((k for k in naver if k.startswith("digest-")), reverse=True)[:1]
+        new = next((NAVER_TO_PROGRESS.get(naver[k].get("status")) for k in keys if k in naver), None) or ("draft" if has_draft else None)
+        if new and rank.get(new, 0) > rank.get(it.get("status", "planned"), 0):
+            it["status"] = new
 
 
 def data_panels(cfg: dict, jobs: list[dict]) -> list:
