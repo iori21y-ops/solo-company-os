@@ -281,11 +281,32 @@ def rentailor_outbox(outbox: Path) -> dict:
         rows.append([esc(d["key"]), esc(d.get("keyword", "")), title, esc(d.get("kind", "")),
                      pill(STATUS_KO.get(d.get("status"), d.get("status", "")), STATUS_KIND.get(d.get("status"), ""))])
     cands = sorted((outbox / "candidates").glob("20*.json"))
+    cstate = read_json(cands[-1], {}) if cands else {}
+    CST = {"candidate": ("후보", "warn"), "selected": ("선택됨", "ok"), "auto_selected": ("자동 선택", "ok"), "dismissed": ("뺌", "")}
+    crows = [[f'<b>{esc(it.get("code", ""))}</b> {esc(it.get("title", ""))}', esc(it.get("kind") or ""), esc(f'{it.get("keyword", "")} · 월 {int(it["monthly_volume"]):,}회' if str(it.get("monthly_volume") or "").isdigit() else it.get("keyword", "")),
+              pill(*CST.get(it.get("status"), (it.get("status", ""), ""))) + (" " + pill("위험 주제", "bad") if it.get("risk") else ""),
+              acts("candidate", ["pick", "dismiss"], date=cstate.get("date", cands[-1].stem), code=it.get("code", "")) if it.get("status") == "candidate" else '<span class="muted">-</span>']
+             for it in (cstate.get("items") or [])]
     dirs = [[f"<code>{esc(p.name)}/</code>", f"{sum(1 for _ in p.iterdir()):,}개", esc(day(max((mtime(x) or 0 for x in p.iterdir()), default=0) or None))]
             for p in sorted(outbox.iterdir()) if p.is_dir()]
     return {"counts": Counter(d.get("status") for d in drafts), "total": len(drafts),
+            "cands": (f'<h4>오늘의 글감 후보 <span class="muted">({esc(cstate.get("date", "-"))}, 디스코드 #콘텐츠기획과 같은 목록)</span></h4>'
+                      + table(["후보", "유형", "검색어·월 검색량", "상태", "할 일"], crows)),
             "table": table(["네이버 초안", "글감", "제목", "유형", "상태"], rows), "cand": cands[-1].stem if cands else "-",
             "dirs": table(["작업 폴더", "파일", "마지막 변경"], dirs)}
+
+
+ACT_LABEL = {"publish": ("발행", "go"), "pick": ("선택·발행", "go"), "delete": ("완전 삭제", "del"), "dismiss": ("후보에서 빼기", "del")}
+
+
+def acts(kind: str, dos: list, note: str = "", **ids) -> str:
+    """Buttons the phone page sends to serve.py → blog-engine `dash-action` (all checks happen there again)."""
+    data = "".join(f' data-{k}="{esc(v)}"' for k, v in ids.items())
+    btns = "".join(f'<button class="act {ACT_LABEL[d][1]}" data-kind="{kind}" data-do="{d}"{data}>{ACT_LABEL[d][0]}</button>' for d in dos)
+    return f'<span class="acts">{btns}</span>' + (f'<div class="small muted">{esc(note)}</div>' if note else "") if btns or note else '<span class="muted">-</span>'
+
+
+MERGED = P("~/projects/blog-engine/brands/rentailor/outbox/blog_refresh/redirects.json")
 
 
 def env_file(p: Path) -> dict:
@@ -329,17 +350,20 @@ def wordpress_block(wp: dict) -> tuple[str, dict]:
         auth = {"Authorization": "Basic " + base64.b64encode(f'{env["WP_USER"]}:{env["WP_APP_PASSWORD"]}'.encode()).decode()}
         lists = {}
         for st in ("future", "pending", "draft", "publish"):
-            rows, hdr = http_json(f"{base}/wp-json/wp/v2/posts?status={st}&per_page=10&orderby={'modified' if st == 'draft' else 'date'}&_fields=id,date,modified,title,link,status", auth)
+            rows, hdr = http_json(f"{base}/wp-json/wp/v2/posts?status={st}&per_page=10&orderby={'modified' if st == 'draft' else 'date'}&_fields=id,date,modified,title,link,status,slug", auth)
             lists[st] = (int(hdr.get("X-WP-Total") or len(rows)), rows)
         kpi.update({k: lists[k][0] for k in lists})
         title = lambda r: html.unescape(re.sub("<[^>]+>", "", r["title"]["rendered"])) or "(제목 없음)"
         edit = lambda r: f'<a href="{esc(base)}/wp-admin/post.php?post={r["id"]}&action=edit">{esc(title(r))}</a>'
-        waiting = [[pill({"future": "예약", "pending": "검토 대기", "draft": "초안"}[st], {"future": "run", "pending": "warn", "draft": ""}[st]), edit(r), esc(wp_date(r["date"] if st == "future" else r["modified"]))]
+        merged = set(read_json(MERGED, {}) or {})
+        btn = lambda st, r: (acts("wp", ["delete"], "다른 글에 합쳐진 글 — 다시 발행 안 함", id=r["id"]) if r.get("slug") in merged
+                             else acts("wp", ["publish", "delete"], id=r["id"]) if st in ("draft", "pending") else '<span class="muted">-</span>')
+        waiting = [[pill({"future": "예약", "pending": "검토 대기", "draft": "초안"}[st], {"future": "run", "pending": "warn", "draft": ""}[st]), edit(r), esc(wp_date(r["date"] if st == "future" else r["modified"])), btn(st, r)]
                    for st in ("future", "pending", "draft") for r in lists[st][1]]
         pubs = [[f'<a href="{esc(r["link"])}">{esc(title(r))}</a>', esc(wp_date(r["date"]))] for r in lists["publish"][1][:5]]
         out.append(f'<div class="stats"><div><b>{lists["future"][0]}</b><span>예약 발행</span></div><div><b>{lists["pending"][0]}</b><span>검토 대기</span></div>'
                    f'<div><b>{lists["draft"][0]}</b><span>초안</span></div><div><b>{lists["publish"][0]}</b><span>발행됨(전체)</span></div></div>'
-                   + "<h4>발행 안 된 글 (예약 → 검토 대기 → 초안, 최근 고친 순 최대 10개씩)</h4>" + table(["상태", "제목 (누르면 워드프레스 편집)", "예약일·고친 때"], waiting)
+                   + "<h4>발행 안 된 글 (예약 → 검토 대기 → 초안, 최근 고친 순 최대 10개씩)</h4>" + table(["상태", "제목 (누르면 워드프레스 편집)", "예약일·고친 때", "할 일"], waiting)
                    + "<h4>최근 발행 5개</h4>" + table(["제목", "발행"], pubs))
     except Exception as ex:  # noqa: BLE001
         out.append(f'<p class="muted">워드프레스를 읽지 못했습니다 ({esc(type(ex).__name__)}).</p>')
@@ -347,16 +371,24 @@ def wordpress_block(wp: dict) -> tuple[str, dict]:
     try:
         U, K = env["SUPABASE_URL"].rstrip("/"), env["SUPABASE_SERVICE_KEY"]
         since = quote((NOW - timedelta(days=14)).strftime("%Y-%m-%d"))
-        rows, _ = http_json(f"{U}/rest/v1/curated_topics?select=keyword,article_type,status,priority,scheduled_for,created_at,updated_at&created_at=gte.{since}&order=created_at.desc&limit=200",
+        rows, _ = http_json(f"{U}/rest/v1/curated_topics?select=id,keyword,article_type,status,priority,scheduled_for,created_at,updated_at,nres:direction->naver_result->>title,nonly:direction->>naver_only,wpid:direction->>_wp_post_id&created_at=gte.{since}&order=created_at.desc&limit=200",
                             {"apikey": K, "Authorization": "Bearer " + K})
         c = Counter(r["status"] for r in rows)
         kpi["queue"] = c["pending"] + c["writing"]
         TOPIC = {"pending": ("대기", "warn"), "writing": ("쓰는 중", "run"), "published": ("발행됨", "ok"), "failed": ("실패", "bad"), "skipped": ("건너뜀", "")}
-        shown = [r for r in rows if r["status"] in ("writing", "pending")] + [r for r in rows if r["status"] not in ("writing", "pending")][:12]
-        trs = [[pill(*TOPIC.get(r["status"], (r["status"], ""))), esc(r["keyword"]), esc(r.get("article_type") or ""), esc(r.get("scheduled_for") or "-"), esc(wp_date(r.get("updated_at")))] for r in shown]
+        first = ("writing", "pending", "failed")   # things to act on first, then the latest of the rest
+        shown = [r for r in rows if r["status"] in first] + [r for r in rows if r["status"] not in first][:12]
+        def tbtn(r):
+            if r["status"] == "writing":
+                return acts("topic", [], "쓰는 중 — 건드리지 않음")
+            if r["status"] == "skipped" and (r.get("nres") or r.get("nonly") in ("true", "True")):
+                return acts("topic", [], "네이버 글쓰기에 쓰이는 중")
+            dos = ([] if r["status"] == "published" or r.get("wpid") else ["publish"]) + ["delete"]
+            return acts("topic", dos, id=r["id"])
+        trs = [[pill(*TOPIC.get(r["status"], (r["status"], ""))), esc(r["keyword"]), esc(r.get("article_type") or ""), esc(r.get("scheduled_for") or "-"), esc(wp_date(r.get("updated_at"))), tbtn(r)] for r in shown]
         out.append(f'<h4>글감 대기열 <span class="muted">(Supabase curated_topics, 최근 14일 {len(rows)}건)</span></h4>'
                    f'<div class="stats">{"".join(f"<div><b>{c[s]}</b><span>{TOPIC[s][0]}</span></div>" for s in ("pending", "writing", "published", "failed", "skipped"))}</div>'
-                   + table(["상태", "글감", "유형", "발행 예정일", "바뀐 때"], trs))
+                   + table(["상태", "글감", "유형", "발행 예정일", "바뀐 때", "할 일"], trs))
     except Exception as ex:  # noqa: BLE001
         out.append(f'<p class="muted">글감 대기열(Supabase)을 읽지 못했습니다 ({esc(type(ex).__name__)}).</p>')
     return "".join(out), kpi
@@ -435,7 +467,7 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
         elif outbox.exists():
             ro = rentailor_outbox(outbox)
             work = (f'<div class="stats">{"".join(f"<div><b>{n}</b><span>네이버 {esc(STATUS_KO.get(s, s))}</span></div>" for s, n in ro["counts"].most_common())}'
-                    f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div></div>' + ro["table"] + "<h4>작업 폴더</h4>" + ro["dirs"])
+                    f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div></div>' + ro["cands"] + "<h4>네이버 초안</h4>" + ro["table"] + "<h4>작업 폴더</h4>" + ro["dirs"])
             kpis.append((b.get("display_name", name), f'네이버 초안 {ro["total"]}건', f'마지막 글감 후보 {ro["cand"][5:]}', "warn" if on else "ok", "글쓰기 보류 중" if on else "진행 중"))
         wp = (b.get("publishers") or {}).get("wordpress")
         if wp and wp.get("env"):
@@ -888,6 +920,9 @@ table.plantab{min-width:1080px}table.plantab td{vertical-align:top}table.plantab
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
 .reload{display:none;margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.acts{display:inline-flex;gap:6px;flex-wrap:wrap}button.act{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 11px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+button.act.go{border-color:var(--ok);color:var(--ok)}button.act.del{border-color:var(--bad);color:var(--bad)}button.act:disabled{opacity:.45}.static .acts{display:none}
+tr.acted{opacity:.55}.actmsg{font-size:12px;margin-top:4px}.actmsg.ok{color:var(--ok)}.actmsg.bad{color:var(--bad)}
 /* phones: one-row swipeable tabs, single-column cards, every table row becomes a labelled card (no sideways scrolling) */
 @media(max-width:700px){
 body{font-size:15px;-webkit-text-size-adjust:100%}
@@ -913,6 +948,16 @@ function show(id){document.querySelectorAll('.panel').forEach(p=>p.classList.tog
 document.querySelectorAll('.tabs a').forEach(b=>b.onclick=function(ev){ev.preventDefault();show(b.dataset.t);window.scrollTo(0,0)});
 var saved=null;try{saved=localStorage.getItem('tab')}catch(e){};if(saved&&document.getElementById('p-'+saved))show(saved);
 document.querySelectorAll('input.filter[data-for]').forEach(function(i){i.oninput=function(){var q=i.value.toLowerCase(),root=document.getElementById(i.dataset.for);root.querySelectorAll('table.data tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''});if(q)root.querySelectorAll('details').forEach(function(d){d.open=true})}});
+if(location.protocol==='file:')document.body.classList.add('static');
+document.addEventListener('click',function(ev){var b=ev.target.closest('button.act');if(!b)return;
+ var row=b.closest('tr'),name=row?row.querySelector('td').innerText.replace(/\s+/g,' ').slice(0,60):'',d=b.dataset,lab=b.innerText;
+ if(d.do==='delete'){if(!confirm('['+name+']\n\n완전 삭제합니다. 되돌릴 수 없습니다. 계속할까요?'))return;if(!confirm('정말 지울까요? (마지막 확인)'))return}
+ else if(!confirm('['+name+']\n\n'+lab+' 할까요?'+(d.do==='dismiss'?'':'\n(글쓰기 보류 중이면 대기만 합니다)')))return;
+ var bs=b.parentNode.querySelectorAll('button');bs.forEach(function(x){x.disabled=true});b.innerText='처리 중…';
+ fetch('/api/action',{method:'POST',headers:{'Content-Type':'application/json','X-Dashboard':'1'},body:JSON.stringify({kind:d.kind,do:d.do,id:d.id||'',date:d.date||'',code:d.code||''})})
+ .then(function(r){return r.json()}).catch(function(){return{ok:false,msg:'서버에 닿지 못했습니다'}}).then(function(res){
+  b.innerText=lab;var m=document.createElement('div');m.className='actmsg '+(res.ok?'ok':'bad');m.textContent=(res.ok?'✓ ':'✗ ')+res.msg;b.parentNode.after(m);
+  if(res.ok){if(row)row.classList.add('acted')}else bs.forEach(function(x){x.disabled=false})})});
 var f=document.getElementById('jobfilter');if(f)f.oninput=function(){var q=f.value.toLowerCase();document.querySelectorAll('#alljobs tbody tr').forEach(function(r){r.style.display=r.textContent.toLowerCase().indexOf(q)<0?'none':''})};
 """
 
