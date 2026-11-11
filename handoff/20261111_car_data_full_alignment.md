@@ -107,3 +107,12 @@ DB 수치(작업 전 → 후): 옵션 2865→2932, 옵션 사진 2318→2360, �
 | 커밋 | collectors 7171072·7164dcb·d696753, cadam-doc 33a14ed (모두 미push) |
 
 남은 질문: 렉스턴 써밋·티볼리 터보에 실키 화이트 펄·아이언 메탈을 넣을지(견적 화면 공유라 근거 약함), 베뉴 썬더 옐로우(운전교습용 전용) 삭제 여부(결정 1 특수 판매형).
+
+## 8. 4차 (2026-11-11 밤, 사용자 지시: 못 한 것 다시·결정 1~3)
+백업: backups-manual/car_data_before_REN155_round4_20261111.json, option_media_before_REN155_{wheels,chevrolet,siblings}_20261111.json
+- 결정: 렉스턴 써밋 실키 화이트 펄·티볼리 터보 아이언 메탈(+투톤) 추가 / 베뉴 썬더 옐로우 삭제(DROP_COLORS) / G90 베르비에 화이트 매트 80만(가격표 매트 기준) — collectors b9e0563
+- 캐스퍼 일렉트릭 옆모습: 현대 카탈로그 PDF '제원' 면 측면 사진(_hcat/casper-ev) → cadam-web dc5da1e
+- 스타리아 일렉트릭 라운지·리무진: 별도 가격표 US40/US41(the-new-staria-lounge-electric_price.pdf, …limousine…) 발견 → 4트림 사양 PATCH, 제원 3행 INSERT(id 1001~1003). ⚠️ 월간 수집기는 이 두 PDF를 아직 안 받음(값은 유지되지만 갱신 안 됨)
+- 테슬라 배터리 6행: ev.or.kr 보조금 지급대상 차종 / 렉스턴 써밋 공차중량 2,255: 2025.10 취급설명서(4WD 5인승 선택사양 포함, 구조변경 전) — collectors f995759
+- 옵션 사진 911→932: 제네시스 휠 9, 쉐보레 견적 화면 2(파일은 cadam-data에 있으나 gitignore), 같은 계열 차 동일 옵션 11 — cadam-doc be09746·66f8bb7·28ade59, collectors 94a39f4. 남은 135종은 출처 사진 없음
+- 테슬라 출력·토크는 공식 미공개로 빈칸 유지
