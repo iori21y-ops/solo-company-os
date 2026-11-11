@@ -123,3 +123,10 @@ Supabase 무료 플랜 Log Ingestion 0.85/1GB(11/21 초기화). REN-155 일괄 �
 - cadam-web push 보류 → 11/21 이후 한 번에 (5d86e5d·0b42f69·dc5da1e 대기)
 - 앞으로 일괄 쓰기 코드는 trim_spec_parser.patch_grouped(id=in.(...) 60개 묶음, collectors 8e77b8f) 사용
 - 남은 일(11/21 이후): 스타리아 라운지·리무진 일렉트릭 가격표 월간 수집기 등록, ERP 65b134b push·재시작, 각 저장소 push
+
+## 10. 로컬 원본 전환 후 정리 (2026-11-12)
+- 차량 원본이 Mac 로컬 DB(car 스키마)로 전환됨. 11/11 반영분(스타리아 1001~1003, 썬더 옐로우 삭제, G90 80만, 테슬라 배터리, 써밋 무게, option_media 932) 로컬에 모두 있음 확인
+- collectors d8aaf95: car_export가 vehicle_powertrains.hydrogen_eff 내보냄(넥쏘 km/kg). 다음 car_publish 때 powertrains.json에 칸 추가됨
+- cadam-web: 로컬 브랜치 alimtalk-quote-button을 origin/main(3720882, JSON 원본) 위로 rebase. 커밋 c956fac·9b94081·7df1442·c9ee2b1 + 다른 세션 eabaf35. 충돌 2곳(car-insight·catalog-specs)은 JSON 경로 유지+hydrogen_eff 추가. 타입 검사 통과(빌드는 Supabase 조회라 생략). 이전 상태: backup/ren155-site-before-rebase-20261112
+- ERP 65b134b(잔존율)는 아직 Supabase vehicle_trims(동결본)를 읽음 — 로컬 원본 전환 3단계 때 함께 확인
+- 보류(§9) 유지: push·Storage 업로드는 11/21 이후
