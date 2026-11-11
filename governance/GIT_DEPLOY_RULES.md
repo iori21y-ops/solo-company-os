@@ -1,0 +1,57 @@
+# git·배포 규칙 (GIT_DEPLOY_RULES)
+
+> 무엇을 정하는 파일: 커밋 메시지, 저장소(리포) 목록, 커밋에 넣을 파일 고르기, push와 배포.
+> 마지막 갱신: 2026-11-11 · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 배포 상세(Vercel 설정·환경변수·도메인)는 `~/projects/cadam/docs/deploy.md`.
+
+## 1. 커밋 (사장님 결정 1, 2026-11-11)
+- 커밋 메시지·코드 주석 = **영어**. (문서 본문은 한국어)
+- **파일을 고치기 전에** 그 저장소에서 먼저 커밋: `checkpoint: <작업 설명>`
+- Linear 이슈 번호를 넣는다: 진행 중 `Refs REN-N`, 끝났으면 `Fixes REN-N` (push 때 이슈 자동 연결·완료).
+- 위키(second-brain) 작업 커밋: `ingest: …` / `query: …` / `lint: …`
+- 커밋은 승인 없이 하고 보고한다 ([SAFETY_RULES.md](SAFETY_RULES.md) §1).
+- `node_modules`, `.next`, `__pycache__`, `.env` 류는 커밋하지 않는다.
+
+## 2. 저장소(리포) — 커밋·push 전 `pwd` + `git remote -v` 확인 필수
+| 폴더 | 리모트 (github.com/iori21y-ops/…) | 무엇 |
+|---|---|---|
+| `~/projects/cadam` | `cadam-doc` | 공용 문서·스크립트 + 운영 문서 `docs/` (노션 동기화) |
+| `~/projects/cadam/cadam-web` | `cadam` | 렌테일러 사이트 — **push = 배포** |
+| `~/projects/cadam/cadam-pipeline` | `cadam-auto` | 파이썬 파이프라인 |
+| `~/projects/blog-engine` | `blog-engine` | 글쓰기 엔진 |
+| `~/projects/blog-engine/publishers/naver` | `cadam-naver` | 네이버 발행 서버 |
+| `~/projects/_shared` | `solo-shared` | 공용 라이브러리 `solo_common` |
+
+그 밖의 리포 (2026-11-11 `git remote` 확인):
+| 폴더 | 리모트 |
+|---|---|
+| `~/projects/_meta` | `solo-company-os` |
+| `~/projects/football-blog` | `football-blog` |
+| `~/projects/my-shorts` | `my-shorts` |
+| `~/projects/import-lease` | `import-lease` |
+| `~/projects/cadam/cadam-erp` | `cadam-erp` |
+| `~/projects/cadam/collectors` | 리모트 이름은 옛 이름 그대로(호환) — `git remote -v`로 확인 |
+| `~/second-brain-git` | `second-brain` (위키 미러) |
+
+- cadam 폴더 안의 하위 리포(cadam-web·cadam-pipeline 등)는 `~/projects/cadam`에서 `git status`로 안 보인다 → 그 폴더로 들어가서 커밋.
+
+## 3. 커밋에 넣을 파일 고르기
+- 다른 세션의 미커밋 변경이 섞여 있을 수 있다 → **내가 바꾼 파일만** 넣는다.
+- 새 파일: `git add <내 파일 경로들>` → `git commit -- <같은 경로들>`. 이미 추적 중인 파일만이면 `git commit -- <경로>`.
+- `git add .`·`git add -A`·`git commit -a`는 남의 변경이 없을 때만.
+
+## 4. push (사장님 결정 3)
+- push는 **승인 후**. 승인 대상은 커밋이 아니라 push다.
+- push 전 `git log --oneline -5`로 올라갈 커밋 확인. 남의 커밋이 섞였으면 보고.
+- push 후 `git log --oneline origin/main -3`으로 원격 반영 확인.
+- 강제 push·`reset --hard` 금지. merge·rebase도 승인 후.
+
+## 5. 배포 (사장님 결정 2, 2026-11-11)
+| 리포 | push하면 | 규칙 |
+|---|---|---|
+| cadam-web | **즉시 프로덕션 배포** (rentailor.co.kr, Vercel Git 연동) | 사장님 승인 → **로컬 빌드 확인 필수**(`npm run build`) → Claude가 push → `npx vercel ls`로 새 배포 시각 확인 |
+| cadam-doc | GitHub Actions가 바뀐 `docs/*.md`를 노션에 복사 | 승인 후 push → 노션 반영 확인 ([DOCS_RULES.md](DOCS_RULES.md) §2) |
+| 그 밖 | 원격 저장만 (Linear 이슈 연결) | 승인 후 push |
+
+- 자동 배포 켜짐/꺼짐은 바뀐 적이 있다 → 배포 여부가 중요하면 문서 말고 `npx vercel ls`로 실측.
+- 빌드 실패 시 Vercel은 이전 배포를 그대로 둔다.
