@@ -795,6 +795,23 @@ var f=document.getElementById('jobfilter');if(f)f.oninput=function(){var q=f.val
 """
 
 
+def docaudit_panel() -> tuple[str, int]:
+    """Doc audit result (_meta/scripts/doc_audit.py, weekly launchd com.solo.doc-audit) — read only."""
+    d = read_json(P("~/projects/_meta/logs/doc_audit.json"), {}) or {}
+    if not d:
+        return '<p class="muted">아직 결과 없음 — <code>python3 ~/projects/_meta/scripts/doc_audit.py</code></p>', 0
+    names = {"retired": "없어진 이름·경로가 현재처럼 적힌 줄", "missing": "적힌 경로가 실제로 없음",
+             "plist": "예약 작업 설정 사본이 원본과 다름", "status": "예약 작업 상태가 문서와 실제가 다름"}
+    total = sum(d.get("counts", {}).values())
+    out = [f'<p class="lead">규칙·매뉴얼이 실제 시스템과 어긋난 곳 {total}건 (문서 {d.get("docs", 0)}개, {esc(d.get("at", ""))} 점검). '
+           f'고치는 법: <code>_meta/governance/DOCS_RULES.md</code> · 전체 목록 <code>_meta/logs/doc_audit.md</code></p>']
+    for k, rows in (d.get("results") or {}).items():
+        out.append(f"<h3>{esc(names.get(k, k))} {pill(str(len(rows)), 'bad' if rows else '')}</h3>")
+        if rows:
+            out.append(table(["문서", "줄", "무엇이 다른가"], [[esc(r["file"]), str(r["line"]), esc(r["why"])] for r in rows[:200]], "reg"))
+    return "".join(out), total
+
+
 def main() -> int:
     cfg = yaml.safe_load(read(HERE / "engines.yaml"))
     jobs = launchd_jobs(cfg.get("job_prefixes") or [])
@@ -816,8 +833,9 @@ def main() -> int:
                   + '<input id="jobfilter" class="filter" placeholder="이름·프로젝트·스크립트로 걸러 보기 (예: football, crawler, 07:)"><div id="alljobs">'
                   + jobs_table(sorted(jobs, key=lambda j: (j["project"], j["label"]))) + "</div>")
     dps = data_panels(cfg, jobs)
-    tabs += [(i, n, "") for i, n, _ in dps] + [("jobs", "예약 작업 전체", ""), ("compat", "임시 연결·남은 일", "")]
-    panels += [(i, b) for i, _, b in dps] + [("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0])]
+    audit = docaudit_panel()
+    tabs += [(i, n, "") for i, n, _ in dps] + [("jobs", "예약 작업 전체", ""), ("compat", "임시 연결·남은 일", ""), ("docs", "문서 점검", f"{audit[1]}건" if audit[1] else "")]
+    panels += [(i, b) for i, _, b in dps] + [("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0]), ("docs", audit[0])]
     first = tabs[0][0]
     names = {i: n for i, n, _ in tabs}
     page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'

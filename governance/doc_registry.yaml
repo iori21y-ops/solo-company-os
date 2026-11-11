@@ -1,0 +1,76 @@
+# 문서 점검(doc_audit) 설정 — 규칙·매뉴얼이 실제 시스템과 어긋나는지 찾는다.
+# 실행: python3 ~/projects/_meta/scripts/doc_audit.py [--linear]
+# 절차·쓰는 법: _meta/governance/DOCS_RULES.md §구조 변경 후 문서 정리
+#
+# 구조를 바꾸면(폴더 이동·이름 변경·서비스 폐기) 여기 `retired:`에 옛 이름을 한 줄 추가한다.
+# 그러면 모든 규칙·매뉴얼에서 옛 이름이 남은 줄을 찾아준다.
+
+# 점검할 문서 (~ 는 홈). glob 사용 가능.
+docs:
+  - ~/.claude/CLAUDE.md
+  - ~/projects/*/CLAUDE.md
+  - ~/projects/*/AGENTS.md
+  - ~/projects/cadam/*/CLAUDE.md
+  - ~/projects/cadam/*/AGENTS.md
+  - ~/projects/cadam/docs/*.md
+  - ~/projects/cadam/collectors/COLLECTOR_CONVENTION.md
+  - ~/projects/_meta/README.md
+  - ~/projects/_meta/governance/*.md
+  - ~/projects/_shared/README.md
+  - ~/projects/blog-engine/README.md
+  - ~/projects/blog-engine/*/README.md
+  - ~/projects/blog-engine/brands/*/README.md
+  - ~/projects/blog-engine/brands/*/brand.yaml
+  - ~/projects/blog-engine/brands/*/rules/README.md
+  - ~/projects/blog-engine/rules/*/README.md
+  - ~/projects/blog-engine/rules/sites/*/README.md
+  - ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/second-brain/CLAUDE.md
+  - ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/second-brain/wiki/system/*.md
+  - ~/.claude/projects/-Users-kim-projects/memory/*.md
+
+# 점검하지 않는 문서 (날짜가 박힌 기록·자동 생성·작업 폴더)
+skip:
+  - "*/CHANGELOG.md"
+  - "*/_wt-*/*"
+  - "*/_design_ref*/*"
+  - "*/data-registry-counts.md"
+  - "*/ISSUES.md"            # 이슈 기록(옛 대상 이름이 남는 게 정상)
+  - "*/known-issues.md"      # 같은 이유
+  - "*/docs/PROGRESS.md"     # 날짜별 진행 기록
+  - "*/docs/_AUDIT_REPORT.md"
+  - "*/docs/reports/*"
+  - "*/governance/핸드오프-*"  # 날짜가 박힌 인계·합의 기록
+  - "*/governance/합의메모-*"
+
+# 줄에 이 낱말이 있으면 '기록·호환 설명'으로 보고 넘어간다.
+history_markers: ["폐기", "기록용", "(옛)", "옛 ", "옛경로", "예전", "이전 이름", "호환", "링크", "~~", "보관함", "retired", "renamed", "was ", "→ `", "이사", "이동"]
+
+# 없어진 이름 → 지금 이름. pattern은 정규식.
+retired:
+  - {pattern: 'cadam-n8n', since: 2026-11-10, now: 'cadam/collectors (cadam-n8n은 호환 링크)'}
+  - {pattern: '\bn8n\b', since: 2026-11-10, now: 'blog-engine (글쓰기·발행) / launchd (예약 작업)'}
+  - {pattern: '[Dd]ocker', since: 2026-11-10, now: '없음 — launchd'}
+  - {pattern: 'cadam-dashboard|:3101\b', since: 2026-11-10, now: 'cadam-erp (모니터) / 엔진 대시보드 :8787'}
+  - {pattern: 'md-dashboard|:9725\b', since: 2026-07-11, now: '없음'}
+  - {pattern: 'prompt-bff|:3099\b', since: 2026-11-10, now: '없음'}
+  - {pattern: 'rentailor-plan/', since: 2026-11-11, now: 'cadam/docs/PROGRESS.md'}
+  - {pattern: 'cadam-naver/(server|post-blog|config)', since: 2026-11-10, now: 'blog-engine/publishers/naver/'}
+  - {pattern: 'post-blog\.js', since: 2026-11-10, now: 'post-blog-ego.js'}
+  - {pattern: 'scripts/common/(blog_graphics|explainer)', since: 2026-11-10, now: 'blog-engine/graphics/'}
+  - {pattern: 'scripts/content/(wp_writer|topic_candidates|topic_selector|naver_rewrite|naver_digest|blog_images|blog_cards|blog_refresh|monthly_roundup|daytime_publish)', since: 2026-11-10, now: 'blog-engine/brands/rentailor/'}
+  - {pattern: 'scripts/common/writing_pause', since: 2026-11-11, now: 'blog-engine/brands/rentailor/writing_pause.py'}
+  - {pattern: 'rentailor/rules/channel/', since: 2026-11-11, now: 'brands/rentailor/rules/wordpress/'}
+  - {pattern: '/Users/kim/backup_cadam\.sh|~/backup\.log', since: 2026-11-10, now: '~/projects/cadam/backup_cadam.sh, backups/backup.log'}
+
+# 예약 작업(launchd) 설정 사본 폴더 — ~/Library/LaunchAgents의 원본과 글자 하나까지 같아야 한다.
+plist_copies:
+  - ~/projects/blog-engine/launchd
+  - ~/projects/football-blog/launchd
+  - ~/projects/_meta/dashboard/launchd
+  - ~/projects/_meta/scripts/launchd
+  - ~/projects/cadam/cadam-pipeline/scripts/content
+
+# 이 낱말이 com.xxx 예약 작업 이름과 같은 줄에 있으면, 실제로 켜져 있는지와 비교한다.
+status_words:
+  off: ["미설치", "설치 안 됨", "설치되지 않음", "내려 둠", "내려 두었", "unloaded", "NOT installed", "not installed"]
+  on: ["설치·실행 중", "설치됨", "installed", "loaded"]
