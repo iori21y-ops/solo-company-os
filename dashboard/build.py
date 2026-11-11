@@ -708,6 +708,7 @@ def content_plan_table(items: list, by_name: dict) -> str:
 
 def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
     rows, meta, extra = cadam_rows(d, jobs) if d.get("kind") == "cadam" else football_rows(d, jobs)
+    items = [it for it in items if it.get("type") == "트래커"]   # owner 2026-11-11: planned content = trackers only
     by_table = {t: c["id"] for c in cats for t in c.get("tables", [])}
     by_name: dict = {}
     for r in rows:
