@@ -141,3 +141,8 @@ Supabase 무료 플랜 Log Ingestion 0.85/1GB(11/21 초기화). REN-155 일괄 �
 - cadam-web: 다른 세션 커밋 eabaf35를 빼고 REN-155 커밋 3개만 origin/main 위에 체리픽 → 빌드 통과 → push b169790, Vercel Ready 확인. 실사이트 casper-ev·musso 새 사진 확인. 넥쏘 km/kg는 car_publish(12:30)가 powertrains.json에 hydrogen_eff를 넣은 뒤 보임
 - 로컬 브랜치 alimtalk-quote-button에는 같은 내용의 옛 해시 커밋 + eabaf35가 남아 있음(그쪽 세션이 rebase하면 중복은 자동으로 빠짐)
 - collectors 105df72: 스타리아 일렉트릭 추가 가격표(라운지·리무진)도 트림 사양 첨부 → 월간 재삽입 때 사양 유지(시뮬레이션 7트림 모두 첨부). 제원 행은 월간 수집이 안 건드려 유지
+
+## 13. 마무리 push·ERP (2026-11-12 07:44)
+- push: collectors ..105df72, cadam-doc ..59c38cb, ERP ..3dc6c8e, _meta ..fba1d81 (다른 세션 커밋 포함 — 그 세션 동의 받음). cadam-web ref-data-json 브랜치는 별도 승인 대상이라 제외
+- ERP: erp_local_cutover.sh로 재빌드·재시작(BUILD_ID 3KVKslP-GbSHJVB-6NgLP, /login 200), ERP_LOCAL 생성 → ERP가 로컬 car DB를 읽고 씀. 잔존율(65b134b)도 이 빌드에 포함. ERP 화면 확인은 로그인 필요(미확인)
+- REN-155 남은 것: 넥쏘 km/kg는 12:30 car_publish 후 확인, 옵션 사진 135종(출처 없음)
