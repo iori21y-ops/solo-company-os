@@ -827,6 +827,27 @@ def data_panels(cfg: dict, jobs: list[dict]) -> list:
     return out
 
 
+
+def phone_files(public: Path) -> None:
+    """Home-screen icon + web app manifest so the phone can open the dashboard like an app (Safari → Share → Add to Home Screen)."""
+    (public / "manifest.json").write_text(json.dumps({"name": "엔진 대시보드", "short_name": "대시보드", "start_url": "/", "display": "standalone",
+                                                       "background_color": "#10201b", "theme_color": "#10201b",
+                                                       "icons": [{"src": "/icon.png", "sizes": "180x180", "type": "image/png"}]}, ensure_ascii=False), encoding="utf-8")
+    icon = public / "icon.png"
+    if icon.exists():
+        return
+    try:
+        from PIL import Image, ImageDraw, ImageFont
+        img = Image.new("RGB", (180, 180), "#10201b")
+        d = ImageDraw.Draw(img)
+        for i, (h, c) in enumerate([(52, "#6fd7a5"), (88, "#f2c84b"), (68, "#9dbcff")]):   # three bars = a little chart
+            d.rounded_rectangle((38 + i * 38, 128 - h, 64 + i * 38, 128), 5, fill=c)
+        font = ImageFont.truetype("/System/Library/Fonts/AppleSDGothicNeo.ttc", 22)
+        d.text((90, 150), "엔진", font=font, fill="#e8edf2", anchor="mm")
+        img.save(icon)
+    except Exception:  # noqa: BLE001 — no icon is fine; the page still works
+        pass
+
 CSS = """
 :root{--bg:#f6f7f9;--card:#fff;--ink:#16202a;--muted:#6b7785;--line:#e3e7ec;--ok:#0f7b4f;--okbg:#e2f5ec;--warn:#9a5b00;--warnbg:#fff1d6;--bad:#b3261e;--badbg:#fde7e5;--run:#1456c4;--runbg:#e3edff;--off:#5f6975;--offbg:#eceff3;--accent:#10201b}
 @media(prefers-color-scheme:dark){:root{--bg:#11161b;--card:#1a2129;--ink:#e8edf2;--muted:#93a0ad;--line:#2b3540;--okbg:#113626;--ok:#6fd7a5;--warnbg:#40300e;--warn:#f2c46a;--badbg:#45201d;--bad:#ff9a92;--runbg:#182c52;--run:#9dbcff;--offbg:#262f39;--off:#aab4bf;--accent:#f2c84b}}
@@ -865,12 +886,13 @@ table .chip{display:inline-block;white-space:nowrap;margin:2px 4px 2px 0;font-fa
 table.plantab{min-width:1080px}table.plantab td{vertical-align:top}table.plantab td:nth-child(1){width:84px}table.plantab td:nth-child(2){width:150px}table.plantab td:nth-child(3){min-width:210px}table.plantab td:nth-child(4){min-width:330px}table.plantab td:nth-child(n+5){white-space:nowrap}
 nav.sub{margin:14px 0 0;color:var(--muted)}nav.sub a{margin-right:12px}a{color:var(--run)}
 .brand{border-top:2px solid var(--line);margin-top:22px}input.filter{width:100%;max-width:360px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;margin:8px 0}
+.reload{display:none;margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
 /* phones: one-row swipeable tabs, single-column cards, every table row becomes a labelled card (no sideways scrolling) */
 @media(max-width:700px){
 body{font-size:15px;-webkit-text-size-adjust:100%}
-header{padding:8px 12px 0;gap:6px}header h1{font-size:16px}header .gen{margin-left:0;width:100%;order:3;font-size:11px;padding-bottom:6px}header .gen code{display:none}
+header{padding:calc(8px + env(safe-area-inset-top)) 12px 0;gap:6px}header h1{font-size:16px}header .gen{margin-left:0;width:100%;order:3;font-size:11px;padding-bottom:6px}header .gen code{display:none}
 .tabs{flex-wrap:nowrap;overflow-x:auto;width:100%;padding-bottom:8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs a{flex:0 0 auto;padding:8px 14px}
-main{padding:10px 12px 60px}h2{font-size:17px;margin:20px 0 8px}h2 .pill{margin-top:4px}
+.reload{display:inline-block}main{padding:10px 12px 60px}h2{font-size:17px;margin:20px 0 8px}h2 .pill{margin-top:4px}
 .grid{grid-template-columns:1fr;gap:10px}.grid.kpis{grid-template-columns:1fr 1fr}.kpi .big{font-size:16px}.card{padding:12px}
 .kv{flex-wrap:wrap}.kv>span:last-child{text-align:left;word-break:break-all}
 .stats{gap:8px}.stats div{flex:1 1 calc(33% - 8px);min-width:0;padding:8px 10px}.stats b{font-size:17px}
@@ -937,8 +959,8 @@ def main() -> int:
     panels += [(i, b) for i, _, b in dps] + [("jobs", jobs_panel), ("compat", '<p class="lead">이사하면서 남긴 임시 연결·사본·규칙 위반 목록과 없애는 기한.</p>' + compat[0]), ("docs", audit[0])]
     first = tabs[0][0]
     names = {i: n for i, n, _ in tabs}
-    page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="엔진 대시보드"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'
-            f'<header><h1>엔진 대시보드</h1><div class="tabs">'
+    page = (f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="대시보드"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="theme-color" content="#10201b"><link rel="apple-touch-icon" href="icon.png"><link rel="manifest" href="manifest.json"><title>엔진 대시보드</title><style>{CSS}</style></head><body>'
+            f'<header><h1>엔진 대시보드</h1><button class="reload" onclick="location.reload()" title="최신 화면 다시 불러오기">↻ 새로고침</button><div class="tabs">'
             + "".join(f'<a href="#p-{esc(i)}" data-t="{esc(i)}" class="{"on" if i == first else ""}">{esc(n)}{f" <span class=muted>{esc(s)}</span>" if s else ""}</a>' for i, n, s in tabs)
             + f'</div><span class="gen">만든 때 {NOW:%Y-%m-%d %H:%M} · 다시 만들기 <code>python3 ~/projects/_meta/dashboard/build.py --open</code></span></header><main>'
             + "".join(f'<div class="panel {"on" if i == first else ""}" id="p-{esc(i)}"><h2 class="ptitle">{esc(names[i])}</h2>{b}</div>' for i, b in panels)
@@ -948,6 +970,7 @@ def main() -> int:
     # copy for the phone: serve.py shares only this folder (Tailscale address), so engine files / settings are never served
     (HERE / "public").mkdir(exist_ok=True)
     (HERE / "public" / "index.html").write_text(page, encoding="utf-8")
+    phone_files(HERE / "public")
     print(f"{out}  ({len(page) // 1024} KB, 예약 작업 {len(jobs)}개, 임시 연결 {compat[1]}건)")
     if "--open" in sys.argv:
         subprocess.run(["open", str(out)])
