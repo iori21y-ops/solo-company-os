@@ -20,7 +20,7 @@
 | disk | 루트 사용률(%), 여유 GB |
 | memory | 사용/여유 |
 | services | 아래 별도 정의 |
-| docker | 컨테이너별 이름, 상태, 이미지 |
+| docker | (2026-11-11부터 항상 빈 목록 — Docker 삭제) |
 | launchd | 커스텀 잡 라벨, PID, 상태코드 |
 | backup | 마지막 백업 파일 시각, 크기 |
 | git | _meta repo 마지막 커밋 시각 |

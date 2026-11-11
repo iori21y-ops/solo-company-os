@@ -69,13 +69,8 @@ for line in out.splitlines():
         })
 snap["launchd"] = launchd
 
-# --- docker ---
+# --- docker --- removed 2026-11-11 (Docker uninstalled; n8n/Docker retired 2026-11-10). Key kept empty for snapshot schema.
 docker = []
-out = sh("docker ps -a --format '{{.Names}}|{{.Status}}|{{.Image}}'")
-for line in out.splitlines():
-    p = line.split("|")
-    if len(p) == 3:
-        docker.append({"name": p[0], "status": p[1], "image": p[2]})
 snap["docker"] = docker
 
 # --- services (managed/adhoc 자동분류) ---
