@@ -18,7 +18,7 @@ engines:
         business: ~/projects/football-blog
         facts_cli: ~/projects/football-blog/facts_cli.py
         registry: ~/projects/football-blog/docs/data-registry.md
-        health_state: ~/projects/football-blog/data/health/state.json
+        health_state: [~/projects/football-blog/data/health/state.json, ~/projects/blog-engine/brands/football/outbox/health.json]   # collection·Shorts / writing (REN-134)
         job_patterns: ["football-blog/run.py", "blog-engine/run.py football", "football-blog/tools"]
   - id: shorts
     name: 쇼츠 엔진

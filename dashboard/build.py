@@ -410,8 +410,14 @@ def registry_block(cfg: dict) -> str:
 
 
 def health_block(cfg: dict) -> tuple[str, int]:
-    st = read_json(P(cfg.get("health_state", "")), None) if cfg.get("health_state") else None
-    if not st:
+    paths = cfg.get("health_state") or []
+    paths = [paths] if isinstance(paths, str) else paths   # football: football-blog jobs + blog-engine writing jobs (REN-134)
+    st = {"runs": {}, "last_alert": {}}
+    for path in paths:
+        one = read_json(P(path), None) or {}
+        st["runs"].update(one.get("runs") or {})
+        st["last_alert"].update(one.get("last_alert") or {})
+    if not st["runs"] and not st["last_alert"]:
         return "", 0
     rows, n_prob = [], 0
     for cmd, r in sorted((st.get("runs") or {}).items(), key=lambda kv: kv[1].get("start", ""), reverse=True):
