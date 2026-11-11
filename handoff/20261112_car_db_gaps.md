@@ -37,3 +37,12 @@
 
 ## 3. 끝나면
 - REN-155에 댓글(또는 새 이슈로 분리), 이 문서와 메모리 갱신, car_publish kick 후 사이트 확인
+
+## 4. 진행 결과 (2026-11-12 오전 세션)
+결과 보고서: ~/projects/cadam/docs/reports/car_db_gaps_result_20261112.md · 재측정 `python3 collectors/price_crawler/car_db_gaps.py`
+- 완료: 1(아반떼 N·니로 EV 옵션, 파서 수정), 2(사이트 기준 빈 트림 0), 3(분류만 — 파싱 실패 0, 수정 불필요), 7(12/17), 8(GV80·스타리아EV·넥쏘 kW)
+- 일부: 4(가격표 근거 19행만. 남은 공백 = 패키지 66종)
+- 남김(근거 없음): 7의 5행, 8·9 테슬라, 넥쏘 토크
+- 11/21 이후: 5(아반떼 N·니로 EV 구성기 코드 매핑 → option_images 수집 → option_media_build/sync 업로드), 6(테슬라·폴스타 칩 소스 신규, 나머지는 이름 별칭 + 업로드)
+- 후속: 넥쏘 kW 사이트 표시(cadam-web car-insight.ts isEv, push 승인 필요), 아이오닉6 N은 11/21 수집부터 가격표 옵션 4개로 교체(정상)
+- 커밋(collectors, 미push): 03f5887 · 14a2ea3 · 4900bf1. car_publish kick 08:15
