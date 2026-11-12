@@ -121,8 +121,8 @@ snap["expected_exceptions"] = sorted(exceptions)
 # --- backup (cadam backups 폴더 최신 파일) ---
 backup = {}
 candidates = []
-for d in [os.path.expanduser("~/projects/cadam/backups"),
-          os.path.expanduser("~/projects/cadam/backups-manual")]:
+for d in [os.path.expanduser("~/projects/_data/rentailor/backups/auto"),
+          os.path.expanduser("~/projects/_data/rentailor/backups/manual")]:
     if os.path.isdir(d):
         files = glob.glob(os.path.join(d, "*"))
         for f in files:
