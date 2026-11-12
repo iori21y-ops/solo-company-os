@@ -352,7 +352,7 @@ def tracker_block(outbox: Path, drafts: list) -> str:
                      (f'<code>{esc(drafts_k[-1].stem)}</code> ' + (pill("점검 통과", "ok") if ok else pill("점검 미통과", "bad"))) if drafts_k else '<span class="muted">없음</span>',
                      pill(STATUS_KO.get(st.get("status"), st.get("status", "카드 안 보냄")), STATUS_KIND.get(st.get("status"), "")) if st else '<span class="muted">카드 안 보냄</span>',
                      page])
-    log = last_line(P("~/projects/blog-engine/logs/tracker_monthly.log"))
+    log = last_line(P("~/projects/content-engine/logs/tracker_monthly.log"))
     return ('<h4>트래커 <span class="muted">(네이버는 매달 새 글 · 워드프레스는 고정 페이지 1개, ✅ 때 먼저 고쳐 씀 · 매일 09:20 확인)</span></h4>'
             + table(["트래커", "고정 페이지 기준", "마지막 초안", "네이버 카드", "워드프레스"], rows)
             + (f'<p class="small muted">매일 확인 마지막 기록: {esc(log)}</p>' if log else ""))
@@ -362,13 +362,13 @@ ACT_LABEL = {"publish": ("발행", "go"), "pick": ("선택·발행", "go"), "del
 
 
 def acts(kind: str, dos: list, note: str = "", **ids) -> str:
-    """Buttons the phone page sends to serve.py → blog-engine `dash-action` (all checks happen there again)."""
+    """Buttons the phone page sends to serve.py → content-engine `dash-action` (all checks happen there again)."""
     data = "".join(f' data-{k}="{esc(v)}"' for k, v in ids.items())
     btns = "".join(f'<button class="act {ACT_LABEL[d][1]}" data-kind="{kind}" data-do="{d}"{data}>{ACT_LABEL[d][0]}</button>' for d in dos)
     return f'<span class="acts">{btns}</span>' + (f'<div class="small muted">{esc(note)}</div>' if note else "") if btns or note else '<span class="muted">-</span>'
 
 
-MERGED = P("~/projects/_data/rentailor/work/blog-engine/blog_refresh/redirects.json")   # data warehouse (engine work files)
+MERGED = P("~/projects/_data/rentailor/work/content-engine/blog_refresh/redirects.json")   # data warehouse (engine work files)
 
 
 def env_file(p: Path) -> dict:
@@ -495,7 +495,7 @@ def registry_block(cfg: dict) -> str:
 
 def health_block(cfg: dict) -> tuple[str, int]:
     paths = cfg.get("health_state") or []
-    paths = [paths] if isinstance(paths, str) else paths   # football: football-blog jobs + blog-engine writing jobs (REN-134)
+    paths = [paths] if isinstance(paths, str) else paths   # football: football-blog jobs + content-engine writing jobs (REN-134)
     st = {"runs": {}, "last_alert": {}}
     for path in paths:
         one = read_json(P(path), None) or {}
@@ -536,8 +536,8 @@ def compat_block(path: Path) -> tuple[str, int, int]:
 
 def brand_outbox(name: str, cfg: dict) -> Path:
     """A brand's work files (drafts, states, candidates …): engines.yaml brands.<name>.outbox, else the data warehouse default
-    ~/projects/_data/<name>/work/blog-engine (same map as blog-engine engine.outbox; brands/<b>/outbox until 2026-11-13)."""
-    return P(cfg.get("outbox") or f"~/projects/_data/{name}/work/blog-engine")
+    ~/projects/_data/<name>/work/content-engine (same map as content-engine engine.outbox; brands/<b>/outbox until 2026-11-13)."""
+    return P(cfg.get("outbox") or f"~/projects/_data/{name}/work/content-engine")
 
 
 def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str]]:
@@ -595,7 +595,7 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
   <details><summary>데이터 창구</summary>{facts_block(cfg)}</details>
   <details><summary>수집기·데이터 목록 <span class="muted">(사업 프로젝트)</span></summary>{registry_block(cfg)}</details>
 </section>""")
-    engine_jobs = [j for j in jobs if "blog-engine" in j["raw"] or "football-blog/run.py" in j["raw"]]
+    engine_jobs = [j for j in jobs if "content-engine" in j["raw"] or "football-blog/run.py" in j["raw"]]
     overview = "".join(f'<div class="card kpi"><h3>{esc(n)}</h3><p class="big">{esc(a)}</p><p class="muted">{esc(c)}</p>{pill(lab, k)}</div>' for n, a, c, k, lab in kpis)
     overview += (f'<div class="card kpi"><h3>엔진 예약 작업</h3><p class="big">{len(engine_jobs)}개</p><p class="muted">오류 {sum(j["kind"] == "bad" for j in engine_jobs)} · 꺼짐 {sum(j["kind"] == "off" for j in engine_jobs)}</p>'
                  f'{pill("오류 있음", "bad") if any(j["kind"] == "bad" for j in engine_jobs) else pill("정상", "ok")}</div>'
@@ -1125,7 +1125,7 @@ def main() -> int:
         active = e.get("status") == "active"
         tabs.append((e["id"], e["name"], "" if active else "예정"))
         try:
-            body = blog_engine(e, jobs, compat)[0] if active and e.get("kind") == "blog-engine" else planned_engine(e)
+            body = blog_engine(e, jobs, compat)[0] if active and e.get("kind") == "content-engine" else planned_engine(e)
         except Exception as ex:  # noqa: BLE001 — one broken reader must not blank the whole page
             body = f'<div class="card"><h3>읽는 중 오류</h3><p class="muted">{esc(type(ex).__name__)}: {esc(ex)}</p></div>'
         panels.append((e["id"], body))

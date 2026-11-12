@@ -1,11 +1,11 @@
 # Engines shown on the dashboard (python3 build.py → index.html). One entry per engine; `status: planned` shows a placeholder tab.
-# kind: which reader in build.py fills the tab (blog-engine = brands/<brand>/brand.yaml, rules/ + the brand's outbox in ~/projects/_data).
+# kind: which reader in build.py fills the tab (content-engine = brands/<brand>/brand.yaml, rules/ + the brand's outbox in ~/projects/_data).
 engines:
   - id: blog
     name: 블로그 엔진
     status: active
-    kind: blog-engine
-    root: ~/projects/blog-engine
+    kind: content-engine
+    root: ~/projects/content-engine
     summary: 글감 → 초안 → 검수·승인 → 발행. 브랜드별 규칙·도구·작업 파일.
     brands:
       rentailor:
@@ -13,15 +13,15 @@ engines:
         facts_cli: ~/projects/cadam/cadam-pipeline/scripts/content/facts_cli.py
         registry: ~/projects/cadam/docs/data-registry.md
         registry_counts: ~/projects/cadam/docs/data-registry-counts.md
-        outbox: ~/projects/_data/rentailor/work/blog-engine   # engine work files (data warehouse)
-        job_patterns: ["blog-engine/run.py rentailor", "blog-engine/publishers/naver", "blog-engine/brands/rentailor"]
+        outbox: ~/projects/_data/rentailor/work/content-engine   # engine work files (data warehouse)
+        job_patterns: ["content-engine/run.py rentailor", "content-engine/publishers/naver", "content-engine/brands/rentailor"]
       football:
         business: ~/projects/football-blog
         facts_cli: ~/projects/football-blog/facts_cli.py
         registry: ~/projects/football-blog/docs/data-registry.md
-        health_state: [~/projects/_data/football/work/football-blog/health/state.json, ~/projects/_data/football/work/blog-engine/health.json]   # collection·Shorts / writing (REN-134)
-        outbox: ~/projects/_data/football/work/blog-engine    # engine work files (data warehouse)
-        job_patterns: ["football-blog/run.py", "blog-engine/run.py football", "football-blog/tools"]
+        health_state: [~/projects/_data/football/work/football-blog/health/state.json, ~/projects/_data/football/work/content-engine/health.json]   # collection·Shorts / writing (REN-134)
+        outbox: ~/projects/_data/football/work/content-engine    # engine work files (data warehouse)
+        job_patterns: ["football-blog/run.py", "content-engine/run.py football", "football-blog/tools"]
   - id: shorts
     name: 쇼츠 엔진
     status: planned
@@ -49,10 +49,10 @@ data:
     health: ~/projects/_data/rentailor/work/pipeline/health/latest.md
     registry: ~/projects/cadam/docs/data-registry.md
     counts: ~/projects/cadam/docs/data-registry-counts.md
-    content_plan: ~/projects/blog-engine/brands/rentailor/content_plan.yaml   # which posts are planned and which data each one uses
+    content_plan: ~/projects/content-engine/brands/rentailor/content_plan.yaml   # which posts are planned and which data each one uses
     usage:
       블로그 글감·사실 묶음: [~/projects/cadam/cadam-pipeline/scripts/content]
-      블로그 글쓰기(엔진): [~/projects/blog-engine/brands/rentailor]
+      블로그 글쓰기(엔진): [~/projects/content-engine/brands/rentailor]
       쇼츠: [~/projects/my-shorts]
       분석·유입: [~/projects/cadam/cadam-pipeline/scripts/analysis, ~/projects/cadam/cadam-pipeline/scripts/growth]
       창고 파생표 만들기: [~/projects/cadam/cadam-pipeline/scripts/maintenance]
@@ -69,7 +69,7 @@ data:
     data_dir: ~/projects/_data/football/work/football-blog   # data warehouse (2026-11-13): entities etc.
     media_dir: ~/projects/_data/football/media/football-blog  # insta photo store (was data/media)
     usage:
-      블로그 글(엔진): [~/projects/blog-engine/brands/football]
+      블로그 글(엔진): [~/projects/content-engine/brands/football]
       글 배경 자료(창구): [~/projects/football-blog/football/brain.py, ~/projects/football-blog/football/insights.py, ~/projects/football-blog/football/fdorg.py, ~/projects/football-blog/football/warehouse.py, ~/projects/football-blog/football/topics.py]
       쇼츠: [~/projects/football-blog/shorts-lab, ~/projects/football-blog/football/shortsflow.py, ~/projects/football-blog/football/matchreview.py]
       영상: [~/projects/football-blog/football/video.py]

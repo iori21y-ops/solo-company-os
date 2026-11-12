@@ -18,8 +18,8 @@
 | `~/projects/cadam` | `cadam-doc` | 공용 문서·스크립트 + 운영 문서 `docs/` (노션 동기화) |
 | `~/projects/cadam/cadam-web` | `cadam` | 렌테일러 사이트 — **push = 배포** |
 | `~/projects/cadam/cadam-pipeline` | `cadam-auto` | 파이썬 파이프라인 |
-| `~/projects/blog-engine` | `blog-engine` | 글쓰기 엔진 |
-| `~/projects/blog-engine/publishers/naver` | `cadam-naver` | 네이버 발행 서버 |
+| `~/projects/content-engine` | `content-engine`(옛 이름 blog-engine) | 글쓰기 엔진 |
+| `~/projects/content-engine/publishers/naver` | `cadam-naver` | 네이버 발행 서버 |
 | `~/projects/_shared` | `solo-shared` | 공용 라이브러리 `solo_common` |
 
 그 밖의 리포 (2026-11-11 `git remote` 확인):

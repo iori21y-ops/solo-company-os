@@ -48,7 +48,7 @@
 | cadam 보안 상세 (Supabase 단계별 확인, RLS, 도구별 허용 표, 오류별 대응) | `~/projects/cadam/docs/security.md` |
 | 배포 상세 (Vercel 설정·환경변수·도메인·브랜치) | `~/projects/cadam/docs/deploy.md` |
 | 수집기 상세 (저장·등록·실패·알림·인벤토리) | `~/projects/cadam/collectors/COLLECTOR_CONVENTION.md` |
-| 글쓰기 규칙 (공통·발행처·블로그 층) | `~/projects/blog-engine/rules/README.md` |
+| 글쓰기 규칙 (공통·발행처·블로그 층) | `~/projects/content-engine/rules/README.md` |
 | 해외파 콘텐츠·사진·데이터 규칙 | `~/projects/football-blog/CLAUDE.md` |
 | 쇼츠 제작 규칙 | `~/projects/my-shorts/CLAUDE.md` |
 | 위키 스키마 (인제스트·린트·볼트 업데이트) | `~/second-brain/CLAUDE.md` (iCloud 볼트) |

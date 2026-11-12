@@ -84,4 +84,4 @@ football:
     content: 측정 · 쇼츠 형식 선택
     tables: [yt_stats, yt_competitors]
 
-# 글 계획(어떤 글이 어떤 데이터를 쓰나)은 여기 없다 — 엔진의 `blog-engine/brands/rentailor/content_plan.yaml`이 원본이고, engines.yaml의 data.<사업>.content_plan으로 읽는다.
+# 글 계획(어떤 글이 어떤 데이터를 쓰나)은 여기 없다 — 엔진의 `content-engine/brands/rentailor/content_plan.yaml`이 원본이고, engines.yaml의 data.<사업>.content_plan으로 읽는다.

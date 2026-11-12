@@ -22,7 +22,7 @@ from pathlib import Path
 
 PORT = 8787
 PUBLIC = Path(__file__).resolve().parent / "public"
-RUN = Path.home() / "projects/blog-engine/run.py"
+RUN = Path.home() / "projects/content-engine/run.py"
 BUILD = Path(__file__).resolve().parent / "build.py"
 CHECK = {"kind": re.compile(r"^(topic|candidate|wp)$"), "do": re.compile(r"^(publish|delete|pick|dismiss)$"),
          "id": re.compile(r"^([0-9a-f-]{36}|\d{1,9})?$"), "date": re.compile(r"^(\d{4}-\d{2}-\d{2})?$"), "code": re.compile(r"^(B\d{1,2})?$")}
@@ -57,7 +57,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_POST(self):
-        """Dashboard buttons → `run.py rentailor dash-action` only (all writes and guards live in blog-engine)."""
+        """Dashboard buttons → `run.py rentailor dash-action` only (all writes and guards live in content-engine)."""
         if self.path != "/api/action":
             return self.reply(404, {"ok": False, "msg": "없는 주소"})
         if self.headers.get("X-Dashboard") != "1" or self.headers.get("Origin") != f"http://{self.headers.get('Host')}":
