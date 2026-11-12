@@ -15,8 +15,8 @@
 #   daily  -> system_YYYYMMDD.tar.zst : ~/projects code/docs (no _data, no node_modules/.next/venv, NO secrets),
 #             Claude settings+memory, LaunchAgents, dotfiles, manifests (Brewfile, crontab, git repo states,
 #             venv requirements, secret file NAMES). Restore guide: RESTORE.md in the iCloud folder.
-#   daily  -> Supabase (site DB) read-only pg_dump -> _data/rentailor/backups/auto/supabase/ (14 kept), then into data_
-#             (temporary read-only login role from the Management API; no stored DB password)
+#   daily  -> Supabase (site DB) read-only REST export (supabase_rest_export.py) -> _data/rentailor/backups/auto/
+#             supabase/YYYY-MM-DD/ (14 kept), then into data_
 #   daily  -> secrets_YYYYMMDD.tar.zst.enc : .env files, ~/.cadam-secrets, ~/.ssh, .zshrc, keys/cookies — AES-256
 #             encrypted with the owner's passphrase (keychain item icloud-backup-secrets). Keep 7.
 # Keep: data/system = 7 newest + 4 newest Sunday archives; media = 4 newest.
@@ -155,56 +155,27 @@ run_system() {
 }
 
 run_supabase() {
-  # Owner-approved 2026-11-13: daily READ-ONLY pg_dump of the production Supabase DB (the Rentailor site DB),
-  # because the free plan gives no downloadable backup. No DB password is stored anywhere: each run asks the
-  # Management API (SUPABASE_ACCESS_TOKEN in ~/.cadam-secrets/secrets.env) for a temporary CLI login role
-  # (300s TTL — the same mechanism `supabase db dump` uses), connects with default_transaction_read_only=on
-  # (owner-approved 2026-11-13), dumps through the session pooler, then deletes the role. Dumps land in _data/rentailor/backups/auto/supabase/ (14 kept).
-  local dir="$WH/rentailor/backups/auto/supabase" out tmp
-  mkdir -p "$dir"; out="$dir/supabase-$(date +%F).dump"; tmp="$out.partial"
-  ( set -a; source "$HOME/.cadam-secrets/secrets.env" >/dev/null 2>&1; set +a
-    /usr/bin/python3 - "$tmp" <<'PY'
-import os, sys, json, subprocess, urllib.request
-ref, tok = os.environ.get("SUPABASE_PROJECT_REF", ""), os.environ.get("SUPABASE_ACCESS_TOKEN", "")
-if not ref or not tok: sys.exit("missing SUPABASE_PROJECT_REF/ACCESS_TOKEN")
-api = f"https://api.supabase.com/v1/projects/{ref}"
-def call(method, path, body=None):
-    r = urllib.request.Request(api + path, method=method, headers={"Authorization": "Bearer " + tok,
-        "Content-Type": "application/json", "User-Agent": "solo-backup"}, data=json.dumps(body).encode() if body is not None else None)
-    with urllib.request.urlopen(r, timeout=30) as f: t = f.read(); return json.loads(t) if t else {}
-pool = call("GET", "/config/database/pooler"); pool = pool[0] if isinstance(pool, list) else pool
-# Owner decision 2026-11-13: the read-only role cannot read locked-down tables (consultations, ...), so use the
-# normal CLI login role (300s TTL, deleted after) but force every transaction read-only; pg_dump only reads.
-role = call("POST", "/cli/login-role", {"read_only": False})
-try:
-    env = dict(os.environ, PGHOST=pool["db_host"], PGPORT="5432", PGUSER=f'{role["role"]}.{ref}', PGPASSWORD=role["password"],
-               PGDATABASE="postgres", PGSSLMODE="require", PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
-    # Only the public schema: every site table lives there (no custom schemas in migrations or site code,
-    # checked 2026-11-13). Supabase-managed schemas (auth, storage, ...) are locked even for the CLI login role.
-    args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-n", "public", "-f", sys.argv[1]]
-    # a fresh login role needs a few seconds to reach the pooler ("password authentication failed") — retry
-    import time
-    for attempt in range(10):
-        time.sleep(3 if attempt == 0 else 5)
-        p = subprocess.run(args, env=env, stderr=subprocess.PIPE, text=True)
-        rc = p.returncode
-        if rc == 0 or not any(m in p.stderr for m in ("password authentication failed", "Network is unreachable", "timeout expired")): break
-        print(f"pg_dump connect not ready ({p.stderr.strip().splitlines()[0][:120] if p.stderr.strip() else rc}), retry {attempt + 1}", file=sys.stderr)
-    if rc != 0: sys.stderr.write(p.stderr)
-finally:
-    try: call("DELETE", "/cli/login-role")
-    except Exception as e: print("login-role delete failed:", e, file=sys.stderr)
-sys.exit(rc)
-PY
-  ) 2>>"$LOG"
+  # Owner-approved 2026-11-13: daily READ-ONLY export of the production Supabase public tables (Rentailor site DB),
+  # because the free plan gives no downloadable backup. pg_dump was tried first, but even the temporary CLI login
+  # roles cannot read locked-down tables (consultations), so supabase_rest_export.py reads every table over the
+  # REST API with the site's service-role key (GET only) -> one dated folder of <table>.jsonl.gz + openapi.json.
+  # Lands in _data/rentailor/backups/auto/supabase/YYYY-MM-DD/ (14 kept) so the data archive carries it to iCloud.
+  local dir="$WH/rentailor/backups/auto/supabase" out res
+  out="$dir/$(date +%F)"; mkdir -p "$dir"
+  [ -d "$out.partial" ] && { find "$out.partial" -type f -delete; rmdir "$out.partial"; }
+  res=$( set -a; source "$HOME/.cadam-secrets/secrets.env" >/dev/null 2>&1; set +a
+         /usr/bin/python3 "$HOME/projects/_meta/scripts/supabase_rest_export.py" "$out.partial" 2>>"$LOG" )
   local rc=$?
-  if [ $rc -ne 0 ] || ! pg_restore -l "$tmp" >/dev/null 2>&1; then
-    rm -f "$tmp"; SB_MSG="❌ Supabase 백업 실패(rc $rc)"; SB_FAIL=1; log "supabase FAIL rc=$rc"; return; fi
-  mv -f "$tmp" "$out"
-  local tables; tables=$(pg_restore -l "$out" | grep -c ' TABLE DATA ')
-  ls -1 "$dir"/supabase-*.dump 2>/dev/null | sort -r | tail -n +15 | while IFS= read -r f; do rm -f "$f"; log "pruned $(basename "$f")"; done
-  SB_MSG="Supabase DB $(du -h "$out" | cut -f1) · 표 ${tables}개"
-  log "supabase ok: $out ($tables tables with data)"
+  if [ $rc -ne 0 ]; then
+    SB_MSG="❌ Supabase 백업 실패($res)"; SB_FAIL=1; log "supabase FAIL rc=$rc $res"
+    [ -d "$out.partial" ] && { find "$out.partial" -type f -delete; rmdir "$out.partial"; }
+    return; fi
+  [ -d "$out" ] && { find "$out" -type f -delete; rmdir "$out"; }
+  mv "$out.partial" "$out"
+  ls -1d "$dir"/20??-??-?? 2>/dev/null | sort -r | tail -n +15 | while IFS= read -r d; do
+    find "$d" -type f -delete; rmdir "$d"; log "pruned supabase $(basename "$d")"; done
+  SB_MSG="Supabase DB $(du -sh "$out" | cut -f1) · $(echo "$res" | sed -E 's/tables=([0-9]+) rows=([0-9]+).*/표 \1개 · \2행/')"
+  log "supabase ok: $out ($res)"
 }
 
 run_secrets() {
