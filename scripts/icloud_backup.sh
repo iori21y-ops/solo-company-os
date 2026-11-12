@@ -157,9 +157,9 @@ run_system() {
 run_supabase() {
   # Owner-approved 2026-11-13: daily READ-ONLY pg_dump of the production Supabase DB (the Rentailor site DB),
   # because the free plan gives no downloadable backup. No DB password is stored anywhere: each run asks the
-  # Management API (SUPABASE_ACCESS_TOKEN in ~/.cadam-secrets/secrets.env) for a temporary READ-ONLY login role
-  # (cli_login_supabase_read_only_user, 300s TTL — the same mechanism the Supabase CLI uses), dumps through the
-  # session pooler, then deletes the role. Dumps land in _data/rentailor/backups/auto/supabase/ (14 kept).
+  # Management API (SUPABASE_ACCESS_TOKEN in ~/.cadam-secrets/secrets.env) for a temporary CLI login role
+  # (300s TTL — the same mechanism `supabase db dump` uses), connects with default_transaction_read_only=on
+  # (owner-approved 2026-11-13), dumps through the session pooler, then deletes the role. Dumps land in _data/rentailor/backups/auto/supabase/ (14 kept).
   local dir="$WH/rentailor/backups/auto/supabase" out tmp
   mkdir -p "$dir"; out="$dir/supabase-$(date +%F).dump"; tmp="$out.partial"
   ( set -a; source "$HOME/.cadam-secrets/secrets.env" >/dev/null 2>&1; set +a
@@ -173,14 +173,15 @@ def call(method, path, body=None):
         "Content-Type": "application/json", "User-Agent": "solo-backup"}, data=json.dumps(body).encode() if body is not None else None)
     with urllib.request.urlopen(r, timeout=30) as f: t = f.read(); return json.loads(t) if t else {}
 pool = call("GET", "/config/database/pooler"); pool = pool[0] if isinstance(pool, list) else pool
-role = call("POST", "/cli/login-role", {"read_only": True})
+# Owner decision 2026-11-13: the read-only role cannot read locked-down tables (consultations, ...), so use the
+# normal CLI login role (300s TTL, deleted after) but force every transaction read-only; pg_dump only reads.
+role = call("POST", "/cli/login-role", {"read_only": False})
 try:
     env = dict(os.environ, PGHOST=pool["db_host"], PGPORT="5432", PGUSER=f'{role["role"]}.{ref}', PGPASSWORD=role["password"],
                PGDATABASE="postgres", PGSSLMODE="require", PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
-    # the read-only role cannot read Supabase-managed schemas (auth = login accounts, storage, vault, ...);
-    # skip them — the site's own tables live in public (and any custom schema), which are dumped.
-    skip = ["auth", "storage", "vault", "realtime", "supabase_functions", "supabase_migrations", "pgsodium",
-            "pgsodium_masks", "net", "cron", "graphql", "graphql_public", "pgbouncer", "_realtime", "_analytics"]
+    # Supabase-internal schemas that are recreated by the platform; auth (logins) and storage ARE dumped.
+    skip = ["vault", "realtime", "supabase_functions", "pgsodium", "pgsodium_masks", "net", "cron",
+            "graphql", "graphql_public", "pgbouncer", "_realtime", "_analytics"]
     args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]] + [a for n in skip for a in ("-N", n)]
     # a fresh login role needs a few seconds to reach the pooler ("password authentication failed") — retry
     import time
