@@ -19,7 +19,7 @@ engines:
         business: ~/projects/football-blog
         facts_cli: ~/projects/football-blog/facts_cli.py
         registry: ~/projects/football-blog/docs/data-registry.md
-        health_state: [~/projects/football-blog/data/health/state.json, ~/projects/_data/football/work/blog-engine/health.json]   # collection·Shorts / writing (REN-134)
+        health_state: [~/projects/_data/football/work/football-blog/health/state.json, ~/projects/_data/football/work/blog-engine/health.json]   # collection·Shorts / writing (REN-134)
         outbox: ~/projects/_data/football/work/blog-engine    # engine work files (data warehouse)
         job_patterns: ["football-blog/run.py", "blog-engine/run.py football", "football-blog/tools"]
   - id: shorts
@@ -61,12 +61,13 @@ data:
     name: 해외파 리포트 (football-blog)
     tab: 해외파 데이터
     kind: football
-    store: SQLite `football-blog/data/warehouse.sqlite3` (경기·기록) + `articles.sqlite3` (기사 제목·링크)
+    store: SQLite `_data/football/work/football-blog/warehouse.sqlite3` (경기·기록) + `articles.sqlite3` (기사 제목·링크)
     registry: ~/projects/football-blog/docs/data-registry.md
-    warehouse: ~/projects/football-blog/data/warehouse.sqlite3
-    articles: ~/projects/football-blog/data/articles.sqlite3
-    datacheck: ~/projects/football-blog/data/health/datacheck.json
-    data_dir: ~/projects/football-blog/data
+    warehouse: ~/projects/_data/football/work/football-blog/warehouse.sqlite3
+    articles: ~/projects/_data/football/work/football-blog/articles.sqlite3
+    datacheck: ~/projects/_data/football/work/football-blog/health/datacheck.json
+    data_dir: ~/projects/_data/football/work/football-blog   # data warehouse (2026-11-13): entities etc.
+    media_dir: ~/projects/_data/football/media/football-blog  # insta photo store (was data/media)
     usage:
       블로그 글(엔진): [~/projects/blog-engine/brands/football]
       글 배경 자료(창구): [~/projects/football-blog/football/brain.py, ~/projects/football-blog/football/insights.py, ~/projects/football-blog/football/fdorg.py, ~/projects/football-blog/football/warehouse.py, ~/projects/football-blog/football/topics.py]

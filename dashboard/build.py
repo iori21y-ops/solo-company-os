@@ -745,9 +745,10 @@ def football_rows(d: dict, jobs: list[dict]) -> tuple[list, dict, str]:
                          "problem": "; ".join(bad)[:160], "blog": None, "blog_note": "", "site": [], "uses": used_by(name, texts, True)})
     aux = [[f"<code>{esc(n)}</code>", f"{c:,}", use_chips(used_by(n, texts, True)) or '<span class="muted">-</span>'] for n, c in sorted(live.items()) if n not in seen]
     dd = P(d["data_dir"])
+    md = P(d.get("media_dir") or d["data_dir"] + "/media")   # photos live in the media folder of the data warehouse (2026-11-13)
     files = [["기사 제목·요약·링크 (RSS)", f"<code>{esc(short(P(d['articles'])))}</code>", f"{art[0]:,}건 · 최신 {esc(str(art[1])[:16].replace('T', ' '))}" if art[0] is not None else esc(art[1]), "매일 07:40 morning (수집) → 글감 순위"],
              ["선수·구단 페이지 (brain)", f"<code>{esc(short(dd / 'entities'))}/</code>", f"{sum(1 for _ in (dd / 'entities').glob('*.json')):,}개", "월요일 06:10 brain → 초안 배경 자료·내부 링크"],
-             ["공식 인스타 사진 창고", f"<code>{esc(short(dd / 'media/insta'))}/</code>", f"사진 목록 {len(read_json(dd / 'media/insta/index.json', []) or []):,}장 · {esc(day(mtime(dd / 'media/insta/index.json')))}", "매일 07:00 data → 썸네일·본문 사진"]]
+             ["공식 인스타 사진 창고", f"<code>{esc(short(md / 'insta'))}/</code>", f"사진 목록 {len(read_json(md / 'insta/index.json', []) or []):,}장 · {esc(day(mtime(md / 'insta/index.json')))}", "매일 07:00 data → 썸네일·본문 사진"]]
     meta = {"note": f'저장: {md_inline(d.get("store", ""))} · 품질 점검: {esc((chk.get("at") or "")[:16].replace("T", " "))} ({esc(chk.get("level", ""))}) 문제 {len(probs)}건 · 목록 원본 <code>{esc(short(P(d["registry"])))}</code>'
                     ' · 표별 "최신 자료 날짜"는 이 목록에 없어 점검 통과 여부만 표시'}
     extra = ("<h3>표가 아닌 자료</h3>" + table(["자료", "위치", "분량·최신", "언제·어디에"], files)
