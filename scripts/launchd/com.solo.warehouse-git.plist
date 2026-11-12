@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.solo.warehouse-git</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/kim/projects/_meta/scripts/warehouse_git_sync.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Weekday</key><integer>0</integer><key>Hour</key><integer>4</integer><key>Minute</key><integer>20</integer></dict>
+  <key>StandardOutPath</key><string>/Users/kim/projects/_data/shared/work/warehouse-git/launchd.log</string>
+  <key>StandardErrorPath</key><string>/Users/kim/projects/_data/shared/work/warehouse-git/launchd.log</string>
+</dict>
+</plist>
