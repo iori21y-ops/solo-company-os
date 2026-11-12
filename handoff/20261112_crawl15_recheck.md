@@ -3,6 +3,18 @@
 사용자 지시(11/12): "15일 하는 정기수집을 지금 진행하고 빠진 부분을 다시 점검하자"
 이전 작업: ~/projects/_meta/handoff/20261112_car_db_gaps.md (§4), 결과 ~/projects/cadam/docs/reports/car_db_gaps_result_20261112.md
 
+## 00. 수집 전에 먼저 만들 것 (사용자 결정 11/12: "새 세션에서 1·2 먼저")
+배경: color_config 가 이미 올린 사진은 건너뛰게 바뀜(collectors 02fb9bd). 그 대가로 "제조사가 같은 주소의 사진을 바꾼 경우·
+업로드가 깨진 경우"가 다시 올라가지 않음. 또 매칭 실수·처리 실수(배경 제거 실패 등)는 예전에도 아무도 확인하지 않았음.
+1. **원본 변경 감지** (color_config.py, 가능하면 option_media_sync 도 같은 방식): 제조사 사진 주소에 HEAD 요청 →
+   ETag/Last-Modified/Content-Length 를 로컬 색인(data/ 아래 json, git 제외 여부 확인)에 기록. 지난 값과 다르면 그 사진만
+   다시 받아 올림(같은 경로 x-upsert). HEAD 는 제조사 서버로만 가니 Supabase 사용량 없음. 첫 실행은 색인만 채우고 재업로드 0.
+   HEAD 를 안 주는 서버는 건너뛰고 보고(무작정 재업로드 금지).
+2. **눈으로 보는 확인표**: 정기수집 뒤 '이번에 새로 올라가거나 바뀐' 칩·색상 사진·옵션 사진만 차종별로 한 장(PNG 접촉 시트:
+   사진 + DB 색/옵션 이름 + 구성기 이름)으로 → docs/reports/ 에 저장, SendUserFile 로 사용자에게 보여줌. run_monthly.sh 끝에
+   자동 생성 단계로 넣는 것까지(실패해도 수집은 성공 처리). 매칭·처리 실수는 코드가 못 알아채니 이것이 유일한 검사.
+1·2 dry-run 확인 → 커밋(collectors push는 보류 결정 유지) → 그다음 §0 정기수집.
+
 ## 0. 실행 전 확인 (먼저 사용자에게 한 줄 확인받을 것)
 - 수집 스크립트: `collectors/price_crawler/run_monthly.sh` (launchd 매일 02:00, 1~14일·15일~ 각 1회). 지금은
   `data/monthly_hold_until` = 2026-11-21 로 **보류 중** → 수동 실행은 `run_monthly.sh --force` (보류·완료표시 무시).
