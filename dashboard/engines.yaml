@@ -25,7 +25,7 @@ engines:
   - id: shorts
     name: 쇼츠 엔진
     status: planned
-    summary: 예정 — 쇼츠 기획·제작·업로드(렌테일러 my-shorts, 해외파 shorts-lab)를 같은 모양으로 묶을 계획.
+    summary: 예정 — 쇼츠 기획·제작·업로드(렌테일러 my-shorts, 해외파 shorts-lab)를 같은 모양으로 묶을 계획. 11-13 두 자동 제작기 코드를 content-engine/brands/<브랜드>/video 로 옮김(공통부 합치기는 다음 단계).
     will_show: [브랜드별 채널·보류 스위치, 기획 규칙(plan_rules), 제작·업로드 이력, 예약 작업, 조회·유지율 수집 상태]
   - id: video
     name: 영상 엔진
@@ -53,7 +53,7 @@ data:
     usage:
       블로그 글감·사실 묶음: [~/projects/cadam/cadam-pipeline/scripts/content]
       블로그 글쓰기(엔진): [~/projects/content-engine/brands/rentailor]
-      쇼츠: [~/projects/my-shorts]
+      쇼츠: [~/projects/my-shorts/pipeline, ~/projects/content-engine/brands/rentailor/video]   # datashorts moved into the engine 2026-11-13
       분석·유입: [~/projects/cadam/cadam-pipeline/scripts/analysis, ~/projects/cadam/cadam-pipeline/scripts/growth]
       창고 파생표 만들기: [~/projects/cadam/cadam-pipeline/scripts/maintenance]
       사이트 API(파이프라인 서버): [~/projects/cadam/cadam-pipeline/scripts/api_server.py]
@@ -71,6 +71,6 @@ data:
     usage:
       블로그 글(엔진): [~/projects/content-engine/brands/football]
       글 배경 자료(창구): [~/projects/football-blog/football/brain.py, ~/projects/football-blog/football/insights.py, ~/projects/football-blog/football/fdorg.py, ~/projects/football-blog/football/warehouse.py, ~/projects/football-blog/football/topics.py]
-      쇼츠: [~/projects/football-blog/shorts-lab, ~/projects/football-blog/football/shortsflow.py, ~/projects/football-blog/football/matchreview.py]
+      쇼츠: [~/projects/content-engine/brands/football/video, ~/projects/football-blog/football/shortsflow.py, ~/projects/football-blog/football/matchreview.py]
       영상: [~/projects/football-blog/football/video.py]
       통일표·점검(내부): [~/projects/football-blog/football/ids.py, ~/projects/football-blog/football/metrics.py]
