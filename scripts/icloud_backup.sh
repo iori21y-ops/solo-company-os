@@ -182,7 +182,15 @@ try:
     skip = ["auth", "storage", "vault", "realtime", "supabase_functions", "supabase_migrations", "pgsodium",
             "pgsodium_masks", "net", "cron", "graphql", "graphql_public", "pgbouncer", "_realtime", "_analytics"]
     args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]] + [a for n in skip for a in ("-N", n)]
-    rc = subprocess.call(args, env=env)
+    # a fresh login role needs a few seconds to reach the pooler ("password authentication failed") — retry
+    import time
+    for attempt in range(6):
+        time.sleep(3 if attempt == 0 else 5)
+        p = subprocess.run(args, env=env, stderr=subprocess.PIPE, text=True)
+        rc = p.returncode
+        if rc == 0 or "password authentication failed" not in p.stderr: break
+        print(f"pg_dump auth not ready, retry {attempt + 1}", file=sys.stderr)
+    if rc != 0: sys.stderr.write(p.stderr)
 finally:
     try: call("DELETE", "/cli/login-role")
     except Exception as e: print("login-role delete failed:", e, file=sys.stderr)
