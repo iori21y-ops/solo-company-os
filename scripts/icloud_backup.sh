@@ -15,6 +15,8 @@
 #   daily  -> system_YYYYMMDD.tar.zst : ~/projects code/docs (no _data, no node_modules/.next/venv, NO secrets),
 #             Claude settings+memory, LaunchAgents, dotfiles, manifests (Brewfile, crontab, git repo states,
 #             venv requirements, secret file NAMES). Restore guide: RESTORE.md in the iCloud folder.
+#   daily  -> secrets_YYYYMMDD.tar.zst.enc : .env files, ~/.cadam-secrets, ~/.ssh, .zshrc, keys/cookies — AES-256
+#             encrypted with the owner's passphrase (keychain item icloud-backup-secrets). Keep 7.
 # Keep: data/system = 7 newest + 4 newest Sunday archives; media = 4 newest.
 # launchd: com.solo.icloud-backup (daily 01:30). Discord message on success and on failure.
 # Restore: cd <dest> && zstd -dc data_YYYYMMDD.tar.zst | tar -xf -   /   tar -xf media_YYYYMMDD.tar
@@ -27,7 +29,7 @@ STATE="$WH/shared/work/icloud-backup"
 SNAP="$STATE/sqlite-snapshot"
 LOG="$STATE/backup.log"
 TODAY=$(date +%Y%m%d)
-MODE="${1:-auto}"   # auto | data | system | media | all
+MODE="${1:-auto}"   # auto | data | system | secrets | media | all
 
 mkdir -p "$STATE" "$SNAP" "$DEST"
 log() { echo "$(date '+%F %T') $*" >> "$LOG"; }
@@ -150,6 +152,33 @@ run_system() {
   log "system ok: $out ($cnt entries, tar rc=${rc[0]})"
 }
 
+run_secrets() {
+  # Owner-approved exception 2026-11-13 (SAFETY_RULES §7): secret files go to iCloud ONLY as an archive encrypted
+  # with a passphrase the owner chose. The passphrase lives in the login keychain (service icloud-backup-secrets),
+  # put there by the owner; it is passed to openssl on a file descriptor, never on disk, argv or env.
+  if ! security find-generic-password -a "$USER" -s icloud-backup-secrets >/dev/null 2>&1; then
+    SEC_MSG="⚠️ 비밀 파일 백업 건너뜀(키체인에 암호 없음)"; log "secrets skipped: no keychain passphrase"; return; fi
+  local list="$STATE/.secret-list"
+  { [ -d "$HOME/.cadam-secrets" ] && echo ".cadam-secrets"
+    [ -d "$HOME/.ssh" ] && echo ".ssh"
+    [ -f "$HOME/.zshrc" ] && echo ".zshrc"
+    find "$HOME/projects" -path "$HOME/projects/_data" -prune -o \( -name node_modules -o -name .next -o -name .venv -o -name venv \) -prune -o \
+      -type f \( "${SECRET_FIND[@]}" \) -print 2>/dev/null | sed "s#^$HOME/##"; } > "$list"
+  local out="$DEST/secrets_$TODAY.tar.zst.enc" tmp="$DEST/.secrets_$TODAY.partial"
+  tar -C "$HOME" -cf - --exclude ".ssh/agent" -T "$list" 2>>"$LOG" | zstd -q -T0 -9 | \
+    openssl enc -aes-256-cbc -pbkdf2 -iter 600000 -salt -pass fd:3 -out "$tmp" \
+      3< <(security find-generic-password -a "$USER" -s icloud-backup-secrets -w)
+  local rc=("${PIPESTATUS[@]}")
+  [ "${rc[2]}" -eq 0 ] && [ -s "$tmp" ] || { rm -f "$tmp"; fail "비밀 파일 암호화 실패"; }
+  # verify: decrypt with the same passphrase and count entries
+  local cnt; cnt=$(openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -pass fd:3 -in "$tmp" \
+      3< <(security find-generic-password -a "$USER" -s icloud-backup-secrets -w) | zstd -dc | tar -tf - | wc -l | tr -d ' ')
+  [ "${cnt:-0}" -gt 5 ] || { rm -f "$tmp"; fail "비밀 파일 묶음 검증 실패 (항목 ${cnt:-0}개)"; }
+  mv -f "$tmp" "$out"; rm -f "$list"
+  SEC_MSG="secrets(암호화) 파일 ${cnt}개"
+  log "secrets ok: $out ($cnt entries)"
+}
+
 # Regenerable or secret paths left out of the system archive (bsdtar patterns match any path component).
 SYS_EXCLUDES=(--exclude node_modules --exclude .next --exclude .next-prev --exclude .venv --exclude venv --exclude __pycache__
   --exclude .turbo --exclude .cache --exclude .DS_Store --exclude '*.pyc'
@@ -177,23 +206,25 @@ prune_daily() {
 }
 prune() {
   prune_daily data; prune_daily system
+  ls -1 "$DEST"/secrets_*.tar.zst.enc 2>/dev/null | sort -r | tail -n +8 | while IFS= read -r f; do rm -f "$f"; log "pruned $(basename "$f")"; done
   ls -1 "$DEST"/media_*.tar 2>/dev/null | sort -r | tail -n +5 | while IFS= read -r f; do rm -f "$f"; log "pruned $(basename "$f")"; done
 }
 
 cp -f "$HOME/projects/_meta/scripts/icloud_backup_RESTORE.md" "$DEST/RESTORE.md" 2>/dev/null
 log "start mode=$MODE free=$(free_gb)GB"
-DATA_MSG=""; MEDIA_MSG=""; SYS_MSG=""
+DATA_MSG=""; MEDIA_MSG=""; SYS_MSG=""; SEC_MSG=""
 case "$MODE" in
   data)   run_data ;;
   media)  run_media ;;
   system) run_system ;;
-  all)    run_data; run_system; run_media ;;
-  auto)   run_data; run_system
+  secrets) run_secrets ;;
+  all)    run_data; run_system; run_secrets; run_media ;;
+  auto)   run_data; run_system; run_secrets
          if [ "$(date +%u)" = "6" ] || ! ls "$DEST"/media_*.tar >/dev/null 2>&1; then run_media; fi ;;
   *) fail "알 수 없는 모드 $MODE" ;;
 esac
 prune
 TOTAL=$(du -sh "$DEST" | cut -f1)
 log "done (iCloud folder $TOTAL)"
-notify "✅ iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
+notify "✅ iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${SEC_MSG:+ / $SEC_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
 exit 0
