@@ -865,11 +865,11 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
             f'<div class="stats"><div><b>{len(rows)}</b><span>데이터 묶음</span></div><div><b>{c["ok"]}</b><span>정상</span></div><div><b>{c["warn"] + c["bad"]}</b><span>주의·문제</span></div>'
             f'<div><b>{c["none"]}</b><span>점검 대상 아님</span></div><div><b>{len(idle)}</b><span>읽는 코드 없음</span></div>'
             + (f'<div><b>{len(idle_noplan)}</b><span>그중 계획된 콘텐츠도 없음</span></div>' if items else "")
-            + f'<div><b>{len(loose)}</b><span>미분류</span></div></div>'
+            + f'<div><b>{len(loose)}</b><span>카테고리 없음</span></div></div>'
             + '<div class="card watch"><h3>지금 봐야 할 것</h3>' + ("<ul>" + "".join(f"<li>{w}</li>" for w in watch[:12]) + "</ul>" if watch else '<p class="muted">없음 — 점검에 걸린 데이터와 멈춘 수집기가 없습니다.</p>') + "</div>"
             + f'<input class="filter" data-for="p-data-{esc(d["id"])}" placeholder="데이터 이름·표·수집기·글 제목으로 걸러 보기 (자세히 표가 열립니다)">')
     cards, sections = [], []
-    for cdef in cats + ([{"id": "loose", "name": "미분류", "desc": "카테고리가 정해지지 않은 데이터. ERP 데이터 관리에서 표의 카테고리를 정하면 여기서 빠집니다."}] if loose else []):
+    for cdef in cats + ([{"id": "loose", "name": "카테고리 없음", "desc": "카테고리가 정해지지 않은 데이터. ERP 데이터 관리에서 표의 카테고리를 정하면 여기서 빠집니다."}] if loose else []):
         rs = loose if cdef["id"] == "loose" else groups[cdef["id"]]
         if not rs:
             continue
