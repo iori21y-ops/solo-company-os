@@ -179,13 +179,14 @@ role = call("POST", "/cli/login-role", {"read_only": False})
 try:
     env = dict(os.environ, PGHOST=pool["db_host"], PGPORT="5432", PGUSER=f'{role["role"]}.{ref}', PGPASSWORD=role["password"],
                PGDATABASE="postgres", PGSSLMODE="require", PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
-    # Supabase-internal schemas that are recreated by the platform; auth (logins) and storage ARE dumped.
-    skip = ["vault", "realtime", "supabase_functions", "pgsodium", "pgsodium_masks", "net", "cron",
+    # Supabase-internal schemas recreated by the platform. auth is skipped too: even the CLI login role has no
+    # rights on it (only the admin login uses Supabase auth — admin accounts are re-created by hand).
+    skip = ["auth", "vault", "realtime", "supabase_functions", "pgsodium", "pgsodium_masks", "net", "cron",
             "graphql", "graphql_public", "pgbouncer", "_realtime", "_analytics"]
     args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]] + [a for n in skip for a in ("-N", n)]
     # a fresh login role needs a few seconds to reach the pooler ("password authentication failed") — retry
     import time
-    for attempt in range(6):
+    for attempt in range(10):
         time.sleep(3 if attempt == 0 else 5)
         p = subprocess.run(args, env=env, stderr=subprocess.PIPE, text=True)
         rc = p.returncode
