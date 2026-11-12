@@ -188,8 +188,8 @@ try:
         time.sleep(3 if attempt == 0 else 5)
         p = subprocess.run(args, env=env, stderr=subprocess.PIPE, text=True)
         rc = p.returncode
-        if rc == 0 or "password authentication failed" not in p.stderr: break
-        print(f"pg_dump auth not ready, retry {attempt + 1}", file=sys.stderr)
+        if rc == 0 or not any(m in p.stderr for m in ("password authentication failed", "Network is unreachable", "timeout expired")): break
+        print(f"pg_dump connect not ready ({p.stderr.strip().splitlines()[0][:120] if p.stderr.strip() else rc}), retry {attempt + 1}", file=sys.stderr)
     if rc != 0: sys.stderr.write(p.stderr)
 finally:
     try: call("DELETE", "/cli/login-role")
