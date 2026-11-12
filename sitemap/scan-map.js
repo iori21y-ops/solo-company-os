@@ -27,8 +27,8 @@ const INFRA_LATEST = path.join(OUT_DIR, 'scan-infra-latest.json');
 const INFRA_BASELINE = path.join(OUT_DIR, 'scan-infra-baseline.json');
 
 const TARGETS = [
-  { root: path.join(HOME, 'projects/cadam/cadam-web/src/app'), pagePrefix: 'web',  apiPrefix: 'web-api' },
-  { root: path.join(HOME, 'projects/cadam/cadam-erp/src/app'), pagePrefix: 'erp',  apiPrefix: 'erp-api' },
+  { root: path.join(HOME, 'projects/web-engine/cadam-web/src/app'), pagePrefix: 'web',  apiPrefix: 'web-api' },
+  { root: path.join(HOME, 'projects/web-engine/cadam-erp/src/app'), pagePrefix: 'erp',  apiPrefix: 'erp-api' },
 ];
 
 // 알림 대상 Discord 채널 (사이트맵 변화 알림). 봇 토큰은 브로커와 동일한 DISCORD_BOT_TOKEN 재사용.

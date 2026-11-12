@@ -78,11 +78,11 @@ status_words:
 # ── 코드 점검 (2026-11-11 추가, REN-158) ─────────────────────────────
 # 문서뿐 아니라 코드·예약 작업 설정에 남은 옛 경로·주소도 찾는다(링크를 지우기 전에 미리 잡기 위해).
 code:
-  - ~/projects/cadam/cadam-erp/src/**/*.ts
-  - ~/projects/cadam/cadam-erp/src/**/*.tsx
-  - ~/projects/cadam/cadam-erp/scripts/**/*.sh
-  - ~/projects/cadam/cadam-web/src/**/*.ts
-  - ~/projects/cadam/cadam-web/src/**/*.tsx
+  - ~/projects/web-engine/cadam-erp/src/**/*.ts
+  - ~/projects/web-engine/cadam-erp/src/**/*.tsx
+  - ~/projects/web-engine/cadam-erp/scripts/**/*.sh
+  - ~/projects/web-engine/cadam-web/src/**/*.ts
+  - ~/projects/web-engine/cadam-web/src/**/*.tsx
   - ~/projects/cadam/cadam-pipeline/scripts/**/*.py
   - ~/projects/cadam/cadam-pipeline/scripts/**/*.sh
   - ~/projects/cadam/collectors/**/*.py
