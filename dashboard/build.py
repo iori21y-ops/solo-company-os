@@ -290,9 +290,10 @@ def naver_states(outbox: Path) -> list:
     return out
 
 
-def rentailor_outbox(outbox: Path) -> dict:
-    """Naver posts of every kind (종합뉴스·심층·트래커·가이드·옛 단건), today's 종합뉴스 or today's candidates, trackers, work folders."""
-    mode = news_mode(outbox.parent)
+def rentailor_outbox(outbox: Path, bdir: Path) -> dict:
+    """Naver posts of every kind (종합뉴스·심층·트래커·가이드·옛 단건), today's 종합뉴스 or today's candidates, trackers, work folders.
+    outbox = the brand's work folder in the data warehouse, bdir = the brand's code folder (brand.yaml)."""
+    mode = news_mode(bdir)
     drafts = naver_states(outbox)
     rows = []
     for d in sorted(drafts, key=lambda d: d["_when"], reverse=True)[:20]:
@@ -367,7 +368,7 @@ def acts(kind: str, dos: list, note: str = "", **ids) -> str:
     return f'<span class="acts">{btns}</span>' + (f'<div class="small muted">{esc(note)}</div>' if note else "") if btns or note else '<span class="muted">-</span>'
 
 
-MERGED = P("~/projects/blog-engine/brands/rentailor/outbox/blog_refresh/redirects.json")
+MERGED = P("~/projects/_data/rentailor/work/blog-engine/blog_refresh/redirects.json")   # data warehouse (engine work files)
 
 
 def env_file(p: Path) -> dict:
@@ -398,7 +399,7 @@ def wp_date(s: str | None) -> str:
         return s[5:16].replace("T", " ")
 
 
-def wordpress_block(wp: dict, bdir: Path | None = None) -> tuple[str, dict]:
+def wordpress_block(wp: dict, bdir: Path | None = None, outbox: Path | None = None) -> tuple[str, dict]:
     """WordPress queue, read-only: data pages (car reference pages + tracker pages, owner 2026-11-12: WP = data pages only),
     drafts / review / scheduled posts on the site (WP REST) + the topic queue in Supabase (curated_topics).
     Credentials are read in place from the brand's env file and never written into the page."""
@@ -409,7 +410,7 @@ def wordpress_block(wp: dict, bdir: Path | None = None) -> tuple[str, dict]:
     digest = bool(bdir) and news_mode(bdir) == "digest"
     # 0) data pages: one fixed address each (car reference pages, trackers)
     if bdir:
-        pages = [("자료집 · " + (read_json(f, {}).get("title") or f.name[3:-9])[:30], f'{f.name[3:-9]}-trim-option-rent') for f in sorted((bdir / "outbox" / "deep" / "wp").glob("S1-*-ref.json"))]
+        pages = [("자료집 · " + (read_json(f, {}).get("title") or f.name[3:-9])[:30], f'{f.name[3:-9]}-trim-option-rent') for f in sorted((outbox / "deep" / "wp").glob("S1-*-ref.json"))] if outbox else []
         pages += [(f"트래커 · {n}", sl) for n, sl in TRACKERS.values()]
         try:
             base = env["WP_URL"].rstrip("/")
@@ -533,6 +534,12 @@ def compat_block(path: Path) -> tuple[str, int, int]:
     return (f'<p class="muted">{esc(head.group(0)) if head else ""} · 원본 <code>{esc(short(path))}</code></p>' + "".join(out)), total, overdue
 
 
+def brand_outbox(name: str, cfg: dict) -> Path:
+    """A brand's work files (drafts, states, candidates …): engines.yaml brands.<name>.outbox, else the data warehouse default
+    ~/projects/_data/<name>/work/blog-engine (same map as blog-engine engine.outbox; brands/<b>/outbox until 2026-11-13)."""
+    return P(cfg.get("outbox") or f"~/projects/_data/{name}/work/blog-engine")
+
+
 def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str]]:
     root = P(e["root"])
     brands_html, kpis, nav = [], [], []
@@ -540,7 +547,7 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
         name = bdir.parent.name
         b = yaml.safe_load(read(bdir)) or {}
         cfg = (e.get("brands") or {}).get(name, {})
-        outbox = bdir.parent / "outbox"
+        outbox = brand_outbox(name, cfg)
         holds, on = hold_cards(b)
         mine = [j for j in jobs if any(p in j["raw"] for p in cfg.get("job_patterns", []))]
         rules_html, n_rules = rules_block(bdir.parent / "rules")
@@ -554,7 +561,7 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
                     f'<div><b>{fp["week"]}</b><span>최근 7일 발행</span></div><div><b>{esc(fp["cand"][5:])}</b><span>마지막 글감 후보</span></div></div>' + fp["table"])
             kpis.append((b.get("display_name", name), f'최근 7일 발행 {fp["week"]}편', f'마지막 발행 {fp["last_pub"][5:16].replace("T", " ") or "-"}', "warn" if on else "ok", "발행 보류 중" if on else "진행 중"))
         elif outbox.exists():
-            ro = rentailor_outbox(outbox)
+            ro = rentailor_outbox(outbox, bdir.parent)
             last = (f'<div><b>{esc(ro["digest_today"])}</b><span>오늘 종합뉴스</span></div>' if ro["mode"] == "digest"
                     else f'<div><b>{esc(ro["cand"][5:])}</b><span>마지막 글감 후보</span></div>')
             work = (f'<div class="stats">{"".join(f"<div><b>{n}</b><span>네이버 {esc(STATUS_KO.get(s, s))}</span></div>" for s, n in ro["counts"].most_common())}'
@@ -563,7 +570,7 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
                          f'오늘 종합뉴스 {ro["digest_today"]}' if ro["mode"] == "digest" else f'마지막 글감 후보 {ro["cand"][5:]}', "warn" if on else "ok", "글쓰기 보류 중" if on else "진행 중"))
         wp = (b.get("publishers") or {}).get("wordpress")
         if wp and wp.get("env"):
-            wp_html, wk = wordpress_block(wp, bdir.parent)
+            wp_html, wk = wordpress_block(wp, bdir.parent, outbox)
             work += f'<details open class="wp"><summary>워드프레스 <span class="muted">({esc(wp.get("site", ""))})</span></summary>{wp_html}</details>'
             if wk:
                 kpis.append((f'{b.get("display_name", name)} 워드프레스', f'초안 {wk.get("draft", "-")} · 예약 {wk.get("future", "-")}',
@@ -581,7 +588,7 @@ def blog_engine(e: dict, jobs: list[dict], compat: tuple) -> tuple[str, list[str
     <div class="card"><h3>보류 스위치</h3>{holds}</div>
     <div class="card"><h3>채널·발행처</h3>{chans}{pubs}<div class="kv"><span>사업 프로젝트</span><span><code>{esc(short(P(b.get("project", cfg.get("business", "")))))}</code></span></div></div>
   </div>
-  <details open><summary>글 현황 <span class="muted">outbox/</span></summary>{work}</details>
+  <details open><summary>글 현황 <span class="muted"><code>{esc(short(outbox))}</code></span></summary>{work}</details>
   <details><summary>예약 작업 <span class="muted">({len(mine)}개)</span></summary>{jobs_table(mine, False)}{health_html}</details>
   <details><summary>규칙 <span class="muted">({n_rules}개 파일, <code>{esc(short(bdir.parent / "rules"))}</code>)</span></summary>{rules_html}</details>
   <details><summary>명령 <span class="muted">({len(b.get("commands") or {})}개)</span></summary>{cmds}</details>
@@ -942,7 +949,7 @@ def load_plan(path) -> list:
     for it in out:
         it["status"] = prog.get(it["id"], it["status"])
     items = out + list(d.get("items") or [])
-    live_progress(items, P(path).parent / "outbox")
+    live_progress(items, brand_outbox(P(path).parent.name, {}))
     return items
 
 

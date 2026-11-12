@@ -95,8 +95,8 @@ check_false_success(){
     fi
   fi
 }
-BK="$HOME/projects/cadam/backups/$TODAY"
-check_false_success "backup-cadam" "$HOME/projects/cadam/backups/backup.log" "백업 완료|백업 성공" "$BK"
+BK="$HOME/projects/_data/rentailor/backups/auto/$TODAY"   # data warehouse (was cadam/backups)
+check_false_success "backup-cadam" "$HOME/projects/_data/rentailor/backups/auto/backup.log" "백업 완료|백업 성공" "$BK"
 # 주의(v1 한계): secondbrain.ingest 는 "처리할 파일 없음"도 정상 완료라 산출물 mtime 기준선이 불안정.
 #   → ingest 는 A2에서 제외하고, "아예 안 돌았는지"는 A4(로그 정지)가 대신 커버한다. (성공기준선은 v2 과제)
 

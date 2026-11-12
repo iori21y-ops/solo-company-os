@@ -1,5 +1,5 @@
 # Engines shown on the dashboard (python3 build.py → index.html). One entry per engine; `status: planned` shows a placeholder tab.
-# kind: which reader in build.py fills the tab (blog-engine = brands/<brand>/brand.yaml, rules/, outbox/).
+# kind: which reader in build.py fills the tab (blog-engine = brands/<brand>/brand.yaml, rules/ + the brand's outbox in ~/projects/_data).
 engines:
   - id: blog
     name: 블로그 엔진
@@ -13,12 +13,14 @@ engines:
         facts_cli: ~/projects/cadam/cadam-pipeline/scripts/content/facts_cli.py
         registry: ~/projects/cadam/docs/data-registry.md
         registry_counts: ~/projects/cadam/docs/data-registry-counts.md
+        outbox: ~/projects/_data/rentailor/work/blog-engine   # engine work files (data warehouse)
         job_patterns: ["blog-engine/run.py rentailor", "blog-engine/publishers/naver", "blog-engine/brands/rentailor"]
       football:
         business: ~/projects/football-blog
         facts_cli: ~/projects/football-blog/facts_cli.py
         registry: ~/projects/football-blog/docs/data-registry.md
-        health_state: [~/projects/football-blog/data/health/state.json, ~/projects/blog-engine/brands/football/outbox/health.json]   # collection·Shorts / writing (REN-134)
+        health_state: [~/projects/football-blog/data/health/state.json, ~/projects/_data/football/work/blog-engine/health.json]   # collection·Shorts / writing (REN-134)
+        outbox: ~/projects/_data/football/work/blog-engine    # engine work files (data warehouse)
         job_patterns: ["football-blog/run.py", "blog-engine/run.py football", "football-blog/tools"]
   - id: shorts
     name: 쇼츠 엔진
@@ -44,7 +46,7 @@ data:
     kind: cadam
     store: 로컬 PostgreSQL `cadam` (warehouse·data 스키마) + Supabase(사이트 노출값)
     catalog: ~/projects/cadam/docs/data-catalog.md
-    health: ~/projects/cadam/cadam-pipeline/data/health/latest.md
+    health: ~/projects/_data/rentailor/work/pipeline/health/latest.md
     registry: ~/projects/cadam/docs/data-registry.md
     counts: ~/projects/cadam/docs/data-registry-counts.md
     content_plan: ~/projects/blog-engine/brands/rentailor/content_plan.yaml   # which posts are planned and which data each one uses
