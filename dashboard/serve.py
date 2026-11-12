@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Serve the dashboard to the owner's phone over Tailscale.
 
+RETIRED 2026-11-12: the page is shown inside the ERP (/engine-dashboard, cadam-erp src/lib/engine-dashboard.ts);
+launchd com.blogengine.dashboard-web was booted out and its plist renamed to .disabled. Kept for reference / rollback.
+
 Shares only ./public (the copy build.py writes) and listens only on this Mac's Tailscale address,
 so the page is reachable from the owner's own Tailscale devices and nowhere else.
 Run by launchd (launchd/com.blogengine.dashboard-web.plist); if Tailscale is not up yet it exits and launchd retries.
