@@ -71,7 +71,7 @@
 | 기존 `~/backups/` | 옮기지 않는다. **읽기 전용 보관** — 새 백업을 여기 만들지 않는다 |
 | 로컬 PostgreSQL DB (`cadam`) | `~/projects/cadam/backup_cadam.sh`: 로컬 최근 **30개** + iCloud Drive 사본 **주 1회, 최근 8개**(약 2달) |
 | blog-engine `outbox/` 글쓰기 파일(json·md) | 같은 스크립트가 매일 `blog-engine-outbox.tar.gz`로 묶어 cadam `backups/`에 |
-| 데이터 창고 `~/projects/_data` 전체 (맥 밖 사본) | `_meta/scripts/icloud_backup.sh` (예약 `com.solo.icloud-backup` 매일 01:30) → iCloud Drive `data-warehouse-backup/`: 매일 `data_날짜.tar.zst`(media 제외, SQLite 안전 사본 포함, 최근 7개+일요일분 4개) + 토요일 `media_날짜.tar`(사진·영상, 최근 4개). 동기화가 아니라 날짜별 묶음이라 맥에서 지워도 백업은 남는다. 결과는 디스코드 (2026-11-13) |
+| 데이터 창고 `~/projects/_data` 전체 (맥 밖 사본) | `_meta/scripts/icloud_backup.sh` (예약 `com.solo.icloud-backup` 매일 01:30) → iCloud Drive `data-warehouse-backup/`: 매일 `data_날짜.tar.zst`(media 제외, SQLite 안전 사본·Postgres 덤프 포함, 최근 7개+일요일분 4개) + 매일 `system_날짜.tar.zst`(맥 복원용: `~/projects` 코드·문서, Claude 설정·메모리, LaunchAgents, 설치 목록 — 비밀 파일·node_modules 제외) + 토요일 `media_날짜.tar`(사진·영상, 최근 4개). 동기화가 아니라 날짜별 묶음이라 맥에서 지워도 백업은 남는다. 결과는 디스코드. 복원 순서: iCloud 폴더의 `RESTORE.md` (2026-11-13) |
 | `_meta`·`blog-engine`·`_shared` 코드·문서 | 사업 폴더가 아니므로 따로 backups 폴더를 두지 않는다 — **GitHub 리모트가 백업** (커밋·push로 보관) |
 
 - 파일 이름: `{원본파일명}_{YYYYMMDD}_{HHMMSS}.bak`

@@ -12,7 +12,10 @@
 #   weekly -> media_YYYYMMDD.tar    : every <business>/media folder (photos/videos, no compression)
 #             runs on Saturdays, or whenever no media archive exists yet
 # The folder list is discovered on every run, so moved/new folders are picked up automatically.
-# Keep: data = 7 newest + 4 newest Sunday archives; media = 4 newest.
+#   daily  -> system_YYYYMMDD.tar.zst : ~/projects code/docs (no _data, no node_modules/.next/venv, NO secrets),
+#             Claude settings+memory, LaunchAgents, dotfiles, manifests (Brewfile, crontab, git repo states,
+#             venv requirements, secret file NAMES). Restore guide: RESTORE.md in the iCloud folder.
+# Keep: data/system = 7 newest + 4 newest Sunday archives; media = 4 newest.
 # launchd: com.solo.icloud-backup (daily 01:30). Discord message on success and on failure.
 # Restore: cd <dest> && zstd -dc data_YYYYMMDD.tar.zst | tar -xf -   /   tar -xf media_YYYYMMDD.tar
 export LANG=en_US.UTF-8
@@ -24,7 +27,7 @@ STATE="$WH/shared/work/icloud-backup"
 SNAP="$STATE/sqlite-snapshot"
 LOG="$STATE/backup.log"
 TODAY=$(date +%Y%m%d)
-MODE="${1:-auto}"   # auto | data | media | all
+MODE="${1:-auto}"   # auto | data | system | media | all
 
 mkdir -p "$STATE" "$SNAP" "$DEST"
 log() { echo "$(date '+%F %T') $*" >> "$LOG"; }
@@ -102,34 +105,95 @@ run_media() {
   log "media ok: $out ($cnt entries, tar rc=$rc)"
 }
 
-prune() {
-  # data: keep 7 newest + 4 newest that were made on a Sunday. media: keep 4 newest. Only our own files.
-  local keep=() f d
-  while IFS= read -r f; do keep+=("$f"); done < <(ls -1 "$DEST"/data_*.tar.zst 2>/dev/null | sort -r | head -7)
+run_system() {
+  # Everything needed to rebuild this Mac quickly besides the warehouse: all code/docs under ~/projects,
+  # Claude settings+memory, launchd jobs, dotfiles, and manifests of installed software.
+  # Regenerable folders and SECRET FILES are left out (SAFETY_RULES: secrets are never copied) —
+  # manifest/secret-file-names.txt lists their names only, so a restore knows what to re-create.
+  local M="$STATE/manifest"; find "$M" -type f -delete 2>/dev/null; mkdir -p "$M"
+  brew bundle dump --file="$M/Brewfile" --force >/dev/null 2>&1 || brew list --versions > "$M/brew-list.txt" 2>/dev/null
+  crontab -l > "$M/crontab.txt" 2>/dev/null
+  launchctl list | grep -E 'com\.(kim|cadam|solo|iori21y|blogengine|rentailor|user)' > "$M/launchctl-list.txt" 2>/dev/null
+  npm ls -g --depth=0 > "$M/npm-global.txt" 2>/dev/null
+  { sw_vers; python3 --version; node --version; } > "$M/versions.txt" 2>&1
+  # python venvs -> requirements (venv folders themselves are not backed up)
+  find "$HOME/projects" -path "$HOME/projects/_data" -prune -o \( -name .venv -o -name venv \) -type d -prune -print 2>/dev/null |
+    while IFS= read -r v; do [ -x "$v/bin/pip" ] && { echo "### $v"; "$v/bin/pip" freeze 2>/dev/null; }; done > "$M/venv-requirements.txt"
+  # git state of every repo: remote, branch, uncommitted / unpushed counts (what GitHub does NOT have)
+  find "$HOME/projects" "$HOME/.claude" -maxdepth 4 -name .git -not -path '*/node_modules/*' 2>/dev/null | sort |
+    while IFS= read -r g; do r=$(dirname "$g")
+      echo "$r | $(git -C "$r" remote get-url origin 2>/dev/null || echo NO-REMOTE) | $(git -C "$r" branch --show-current 2>/dev/null) | dirty=$(git -C "$r" status --porcelain 2>/dev/null | wc -l | tr -d ' ') | unpushed=$(git -C "$r" rev-list --count @{u}..HEAD 2>/dev/null || echo ?)"
+    done > "$M/git-repos.txt"
+  # secret files: NAMES ONLY
+  { echo "# secret files NOT in this backup (re-create from your password store)"; ls -1 "$HOME/.cadam-secrets" 2>/dev/null | sed 's#^#~/.cadam-secrets/#'
+    find "$HOME/projects" -path "$HOME/projects/_data" -prune -o \( -name node_modules -o -name .next \) -prune -o -type f \( "${SECRET_FIND[@]}" \) -print 2>/dev/null; } > "$M/secret-file-names.txt"
+  # .zshrc with secret values blanked
+  sed -E 's/^([^#]*(KEY|TOKEN|SECRET|PASSWORD|PASS)[A-Za-z_]*=).*/\1<REDACTED>/I' "$HOME/.zshrc" > "$M/zshrc.redacted" 2>/dev/null
+
+  local items=("projects" "Library/LaunchAgents" ".claude/CLAUDE.md" ".claude/settings.json" ".claude/keybindings.json"
+               ".claude/skills" ".claude/agents" ".claude/commands" ".gitconfig" ".zprofile" ".ssh/config" "backups")
+  local have=(); for i in "${items[@]}"; do [ -e "$HOME/$i" ] && have+=("$i"); done
+  while IFS= read -r d; do have+=("${d#$HOME/}"); done < <(find "$HOME/.claude/projects" -maxdepth 2 -type d -name memory 2>/dev/null)
+
+  local out="$DEST/system_$TODAY.tar.zst" tmp="$DEST/.system_$TODAY.tar.zst.partial"
+  [ "$(free_gb)" -ge 10 ] || fail "맥 남은 공간 $(free_gb)GB (10GB 미만)"
+  tar -C "$HOME" -cf - --exclude 'projects/_data/*' "${SYS_EXCLUDES[@]}" "${have[@]}" -C "$STATE" manifest 2>>"$LOG" \
+    | zstd -q -T0 -6 -o "$tmp" -f
+  local rc=("${PIPESTATUS[@]}")
+  [ "${rc[1]}" -eq 0 ] || { rm -f "$tmp"; fail "system 압축 실패 (zstd ${rc[1]})"; }
+  local cnt; cnt=$(count_entries "$tmp")
+  [ "${cnt:-0}" -gt 1000 ] || { rm -f "$tmp"; fail "system 압축본 검증 실패 (항목 ${cnt:-0}개)"; }
+  if zstd -dc "$tmp" | tar -tf - | grep -E "$SECRET_RE" | head -1 | grep -q .; then
+    rm -f "$tmp"; fail "system 압축본에 비밀 파일이 섞여 있어 폐기함"; fi
+  mv -f "$tmp" "$out"
+  SYS_MSG="system $(du -h "$out" | cut -f1) · 파일 ${cnt}개"
+  log "system ok: $out ($cnt entries, tar rc=${rc[0]})"
+}
+
+# Regenerable or secret paths left out of the system archive (bsdtar patterns match any path component).
+SYS_EXCLUDES=(--exclude node_modules --exclude .next --exclude .next-prev --exclude .venv --exclude venv --exclude __pycache__
+  --exclude .turbo --exclude .cache --exclude .DS_Store --exclude '*.pyc'
+  --exclude '.env' --exclude '.env.*'
+  --exclude '*.pem' --exclude '*.key' --exclude '*.p12' --exclude '*secret*.json' --exclude 'client_secret*'
+  --exclude 'credentials.json' --exclude 'token*.json' --exclude 'tokens.json' --exclude '*cookie*.json'
+  --exclude 'storage_state*' --exclude 'discord_credential*' --exclude '.npmrc' --exclude '.netrc')
+SECRET_FIND=(-name .env -o -name '.env.*' -o -name '*.pem' -o -name '*.p12' -o -iname '*secret*.json' -o -name 'client_secret*'
+  -o -name credentials.json -o -name 'token*.json' -o -iname '*cookie*.json' -o -name 'storage_state*' -o -name 'discord_credential*')
+SECRET_RE='(^|/)(\.env(\.[a-z.]+)?|[^/]*\.pem|[^/]*\.p12|[^/]*secret[^/]*\.json|client_secret[^/]*|credentials\.json|tokens?[^/]*\.json|[^/]*cookie[^/]*\.json|storage_state[^/]*|discord_credential[^/]*|\.npmrc|\.netrc)$'
+
+prune_daily() {
+  # keep the 7 newest + the 4 newest made on a Sunday. Only our own files.
+  local prefix="$1" keep=() f d
+  while IFS= read -r f; do keep+=("$f"); done < <(ls -1 "$DEST"/${prefix}_*.tar.zst 2>/dev/null | sort -r | head -7)
   while IFS= read -r f; do
-    d=$(basename "$f" | sed -E 's/data_([0-9]{8}).*/\1/')
+    d=$(basename "$f" | sed -E "s/${prefix}_([0-9]{8}).*/\1/")
     [ "$(date -j -f %Y%m%d "$d" +%u 2>/dev/null)" = "7" ] && echo "$f"
-  done < <(ls -1 "$DEST"/data_*.tar.zst 2>/dev/null | sort -r) | head -4 > "$STATE/.keep_sundays"
+  done < <(ls -1 "$DEST"/${prefix}_*.tar.zst 2>/dev/null | sort -r) | head -4 > "$STATE/.keep_sundays"
   while IFS= read -r f; do keep+=("$f"); done < "$STATE/.keep_sundays"
-  for f in "$DEST"/data_*.tar.zst; do
+  for f in "$DEST"/${prefix}_*.tar.zst; do
     [ -e "$f" ] || continue
     printf '%s\n' "${keep[@]}" | grep -qxF "$f" || { rm -f "$f"; log "pruned $(basename "$f")"; }
   done
+}
+prune() {
+  prune_daily data; prune_daily system
   ls -1 "$DEST"/media_*.tar 2>/dev/null | sort -r | tail -n +5 | while IFS= read -r f; do rm -f "$f"; log "pruned $(basename "$f")"; done
 }
 
+cp -f "$HOME/projects/_meta/scripts/icloud_backup_RESTORE.md" "$DEST/RESTORE.md" 2>/dev/null
 log "start mode=$MODE free=$(free_gb)GB"
-DATA_MSG=""; MEDIA_MSG=""
+DATA_MSG=""; MEDIA_MSG=""; SYS_MSG=""
 case "$MODE" in
-  data)  run_data ;;
-  media) run_media ;;
-  all)   run_data; run_media ;;
-  auto)  run_data
+  data)   run_data ;;
+  media)  run_media ;;
+  system) run_system ;;
+  all)    run_data; run_system; run_media ;;
+  auto)   run_data; run_system
          if [ "$(date +%u)" = "6" ] || ! ls "$DEST"/media_*.tar >/dev/null 2>&1; then run_media; fi ;;
   *) fail "알 수 없는 모드 $MODE" ;;
 esac
 prune
 TOTAL=$(du -sh "$DEST" | cut -f1)
 log "done (iCloud folder $TOTAL)"
-notify "✅ iCloud 데이터 창고 백업 $(date '+%m-%d') — ${DATA_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
+notify "✅ iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
 exit 0
