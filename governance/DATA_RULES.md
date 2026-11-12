@@ -10,7 +10,7 @@
 ## 1. 창고는 두 층이다
 | 층 | 무엇 | 어디 |
 |---|---|---|
-| 숫자 창고 | 표·숫자·추세·이력 | 사업별 DB (렌테일러: 로컬 PostgreSQL `cadam`의 warehouse·data, 해외파: `football-blog/data/warehouse.sqlite3` → 추후 PostgreSQL `football`) |
+| 숫자 창고 | 표·숫자·추세·이력 | 사업별 DB (렌테일러: 로컬 PostgreSQL `cadam`의 warehouse·data, 해외파: `_data/football/work/football-blog/warehouse.sqlite3` → 추후 PostgreSQL `football`) |
 | 맥락 창고 | 배경·경과·기사에서 뽑은 사실·사람이 읽는 설명 | second-brain 위키(렌테일러), brain 페이지(해외파) |
 | (노출값) | 사이트가 바로 읽는 값 | Supabase — 창고의 사본이 아니라 "사이트용으로 내놓은 값"만 |
 
