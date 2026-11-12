@@ -7,11 +7,9 @@
 - 수집 스크립트: `collectors/price_crawler/run_monthly.sh` (launchd 매일 02:00, 1~14일·15일~ 각 1회). 지금은
   `data/monthly_hold_until` = 2026-11-21 로 **보류 중** → 수동 실행은 `run_monthly.sh --force` (보류·완료표시 무시).
 - 보류 이유 = Supabase 무료 한도(Log Ingestion 0.85/1GB, 11/21 초기화). 차량 표는 11/12부터 로컬 DB라 수집 자체는 괜찮음.
-- ⚠️ 후처리 `color_config.py --monthly` 가 일치한 색상 약 990행의 칩·사진을 **매번 전부 Supabase Storage에 다시 업로드**
-  (apply()의 cache는 실행 안에서만 중복 제거). 한도 위험 → 사용자 선택:
-  ① 이 단계만 빼고 실행(스크립트를 고치지 말고, run_monthly.sh 복사본이 아니라 단계별로 직접 실행하거나 임시 환경변수 스킵 추가 후 커밋)
-  ② 그대로 실행(한도 초과 위험 감수). 권장 ①.
-  `option_media_sync.py --apply` 는 uploaded_index.json 으로 새 파일만 올림(소량) → 괜찮음.
+- 색상 단계 `color_config.py --monthly`: 예전엔 매번 약 1,700장을 Supabase Storage에 다시 올렸으나, 11/12 수정(collectors 커밋
+  "perf(colors): reuse Storage paths…")으로 이미 올린 사진은 건너뜀 → 11/12 계획 기준 133장만 업로드. **전체 그대로 실행해도 됨.**
+  (차량 표는 로컬 DB, 사진 파일만 Supabase Storage. `option_media_sync.py --apply` 도 새 파일만 올림)
 - 11/12에 --force 실행하면 완료표시가 `2026-11-1`로 남아 11/21 보류 해제 뒤 15일분(`2026-11-2`)이 또 돈다 → 정상(가격 재확인). 원치 않으면 끝난 뒤 `data/monthly_last_success` 를 `2026-11-2` 로(사용자 확인 후).
 - 끝나면 `car_publish.py kick` 이 스크립트 안에서 자동 실행 → 10분 조용하면 cadam-web main에 데이터 자동 push(=배포).
   가드(트림·옵션 30%↓, 가격 ±20%)에 걸리면 보류+디스코드 → `car_publish.py status` 로 확인, 승인은 사용자.
