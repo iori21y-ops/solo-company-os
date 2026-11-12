@@ -54,3 +54,22 @@
 - 색상 칩: 테슬라·폴스타 소스 없음, 쉐보레 구성기 403(11/12)
 - 남긴 빈칸(근거 없음): 카니발 19" 캠 무게 2·레이 1·트레일블레이저 2, 테슬라 출력·전비, 넥쏘 토크
 - 끝나면 REN-155 댓글·이 문서·메모리(project_car_db_gaps_20261112) 갱신
+
+## 진행 (11/12 세션 2, 사용량 한도로 중단)
+- §00 완료·커밋 collectors 4599518 (push 안 함): image_watch.py(HEAD 지문 색인 data/image_fingerprints/, git 제외),
+  color_config `--review-dry`·변경분만 재업로드, option_media_sync 원본 변경 시 재다운로드, image_review_sheet.py, run_monthly.sh 끝에 확인표 단계.
+- dry-run: 색상 이미 올린 1,623장 색인 기록(HEAD 미지원 0), 업로드 예정 121장, 확인표 128장(빨간 테두리 44) →
+  docs/reports/image_review_dry_20261112/. 옵션 원본 3,553개 HEAD 2회 연속 변경 0(안정). **색상 HEAD 2회차 안정성 검사는 아직** —
+  `python3 -c "import image_watch as iw;print(iw.summary(iw.check(list(iw.load('colors')),'colors')[0]))"` 로 changed≈0 확인 후 수집.
+- 남은 일: 빨간 테두리 44장 확인 → run_monthly.sh --force(→car_publish 자동 배포 주의) → 확인표 사용자에게 → car_db_gaps §1 비교 → REN-155·메모리.
+
+## 완료 (11/12 세션 2 이어서, 12:30)
+- 색상 HEAD 2회차: 1,621 same, 쉐보레 2장만 서버마다 값이 달라 HEAD_SKIP(20a0bf7). 옵션 3,553 same.
+- `run_monthly.sh --force` 완료(가격 변경 56건·트림 가격 10건). 색상 단계 409 실패 → vehicle_colors 순번 수정 후 재실행.
+- 확인표 docs/reports/image_review_monthly_20261112_1103/ (사용자에게 전송). 제네시스 매트 오류 발견·수정, 운영 사이트 GV80 '마테호른 화이트 매트' 확인.
+- 결과 표: docs/reports/car_db_gaps_result_20261112.md 맨 아래. collectors 커밋 4599518~85e812c (push 보류 유지).
+- 완료표시 monthly_last_success = 2026-11-1 → 11/21 보류 해제 뒤 15일분 다시 돎(정상, 원치 않으면 사용자 확인 후 2026-11-2로).
+## 남은 일
+- GV70 마테호른 화이트: 구성기는 매트(FT7), 가격표엔 매트 이름 없음 → 유광으로 둠(사용자 판단 필요)
+- 스타리아 일렉트릭: 새 내장색 칩 없음(구성기 0개 반환) · 가격표 대조 불일치 4트림(도구 한계 추정, 미확인)
+- 아이오닉 6 N 가격표 옵션 2개 사진·설명 없음
