@@ -673,7 +673,7 @@ def cadam_rows(d: dict, jobs: list[dict]) -> tuple[list, dict, str]:
     rows = []
     for t in cat[:1]:
         for r in t["rows"]:
-            r = r + [""] * (7 - len(r))
+            r = r + [""] * (9 - len(r))
             name = re.sub(r"`", "", r[0]).split(" ")[0].split(".")[-1]   # `data.kosis_x` → kosis_x
             h = health.get(r[1], {})
             agem = re.search(r"\((\d+)일 전", h.get("fresh", ""))
@@ -683,7 +683,8 @@ def cadam_rows(d: dict, jobs: list[dict]) -> tuple[list, dict, str]:
                          "age": int(agem.group(1)) if agem else None, "nrows": h.get("rows", "-"),
                          "status": {"✅": "ok", "⚠️": "warn", "❌": "bad"}.get(h.get("worst"), "none"),
                          "blog": BLOG_USE.get(flag, (r[5].strip(), "")) if flag else None, "blog_note": r[5].strip()[1:].strip(),
-                         "site": site_use(name), "uses": used_by(name, texts, False)})
+                         "site": site_use(name), "uses": used_by(name, texts, False),
+                         "category": r[8].strip() or None})   # meta.catalog category (edited on the ERP screen)
     head_note = next((ln for ln in read(P(d["health"])).split("\n") if ln.startswith("점검 ")), "")
     meta = {"note": f'저장: {md_inline(d.get("store", ""))} · 상태 점검: {esc(head_note)} ({esc(day(mtime(P(d["health"]))))}) · 목록 원본 <code>{esc(short(P(d["catalog"])))}</code>'}
     # Supabase tables the site reads (registry §2): table → API → pages, + who writes them (§1) + row counts
@@ -841,7 +842,8 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
     groups = {c["id"]: [] for c in cats}
     loose = []
     for r in rows:
-        (groups[by_table[r["table"]]] if r["table"] in by_table else loose).append(r)
+        cid = r.get("category") if r.get("category") in groups else by_table.get(r["table"])   # DB category first, yaml as fallback
+        (groups[cid] if cid else loose).append(r)
     # what needs a look right now (monitoring first)
     watch = []
     for r in rows:
@@ -857,7 +859,9 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
     idle = [r for r in rows if not has_use(r)]
     idle_noplan = [r for r in idle if not r["content"]]
     c = Counter(r["status"] for r in rows)
-    head = (f'<p class="muted">{meta["note"]}</p>'
+    erp = ('<div class="card"><p>표 상태·사용 허가·검증 단계·카테고리의 <b>원본과 수정</b>은 ERP <a href="/data-manage" target="_top">데이터 관리</a>에서 합니다. '
+           '이 탭은 어디서 수집되고 어느 코드·글에 쓰이는지 보는 곳입니다.</p></div>') if d.get("kind") == "cadam" else ""
+    head = (erp + f'<p class="muted">{meta["note"]}</p>'
             f'<div class="stats"><div><b>{len(rows)}</b><span>데이터 묶음</span></div><div><b>{c["ok"]}</b><span>정상</span></div><div><b>{c["warn"] + c["bad"]}</b><span>주의·문제</span></div>'
             f'<div><b>{c["none"]}</b><span>점검 대상 아님</span></div><div><b>{len(idle)}</b><span>읽는 코드 없음</span></div>'
             + (f'<div><b>{len(idle_noplan)}</b><span>그중 계획된 콘텐츠도 없음</span></div>' if items else "")
@@ -865,7 +869,7 @@ def data_business(d: dict, jobs: list[dict], cats: list, items: list) -> str:
             + '<div class="card watch"><h3>지금 봐야 할 것</h3>' + ("<ul>" + "".join(f"<li>{w}</li>" for w in watch[:12]) + "</ul>" if watch else '<p class="muted">없음 — 점검에 걸린 데이터와 멈춘 수집기가 없습니다.</p>') + "</div>"
             + f'<input class="filter" data-for="p-data-{esc(d["id"])}" placeholder="데이터 이름·표·수집기·글 제목으로 걸러 보기 (자세히 표가 열립니다)">')
     cards, sections = [], []
-    for cdef in cats + ([{"id": "loose", "name": "미분류", "desc": "카테고리가 정해지지 않은 데이터. data_categories.yaml에 추가해야 합니다."}] if loose else []):
+    for cdef in cats + ([{"id": "loose", "name": "미분류", "desc": "카테고리가 정해지지 않은 데이터. ERP 데이터 관리에서 표의 카테고리를 정하면 여기서 빠집니다."}] if loose else []):
         rs = loose if cdef["id"] == "loose" else groups[cdef["id"]]
         if not rs:
             continue
