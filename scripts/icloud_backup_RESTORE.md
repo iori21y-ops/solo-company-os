@@ -7,6 +7,7 @@
 |---|---|---|
 | `data_날짜.tar.zst` | 데이터 창고 `~/projects/_data` 전체(사진·영상 제외). Postgres(cadam) 덤프 포함(`rentailor/backups/auto/postgres/`). SQLite는 안전 사본이 `shared/work/icloud-backup/sqlite-snapshot/`에 있음 → **DB는 이 사본으로 복원** | 매일 01:30 · 최근 7개 + 일요일분 4개 |
 | `system_날짜.tar.zst` | `~/projects` 코드·문서 전체(_data 제외), Claude 설정·메모리·스킬, 예약 작업(LaunchAgents), `.gitconfig`·`.zprofile`·`.ssh/config`, `~/backups`, `manifest/`(설치 목록 등) | 매일 · 최근 7개 + 일요일분 4개 |
+| (data 안) `rentailor/backups/auto/supabase/` | **렌테일러 사이트 DB(Supabase) 전체 덤프**, 읽기 전용으로 받음 | 매일 · 14개 |
 | `media_날짜.tar` | 모든 사업의 `media/`(사진·영상) | 토요일 · 최근 4개 |
 | `secrets_날짜.tar.zst.enc` | 비밀 파일(`.env`, `~/.cadam-secrets`, `~/.ssh`, `.zshrc`, 키·쿠키) — **사장님 암호로 AES-256 잠금** | 매일 · 최근 7개 |
 
@@ -30,6 +31,7 @@
    ```
    SQLite DB는 `shared/work/icloud-backup/sqlite-snapshot/<원래 경로>`의 사본을 원래 자리에 덮어쓴다.
    Postgres: `pg_restore -d cadam rentailor/backups/auto/postgres/cadam-날짜.dump`
+   **Supabase(렌테일러 사이트 DB)**: 사본은 `rentailor/backups/auto/supabase/supabase-날짜.dump`(매일, 14개). Supabase가 살아 있으면 복원할 필요가 없다. Supabase 데이터가 사라졌거나 망가졌을 때만, **사장님 승인 후** 새 프로젝트에 `pg_restore --no-owner -d "<새 프로젝트 접속 주소>" supabase-날짜.dump`로 넣는다(표 하나만 되살릴 때는 `-t 표이름`).
 5. 비밀 파일 복원 (암호 입력 창이 뜬다):
    ```
    cd ~ && openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -in "$B"/secrets_날짜.tar.zst.enc | zstd -dc | tar -xf -

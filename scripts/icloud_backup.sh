@@ -15,6 +15,8 @@
 #   daily  -> system_YYYYMMDD.tar.zst : ~/projects code/docs (no _data, no node_modules/.next/venv, NO secrets),
 #             Claude settings+memory, LaunchAgents, dotfiles, manifests (Brewfile, crontab, git repo states,
 #             venv requirements, secret file NAMES). Restore guide: RESTORE.md in the iCloud folder.
+#   daily  -> Supabase (site DB) read-only pg_dump -> _data/rentailor/backups/auto/supabase/ (14 kept), then into data_
+#             (keychain item supabase-db-url = Session pooler URI from the Supabase dashboard)
 #   daily  -> secrets_YYYYMMDD.tar.zst.enc : .env files, ~/.cadam-secrets, ~/.ssh, .zshrc, keys/cookies — AES-256
 #             encrypted with the owner's passphrase (keychain item icloud-backup-secrets). Keep 7.
 # Keep: data/system = 7 newest + 4 newest Sunday archives; media = 4 newest.
@@ -29,7 +31,7 @@ STATE="$WH/shared/work/icloud-backup"
 SNAP="$STATE/sqlite-snapshot"
 LOG="$STATE/backup.log"
 TODAY=$(date +%Y%m%d)
-MODE="${1:-auto}"   # auto | data | system | secrets | media | all
+MODE="${1:-auto}"   # auto | supabase | data | system | secrets | media | all
 
 mkdir -p "$STATE" "$SNAP" "$DEST"
 log() { echo "$(date '+%F %T') $*" >> "$LOG"; }
@@ -152,6 +154,33 @@ run_system() {
   log "system ok: $out ($cnt entries, tar rc=${rc[0]})"
 }
 
+run_supabase() {
+  # Owner-approved 2026-11-13: daily READ-ONLY pg_dump of the production Supabase DB (the Rentailor site DB),
+  # because the free plan gives no downloadable backup. Connection URI (Session pooler) is in the login keychain
+  # item supabase-db-url, put there by the owner; it is handed to pg_dump through env vars, never argv or disk.
+  # Dumps land in _data/rentailor/backups/auto/supabase/ (14 kept) so the data archive carries them to iCloud.
+  if ! security find-generic-password -a "$USER" -s supabase-db-url >/dev/null 2>&1; then
+    SB_MSG="⚠️ Supabase 백업 건너뜀(키체인에 접속 주소 없음)"; log "supabase skipped: no keychain uri"; return; fi
+  local dir="$WH/rentailor/backups/auto/supabase" out tmp
+  mkdir -p "$dir"; out="$dir/supabase-$(date +%F).dump"; tmp="$out.partial"
+  security find-generic-password -a "$USER" -s supabase-db-url -w | /usr/bin/python3 -c '
+import os, sys, subprocess, urllib.parse as u
+p = u.urlparse(sys.stdin.read().strip())
+env = dict(os.environ, PGHOST=p.hostname or "", PGPORT=str(p.port or 5432), PGUSER=u.unquote(p.username or ""),
+           PGPASSWORD=u.unquote(p.password or ""), PGDATABASE=(p.path or "/postgres").lstrip("/") or "postgres",
+           PGSSLMODE=(u.parse_qs(p.query).get("sslmode") or ["require"])[0], PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
+sys.exit(subprocess.call(["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]], env=env))
+' "$tmp" 2>>"$LOG"
+  local rc=$?
+  if [ $rc -ne 0 ] || ! pg_restore -l "$tmp" >/dev/null 2>&1; then
+    rm -f "$tmp"; SB_MSG="❌ Supabase 백업 실패(pg_dump $rc)"; SB_FAIL=1; log "supabase FAIL rc=$rc"; return; fi
+  mv -f "$tmp" "$out"
+  local tables; tables=$(pg_restore -l "$out" | grep -c ' TABLE DATA ')
+  ls -1 "$dir"/supabase-*.dump 2>/dev/null | sort -r | tail -n +15 | while IFS= read -r f; do rm -f "$f"; log "pruned $(basename "$f")"; done
+  SB_MSG="Supabase DB $(du -h "$out" | cut -f1) · 표 ${tables}개"
+  log "supabase ok: $out ($tables tables with data)"
+}
+
 run_secrets() {
   # Owner-approved exception 2026-11-13 (SAFETY_RULES §7): secret files go to iCloud ONLY as an archive encrypted
   # with a passphrase the owner chose. The passphrase lives in the login keychain (service icloud-backup-secrets),
@@ -212,19 +241,20 @@ prune() {
 
 cp -f "$HOME/projects/_meta/scripts/icloud_backup_RESTORE.md" "$DEST/RESTORE.md" 2>/dev/null
 log "start mode=$MODE free=$(free_gb)GB"
-DATA_MSG=""; MEDIA_MSG=""; SYS_MSG=""; SEC_MSG=""
+DATA_MSG=""; MEDIA_MSG=""; SYS_MSG=""; SEC_MSG=""; SB_MSG=""; SB_FAIL=""
 case "$MODE" in
   data)   run_data ;;
   media)  run_media ;;
   system) run_system ;;
   secrets) run_secrets ;;
-  all)    run_data; run_system; run_secrets; run_media ;;
-  auto)   run_data; run_system; run_secrets
+  supabase) run_supabase ;;
+  all)    run_supabase; run_data; run_system; run_secrets; run_media ;;
+  auto)   run_supabase; run_data; run_system; run_secrets
          if [ "$(date +%u)" = "6" ] || ! ls "$DEST"/media_*.tar >/dev/null 2>&1; then run_media; fi ;;
   *) fail "알 수 없는 모드 $MODE" ;;
 esac
 prune
 TOTAL=$(du -sh "$DEST" | cut -f1)
 log "done (iCloud folder $TOTAL)"
-notify "✅ iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${SEC_MSG:+ / $SEC_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
+notify "$([ -n "$SB_FAIL" ] && echo ❌ || echo ✅) iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${SB_MSG:+$SB_MSG / }${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${SEC_MSG:+ / $SEC_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
 exit 0
