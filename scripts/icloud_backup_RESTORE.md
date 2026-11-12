@@ -7,7 +7,7 @@
 |---|---|---|
 | `data_날짜.tar.zst` | 데이터 창고 `~/projects/_data` 전체(사진·영상 제외). Postgres(cadam) 덤프 포함(`rentailor/backups/auto/postgres/`). SQLite는 안전 사본이 `shared/work/icloud-backup/sqlite-snapshot/`에 있음 → **DB는 이 사본으로 복원** | 매일 01:30 · 최근 7개 + 일요일분 4개 |
 | `system_날짜.tar.zst` | `~/projects` 코드·문서 전체(_data 제외), Claude 설정·메모리·스킬, 예약 작업(LaunchAgents), `.gitconfig`·`.zprofile`·`.ssh/config`, `~/backups`, `manifest/`(설치 목록 등) | 매일 · 최근 7개 + 일요일분 4개 |
-| (data 안) `rentailor/backups/auto/supabase/` | **렌테일러 사이트 DB(Supabase)** 전체 덤프(사이트 표 전부 + storage 목록, 읽기 전용 모드로 받음. auth(관리자 로그인 계정)는 권한이 없어 빠짐 → 복원 시 관리자 계정 다시 만들기) | 매일 · 14개 |
+| (data 안) `rentailor/backups/auto/supabase/` | **렌테일러 사이트 DB(Supabase)** 전체 덤프(사이트 표 전부 = public 영역, 읽기 전용 모드로 받음. auth(관리자 로그인 계정)·storage(파일 목록)는 권한이 없어 빠짐 → 복원 시 관리자 계정 다시 만들기) | 매일 · 14개 |
 | `media_날짜.tar` | 모든 사업의 `media/`(사진·영상) | 토요일 · 최근 4개 |
 | `secrets_날짜.tar.zst.enc` | 비밀 파일(`.env`, `~/.cadam-secrets`, `~/.ssh`, `.zshrc`, 키·쿠키) — **사장님 암호로 AES-256 잠금** | 매일 · 최근 7개 |
 

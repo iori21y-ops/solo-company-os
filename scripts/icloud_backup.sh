@@ -179,11 +179,9 @@ role = call("POST", "/cli/login-role", {"read_only": False})
 try:
     env = dict(os.environ, PGHOST=pool["db_host"], PGPORT="5432", PGUSER=f'{role["role"]}.{ref}', PGPASSWORD=role["password"],
                PGDATABASE="postgres", PGSSLMODE="require", PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
-    # Supabase-internal schemas recreated by the platform. auth is skipped too: even the CLI login role has no
-    # rights on it (only the admin login uses Supabase auth — admin accounts are re-created by hand).
-    skip = ["auth", "vault", "realtime", "supabase_functions", "pgsodium", "pgsodium_masks", "net", "cron",
-            "graphql", "graphql_public", "pgbouncer", "_realtime", "_analytics"]
-    args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]] + [a for n in skip for a in ("-N", n)]
+    # Only the public schema: every site table lives there (no custom schemas in migrations or site code,
+    # checked 2026-11-13). Supabase-managed schemas (auth, storage, ...) are locked even for the CLI login role.
+    args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-n", "public", "-f", sys.argv[1]]
     # a fresh login role needs a few seconds to reach the pooler ("password authentication failed") — retry
     import time
     for attempt in range(10):
