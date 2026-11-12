@@ -16,7 +16,7 @@
 #             Claude settings+memory, LaunchAgents, dotfiles, manifests (Brewfile, crontab, git repo states,
 #             venv requirements, secret file NAMES). Restore guide: RESTORE.md in the iCloud folder.
 #   daily  -> Supabase (site DB) read-only pg_dump -> _data/rentailor/backups/auto/supabase/ (14 kept), then into data_
-#             (keychain item supabase-db-url = Session pooler URI from the Supabase dashboard)
+#             (temporary read-only login role from the Management API; no stored DB password)
 #   daily  -> secrets_YYYYMMDD.tar.zst.enc : .env files, ~/.cadam-secrets, ~/.ssh, .zshrc, keys/cookies — AES-256
 #             encrypted with the owner's passphrase (keychain item icloud-backup-secrets). Keep 7.
 # Keep: data/system = 7 newest + 4 newest Sunday archives; media = 4 newest.
@@ -156,24 +156,42 @@ run_system() {
 
 run_supabase() {
   # Owner-approved 2026-11-13: daily READ-ONLY pg_dump of the production Supabase DB (the Rentailor site DB),
-  # because the free plan gives no downloadable backup. Connection URI (Session pooler) is in the login keychain
-  # item supabase-db-url, put there by the owner; it is handed to pg_dump through env vars, never argv or disk.
-  # Dumps land in _data/rentailor/backups/auto/supabase/ (14 kept) so the data archive carries them to iCloud.
-  if ! security find-generic-password -a "$USER" -s supabase-db-url >/dev/null 2>&1; then
-    SB_MSG="⚠️ Supabase 백업 건너뜀(키체인에 접속 주소 없음)"; log "supabase skipped: no keychain uri"; return; fi
+  # because the free plan gives no downloadable backup. No DB password is stored anywhere: each run asks the
+  # Management API (SUPABASE_ACCESS_TOKEN in ~/.cadam-secrets/secrets.env) for a temporary READ-ONLY login role
+  # (cli_login_supabase_read_only_user, 300s TTL — the same mechanism the Supabase CLI uses), dumps through the
+  # session pooler, then deletes the role. Dumps land in _data/rentailor/backups/auto/supabase/ (14 kept).
   local dir="$WH/rentailor/backups/auto/supabase" out tmp
   mkdir -p "$dir"; out="$dir/supabase-$(date +%F).dump"; tmp="$out.partial"
-  security find-generic-password -a "$USER" -s supabase-db-url -w | /usr/bin/python3 -c '
-import os, sys, subprocess, urllib.parse as u
-p = u.urlparse(sys.stdin.read().strip())
-env = dict(os.environ, PGHOST=p.hostname or "", PGPORT=str(p.port or 5432), PGUSER=u.unquote(p.username or ""),
-           PGPASSWORD=u.unquote(p.password or ""), PGDATABASE=(p.path or "/postgres").lstrip("/") or "postgres",
-           PGSSLMODE=(u.parse_qs(p.query).get("sslmode") or ["require"])[0], PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
-sys.exit(subprocess.call(["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]], env=env))
-' "$tmp" 2>>"$LOG"
+  ( set -a; source "$HOME/.cadam-secrets/secrets.env" >/dev/null 2>&1; set +a
+    /usr/bin/python3 - "$tmp" <<'PY'
+import os, sys, json, subprocess, urllib.request
+ref, tok = os.environ.get("SUPABASE_PROJECT_REF", ""), os.environ.get("SUPABASE_ACCESS_TOKEN", "")
+if not ref or not tok: sys.exit("missing SUPABASE_PROJECT_REF/ACCESS_TOKEN")
+api = f"https://api.supabase.com/v1/projects/{ref}"
+def call(method, path, body=None):
+    r = urllib.request.Request(api + path, method=method, headers={"Authorization": "Bearer " + tok,
+        "Content-Type": "application/json", "User-Agent": "solo-backup"}, data=json.dumps(body).encode() if body is not None else None)
+    with urllib.request.urlopen(r, timeout=30) as f: t = f.read(); return json.loads(t) if t else {}
+pool = call("GET", "/config/database/pooler"); pool = pool[0] if isinstance(pool, list) else pool
+role = call("POST", "/cli/login-role", {"read_only": True})
+try:
+    env = dict(os.environ, PGHOST=pool["db_host"], PGPORT="5432", PGUSER=f'{role["role"]}.{ref}', PGPASSWORD=role["password"],
+               PGDATABASE="postgres", PGSSLMODE="require", PGCONNECT_TIMEOUT="20", PGOPTIONS="-c default_transaction_read_only=on")
+    # the read-only role cannot read Supabase-managed schemas (auth = login accounts, storage, vault, ...);
+    # skip them — the site's own tables live in public (and any custom schema), which are dumped.
+    skip = ["auth", "storage", "vault", "realtime", "supabase_functions", "supabase_migrations", "pgsodium",
+            "pgsodium_masks", "net", "cron", "graphql", "graphql_public", "pgbouncer", "_realtime", "_analytics"]
+    args = ["pg_dump", "-Fc", "--no-owner", "--no-privileges", "-f", sys.argv[1]] + [a for n in skip for a in ("-N", n)]
+    rc = subprocess.call(args, env=env)
+finally:
+    try: call("DELETE", "/cli/login-role")
+    except Exception as e: print("login-role delete failed:", e, file=sys.stderr)
+sys.exit(rc)
+PY
+  ) 2>>"$LOG"
   local rc=$?
   if [ $rc -ne 0 ] || ! pg_restore -l "$tmp" >/dev/null 2>&1; then
-    rm -f "$tmp"; SB_MSG="❌ Supabase 백업 실패(pg_dump $rc)"; SB_FAIL=1; log "supabase FAIL rc=$rc"; return; fi
+    rm -f "$tmp"; SB_MSG="❌ Supabase 백업 실패(rc $rc)"; SB_FAIL=1; log "supabase FAIL rc=$rc"; return; fi
   mv -f "$tmp" "$out"
   local tables; tables=$(pg_restore -l "$out" | grep -c ' TABLE DATA ')
   ls -1 "$dir"/supabase-*.dump 2>/dev/null | sort -r | tail -n +15 | while IFS= read -r f; do rm -f "$f"; log "pruned $(basename "$f")"; done
