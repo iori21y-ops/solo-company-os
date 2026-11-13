@@ -110,7 +110,7 @@ if [ -n "$PROBLEMS" ]; then
 점검 결과:
 $(echo -e "$PROBLEMS")"
 
-  ANALYSIS=$(/Users/kim/.local/bin/claude -p "$PROMPT" --dangerously-skip-permissions --model sonnet 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+  ANALYSIS=$(/Users/kim/.local/bin/claude -p "$PROMPT" --tools "" --model sonnet </dev/null 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
 
   # 5) 분석 결과 디스코드 전송
   SENT=false

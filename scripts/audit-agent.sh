@@ -189,7 +189,7 @@ else
     PROMPT="너는 1인 기업 서버 감사팀장이다. 아래 시스템 감사 결함을 대표에게 보고하는 형식으로 2000자 이내 한국어로 요약하라. 형식: 한줄 종합판단(심각도) → 항목별(무엇을 놓쳤나→영향→권고). 감사 시각 $TS.
 결함 목록:
 $FLIST"
-    ANALYSIS=$("$CLAUDE_BIN" -p "$PROMPT" --dangerously-skip-permissions --model sonnet 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+    ANALYSIS=$("$CLAUDE_BIN" -p "$PROMPT" --tools "" --model sonnet </dev/null 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
   fi
   if [ -n "$ANALYSIS" ]; then
     SUMMARY="🔎 [감사] 결함 ${FCOUNT}건 — $TS"$'\n'"$ANALYSIS"
