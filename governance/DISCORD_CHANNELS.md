@@ -21,7 +21,7 @@
 | | #상담 (1570612529640640512) | 🆕 새 상담 알림 R-#### (Spidey Bot 웹훅, ERP) |
 | 📁 축구 | #축구블로그 | 축구 초안·발행·자동 점검 경고 (football-blog, 11/11부터 보류) |
 | 📁 공통 | #시스템알림 | 백업·서버 점검·비밀값 점검·감사(audit-agent)·Supabase 로그 한도·사이트맵 변화·카담 일일 리포트·Linear 진단(🩺 REN-###)·ERP 아침 브리핑 |
-| (카테고리 없음, 알림 끔) | #클리퍼 | 사장님이 링크를 올리면 `cadam/collect/telegram_clipper/discord_clip_poller.py`(launchd `com.cadam.discord-clipper`, 60초마다)가 읽어 처리 |
+| (카테고리 없음, 알림 끔) | #클리퍼 | 사장님이 링크를 올리면 `cadam/collect/telegram_clipper/discord_clip_poller.py`(launchd `com.cadam.discord-clipper`, 5분마다 — 2026-11-13 REN-192)가 읽어 처리 |
 
 - 카테고리 id: 렌테일러 1570612114920439939 · 축구 1570612128405262436 · 공통 1570612144116867182.
 - 봇은 채널 관리 권한이 없음(403) → 채널 삭제·카테고리·웹훅 변경·알림 끄기는 사장님 계정 디스코드 웹(ego-browser)으로 처리.
