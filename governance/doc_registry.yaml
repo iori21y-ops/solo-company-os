@@ -13,7 +13,7 @@ docs:
   - ~/projects/cadam/*/CLAUDE.md
   - ~/projects/cadam/*/AGENTS.md
   - ~/projects/cadam/docs/*.md
-  - ~/projects/cadam/collectors/COLLECTOR_CONVENTION.md
+  - ~/projects/cadam/collect/COLLECTOR_CONVENTION.md
   - ~/projects/_meta/README.md
   - ~/projects/_meta/governance/*.md
   - ~/projects/_shared/README.md
@@ -47,7 +47,7 @@ history_markers: ["symlink", "폐기", "기록용", "(옛)", "옛 ", "옛경로"
 
 # 없어진 이름 → 지금 이름. pattern은 정규식.
 retired:
-  - {pattern: 'cadam-n8n', since: 2026-11-10, now: 'cadam/collectors (cadam-n8n은 호환 링크)'}
+  - {pattern: 'cadam-n8n', since: 2026-11-10, now: 'cadam/collect (cadam-n8n은 호환 링크)'}
   - {pattern: '\bn8n\b', since: 2026-11-10, now: 'content-engine (글쓰기·발행) / launchd (예약 작업)'}
   - {pattern: '[Dd]ocker', since: 2026-11-10, now: '없음 — launchd'}
   - {pattern: 'cadam-dashboard|:3101\b', since: 2026-11-10, now: 'cadam-erp (모니터) / 엔진 대시보드 :8787'}
@@ -85,8 +85,8 @@ code:
   - ~/projects/web-engine/cadam-web/src/**/*.tsx
   - ~/projects/cadam/cadam-pipeline/scripts/**/*.py
   - ~/projects/cadam/cadam-pipeline/scripts/**/*.sh
-  - ~/projects/cadam/collectors/**/*.py
-  - ~/projects/cadam/collectors/**/*.sh
+  - ~/projects/cadam/collect/**/*.py
+  - ~/projects/cadam/collect/**/*.sh
   - ~/projects/cadam/*.sh
   - ~/projects/content-engine/**/*.py
   - ~/projects/content-engine/publishers/naver/*.js
@@ -101,7 +101,7 @@ code_skip_dirs: [node_modules, .next, outbox, _archive, .venv, venv, __pycache__
 # 코드에서는 '경로·주소'만 찾는다(낱말 n8n 자체는 찾지 않음). 호환 링크는 지우기 전에 고쳐야 하므로 같이 찾는다.
 code_retired:
   - {pattern: 'cadam/cadam-naver', now: 'content-engine/publishers/naver (링크 제거 예정 2026-11-17)'}
-  - {pattern: 'cadam-n8n/', now: 'cadam/collectors/ (링크 제거 예정 2026-12-15)'}
+  - {pattern: 'cadam-n8n/', now: 'cadam/collect/ (링크 제거 예정 2026-12-15)'}
   - {pattern: 'cadam-dashboard/', now: '보관됨(2026-11-10) — .env.local만 남음'}
   - {pattern: 'projects/cadam/cadam/', now: '없는 폴더 — cadam-pipeline'}
   - {pattern: ':5678\b|:3099\b|:3101\b', now: '없어진 포트(n8n·prompt-bff·옛 대시보드)'}

@@ -114,7 +114,7 @@ check_silent(){
   fi
 }
 check_silent "com.rentailor.recall-collect" "$HOME/projects/cadam/collect/recall/recall_collect.py"
-check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/collectors/scrape_encar.py"
+check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/collect/scrape_encar.py"
 check_silent "com.cadam.wp-sync" ""
 
 # ══════════════════════════════════════════════════════════════

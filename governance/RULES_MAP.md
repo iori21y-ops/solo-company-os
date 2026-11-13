@@ -32,7 +32,7 @@
 | 비밀 파일 | SAFETY §7 | `~/.cadam-secrets/`·`.env`는 제자리에서 읽기만, 값 출력 금지 | `~/.claude/CLAUDE.md`, `security.md`, `FOLDER_RULES.md` §5, `_meta/agents/CLAUDE.md` §10, `my-shorts/CLAUDE.md` 키 |
 | 커밋·리포 | [GIT_DEPLOY_RULES.md](GIT_DEPLOY_RULES.md) §1~4 | 영어 메시지, 고치기 전 `checkpoint:`, 내 파일만 커밋, push는 승인 | `~/.claude/CLAUDE.md`, `cadam/CLAUDE.md` Git 리포, `cadam-pipeline/CLAUDE.md`, `cadam-web/CLAUDE.md`, `security.md` Git 작업 |
 | 배포 | GIT_DEPLOY_RULES §5 | 승인 → 로컬 빌드 → Claude가 push(cadam-web = 즉시 배포) → `npx vercel ls` | `cadam/CLAUDE.md`, `cadam-web/CLAUDE.md`, `cadam/docs/deploy.md` |
-| 수집·웹 도구 | [COLLECT_RULES.md](COLLECT_RULES.md) | ego-browser 기본, 예절 수집, 약관 금지 사이트는 승인 예외 표만 | `~/.claude/CLAUDE.md` 웹 자료 수집, `cadam/collectors/COLLECTOR_CONVENTION.md`, `football-blog/CLAUDE.md` 데이터 창고 표, `cadam/cadam-data/CLAUDE.md` 주의, 메모리 `project_polite_crawl.md`·`project_encar_crawler_copies.md` |
+| 수집·웹 도구 | [COLLECT_RULES.md](COLLECT_RULES.md) | ego-browser 기본, 예절 수집, 약관 금지 사이트는 승인 예외 표만 | `~/.claude/CLAUDE.md` 웹 자료 수집, `cadam/collect/COLLECTOR_CONVENTION.md`, `football-blog/CLAUDE.md` 데이터 창고 표, `cadam/cadam-data/CLAUDE.md` 주의, 메모리 `project_polite_crawl.md`·`project_encar_crawler_copies.md` |
 | 데이터 창고 | [DATA_RULES.md](DATA_RULES.md) (초안, 사장님 확인 전) | 쓰이는 것만 남긴다, 데이터 명세·카테고리·늘리고 줄이는 기준 | `FOLDER_RULES.md` §4, `COLLECTOR_CONVENTION.md` §1 |
 | 저장 위치·폴더 | [FOLDER_RULES.md](FOLDER_RULES.md) | 산출물은 `~/projects/<프로젝트>/`, 사업별 같은 모양, 다른 프로젝트 import 금지 | `~/.claude/CLAUDE.md` 저장 위치, `cadam/CLAUDE.md` 저장 위치 |
 | 임시 연결·사본 | [COMPAT_LIST.md](COMPAT_LIST.md) | 옛 주소 연결·코드 사본·남은 위반과 없애는 기한 | `FOLDER_RULES.md` §6 |
@@ -47,7 +47,7 @@
 | 렌테일러 월 렌탈료 표기·계산식 폐기, 차량 상세 서버 조회, 이미지·성능 기준 | `~/projects/cadam/cadam-web/CLAUDE.md` |
 | cadam 보안 상세 (Supabase 단계별 확인, RLS, 도구별 허용 표, 오류별 대응) | `~/projects/cadam/docs/security.md` |
 | 배포 상세 (Vercel 설정·환경변수·도메인·브랜치) | `~/projects/cadam/docs/deploy.md` |
-| 수집기 상세 (저장·등록·실패·알림·인벤토리) | `~/projects/cadam/collectors/COLLECTOR_CONVENTION.md` |
+| 수집기 상세 (저장·등록·실패·알림·인벤토리) | `~/projects/cadam/collect/COLLECTOR_CONVENTION.md` |
 | 글쓰기 규칙 (공통·발행처·블로그 층) | `~/projects/content-engine/rules/README.md` |
 | 해외파 콘텐츠·사진·데이터 규칙 | `~/projects/football-blog/CLAUDE.md` |
 | 쇼츠 제작 규칙 | `~/projects/my-shorts/CLAUDE.md` |
@@ -70,4 +70,4 @@
 6. **무공해차 통합누리집 충전요금**(ego 수집): 규약에 "약관 미확인 → 노출 전 확인".
 
 ## 알려진 불일치 (원본이 맞고, 다른 문서를 고칠 차례)
-- `cadam/collectors/COLLECTOR_CONVENTION.md` 2.2는 창고 백업을 `warehouse_backup.sh`(로컬 4개 + iCloud 8개)로 적었으나, 그 예약 작업 plist가 `~/Library/LaunchAgents`에 없다(2026-11-11 확인). 실제 DB 백업은 `cadam/backup_cadam.sh`(로컬 30개 + iCloud 주 1회 8개). 원본: [SAFETY_RULES.md](SAFETY_RULES.md) §6.
+- `cadam/collect/COLLECTOR_CONVENTION.md` 2.2는 창고 백업을 `warehouse_backup.sh`(로컬 4개 + iCloud 8개)로 적었으나, 그 예약 작업 plist가 `~/Library/LaunchAgents`에 없다(2026-11-11 확인). 실제 DB 백업은 `cadam/backup_cadam.sh`(로컬 30개 + iCloud 주 1회 8개). 원본: [SAFETY_RULES.md](SAFETY_RULES.md) §6.

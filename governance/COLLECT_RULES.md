@@ -2,7 +2,7 @@
 
 > 무엇을 정하는 파일: 웹 자료를 어떤 도구로, 어떤 예절로, 어디까지 모아도 되는지 + 수집기 운영 원칙 요약.
 > 마지막 갱신: 2026-11-11 · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
-> 수집기 상세(저장 위치·등록·중복 제거·실패 처리·알림·인벤토리): `~/projects/cadam/collectors/COLLECTOR_CONVENTION.md`
+> 수집기 상세(저장 위치·등록·중복 제거·실패 처리·알림·인벤토리): `~/projects/cadam/collect/COLLECTOR_CONVENTION.md`
 > 데이터 한 건을 적는 법·늘리고 줄이는 기준: [DATA_RULES.md](DATA_RULES.md) (초안)
 
 ## 1. 웹 자료 수집 도구

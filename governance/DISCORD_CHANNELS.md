@@ -30,7 +30,7 @@
 | 메시지 | 보내는 곳 | 제안 위치 |
 |---|---|---|
 | iCloud 백업, 카담 백업, 비밀값 점검(secrets-drift), 서버 자동점검, 감사, Supabase 로그 한도, 사이트맵 변화 | `_meta/scripts/*`, `cadam/backup_cadam.sh`, `~/.cadam-secrets/check-drift.mjs` 등 (`notify_discord.sh`) | 그대로 #시스템알림 |
-| 가격표 대조·가격 변경·옵션·색상 변경·차량 데이터 반영·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 | `cadam/collectors/lib/notify.py` 한 곳을 거침 (수집기 15개) | ✅ #데이터로 옮김 (collectors 커밋 2e0563d, 시험 메시지 확인) |
+| 가격표 대조·가격 변경·옵션·색상 변경·차량 데이터 반영·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 | `cadam/collect/lib/notify.py` 한 곳을 거침 (수집기 15개) | ✅ #데이터로 옮김 (collectors 커밋 2e0563d, 시험 메시지 확인) |
 | 카담 일일 리포트(블로그 누적·서버 상태) | `cadam/daily_report.sh` | 그대로 #시스템알림 (서버 상태 위주) |
 | 엔카 시세 수집, RSS 신규 0건 | `~/second-brain/scripts/scrape_encar.py`, `rss_collector.py` (같은 lib.notify 사용) | ✅ #데이터로 함께 옮겨짐 |
 | 🆕 새 상담 R-#### | Spidey Bot 웹훅 (ERP) | ✅ 📁렌테일러 #상담으로 웹훅 채널 변경 (11/13) |

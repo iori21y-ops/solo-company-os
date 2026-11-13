@@ -66,14 +66,14 @@ fi
 #   대신 '이번 달 수집이 성공했는지'를 1일 다음(2~3일)에만 1회 검증한다.
 DOM=$(date '+%d')
 if [ "$DOM" = "02" ] || [ "$DOM" = "03" ]; then
-  CRAWLER_LOG="$HOME/projects/cadam/collectors/price_crawler/crawler.log"
+  CRAWLER_LOG="$HOME/projects/cadam/collect/price_crawler/crawler.log"
   THIS_MONTH=$(date '+%Y-%m')
   if [ ! -f "$CRAWLER_LOG" ]; then
-    PROBLEMS="${PROBLEMS}🔴 가격크롤러 로그 없음 (이번 달 수집 미실행 의심)\n　→ 수동 실행: bash ~/projects/cadam/collectors/price_crawler/run_monthly.sh\n"
+    PROBLEMS="${PROBLEMS}🔴 가격크롤러 로그 없음 (이번 달 수집 미실행 의심)\n　→ 수동 실행: bash ~/projects/cadam/collect/price_crawler/run_monthly.sh\n"
   else
     LOG_MONTH=$(date -r "$CRAWLER_LOG" '+%Y-%m')
     if [ "$LOG_MONTH" != "$THIS_MONTH" ] || ! tail -5 "$CRAWLER_LOG" | grep -q "월간 가격표 수집 끝"; then
-      PROBLEMS="${PROBLEMS}🔴 이번 달(${THIS_MONTH}) 가격크롤러 월간 수집 실패/누락\n　→ 수동 실행: bash ~/projects/cadam/collectors/price_crawler/run_monthly.sh\n"
+      PROBLEMS="${PROBLEMS}🔴 이번 달(${THIS_MONTH}) 가격크롤러 월간 수집 실패/누락\n　→ 수동 실행: bash ~/projects/cadam/collect/price_crawler/run_monthly.sh\n"
     fi
   fi
 fi

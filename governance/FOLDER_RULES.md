@@ -57,7 +57,7 @@
 - 기존 사업의 현재 위치(옮기는 중): cadam = `collectors/`(①) + `cadam-pipeline/scripts/*`(①②③⑦) + `facts/`(④) + `db/`(⑤) + `knowledge/`(⑥) + `check/`(③) + `process/`(②) + `collect/`(① 일부) + `ops/`(⑧) — 2026-11-13 2~6단계·7단계 일부 완료, git 하나로 합침; football-blog = 표준 틀 완료(2026-11-13): `football/{collect,process,check}/`(①②③, 영상·사진은 `football/content/`) + `facts/`(④) + `ops/`(⑧, launchd·tools) — brain 페이지는 데이터라 `_data/football/work/football-blog/brain`; import-lease = `crawler/`(①②③, 같은 폴더 import라 쪼개지 않음) + `collect/danawa_initial/` + `db/`(⑤) + `ops/`(⑧, run_daily.sh·launchd) + `logs/` — 2026-11-13 바깥 틀 완료, `public/cars`는 사이트용이라 유지. 분석표: `cadam/docs/strategy/engines-and-business-folders-20261113.md` §8.
 - 데이터(수집 원본·캐시·내보내기)는 이 폴더가 아니라 `_data/<사업>/...`(§4). 숫자 데이터의 원본은 로컬 PostgreSQL.
 - 글·영상을 만드는 코드는 `content-engine`, 사이트·ERP 코드는 `web-engine`에 둔다(사업 폴더에 두지 않는다).
-- 수집기 출력 규칙은 `cadam/collectors/COLLECTOR_CONVENTION.md`를 따른다: 숫자 → PostgreSQL, 맥락 → second-brain, 사이트 노출값 → Supabase.
+- 수집기 출력 규칙은 `cadam/collect/COLLECTOR_CONVENTION.md`를 따른다: 숫자 → PostgreSQL, 맥락 → second-brain, 사이트 노출값 → Supabase.
 - 다른 프로젝트 폴더를 `sys.path`에 넣지 않는다(다른 프로젝트의 코드를 import하지 않는다). 공용 코드는 `_shared/solo_common`만.
 - 다른 사업의 데이터가 필요하면 아래 **세 가지 길**로만 읽는다:
   1. DB (Supabase, 로컬 PostgreSQL schema)

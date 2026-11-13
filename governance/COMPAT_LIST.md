@@ -9,7 +9,7 @@
 | 옛 자리 | 새 자리 | 종류 | 쓰는 곳 (11/10) | 없애는 조건 | 기한 |
 |---|---|---|---|---|---|
 | `cadam/cadam-naver` | `blog-engine/publishers/naver` | 폴더 링크 | cadam-erp 3곳(`naver-log.ts`·`collector.ts`·`infra.ts`) — 2026-11-11 점검에서 발견, REN-158에서 새 경로로 교체 | 1주일간 발행·백업 오류 없음 | 2026-11-17 |
-| `cadam/collectors` | `cadam/collectors` | 폴더 링크 | 코드 46곳 (`_meta/handoff/cadam-n8n-references-20261110.txt`) + cadam-erp `quote-reference.ts`(목록에 없던 곳, REN-158에서 교체) | 46곳을 `collectors` 또는 `solo_common`으로 고친 뒤 | 2026-12-15 |
+| `cadam/collect` | `cadam/collect` | 폴더 링크 | 코드 46곳 (`_meta/handoff/cadam-n8n-references-20261110.txt`) + cadam-erp `quote-reference.ts`(목록에 없던 곳, REN-158에서 교체) | 46곳을 `collectors` 또는 `solo_common`으로 고친 뒤 | 2026-12-15 |
 | `cadam-pipeline/scripts/common/` discord_client·notify·claude·ego_browser·polite·warehouse·llm_client·content_extractor `.py` | `_shared/solo_common/` 같은 이름 | 호환 파일(같은 모듈을 가리킴) | cadam 코드 65개 파일 | 65곳의 `from common…`을 `from solo_common…`으로 바꾼 뒤 | 2027-01-31 |
 | `cadam-pipeline/scripts/content/evidence_body.py` | `_shared/solo_common/evidence_body.py` | 호환 파일 | 1곳 (shorts_scripts) | 그 1곳을 고친 뒤 | 2026-12-15 |
 
@@ -18,7 +18,7 @@
 | 사본 | 원본 | 내용 | 하나로 합치는 방법 | 기한 |
 |---|---|---|---|---|
 | `blog-engine/brands/rentailor/trend_api.py` | `collect/trends/trend_collector.py` | norm·strip_tags·apihub_headers·fetch_news_evidence·CAR_TERMS·searchad_related | 6개를 `solo_common`으로 옮기고 양쪽이 거기서 가져다 씀 | 2026-12-15 |
-| `cadam/collectors/lib/` ego_browser.py·polite.py·notify.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기·알림 (세 파일 모두 내용이 다름, 2026-11-11 확인. ego_bridge.js는 같음) | 차이를 합친 뒤 lib 쪽을 호환 파일로 | 2026-12-15 |
+| `cadam/collect/lib/` ego_browser.py·polite.py·notify.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기·알림 (세 파일 모두 내용이 다름, 2026-11-11 확인. ego_bridge.js는 같음) | 차이를 합친 뒤 lib 쪽을 호환 파일로 | 2026-12-15 |
 
 ## C. 아직 규칙을 어기는 곳 (다른 프로젝트 코드를 직접 불러 씀)
 
@@ -30,7 +30,7 @@
 | `cadam-pipeline/scripts/common/writing_pause.py` | `blog-engine/brands/rentailor/writing_pause.py` | 글쓰기 보류 스위치 도우미. 내용이 다르고 cadam 안에서 부르는 곳이 없음(2026-11-11 확인) | 부르는 곳이 정말 없는지 한 번 더 본 뒤 보관함으로 | 2026-12-15 |
 
 - (2026-11-13, 렌테일러 표준 틀) `cadam-pipeline/scripts/common/*` — `solo_common`을 다시 내보내는 15줄 연결 파일 8개(claude·content_extractor·discord_client·ego_browser·llm_client·notify·polite·warehouse) + 렌테일러 전용 모듈. 쓰는 곳 약 149줄(`sys.path`에 `scripts/` 넣고 `from common…`). 없애는 조건: `cadam-pipeline/scripts`를 비우는 마지막 단계(engines doc §8-2 5~7단계)에서 부르는 쪽을 `solo_common` 직접 import로. 기한: 2026-11-27.
-- (2026-11-13) `cadam/collectors/lib`(notify·polite·ego_browser·change_alert·section7) — pipeline api-hub 등 약 48곳이 `sys.path`에 `~/projects/cadam/collectors`를 넣어 불러 씀. 없애는 조건: 7단계(수집기 이사)에서 같이 정리, 새 패키지는 `lib` 말고 겹치지 않는 이름. 기한: 2026-11-27.
+- (2026-11-13) `cadam/collect/lib`(notify·polite·ego_browser·change_alert·section7) — pipeline api-hub 등 약 48곳이 `sys.path`에 `~/projects/cadam/collect`를 넣어 불러 씀. 없애는 조건: 7단계(수집기 이사)에서 같이 정리, 새 패키지는 `lib` 말고 겹치지 않는 이름. 기한: 2026-11-27.
 - (2026-11-13) 렌테일러 데이터 창구 `cadam/facts/facts_cli.py`가 계산 모듈(`price_facts`·`fact_pack`·`insight_facts`·`insurance_facts`·`data_topics`·`source_gate`·`promo_collector`)을 `cadam-pipeline/scripts/content`에서 `sys.path`로 불러 씀(큐레이터·프로모 발행도 같은 모듈 사용). 없애는 조건: 그 콘텐츠 코드가 엔진으로 가면 계산 모듈을 `facts/`로. 기한: 2026-11-27.
 - (2026-11-13) `content-engine/brands/football/video/*` — `sys.path`에 `football-blog` 넣고 `football.*` 패키지를 직접 import(31곳). 없애는 조건: 쇼츠 과정 재설계 때 `football/content/`와 함께 정리. 기한: 쇼츠 재설계 때.
 
