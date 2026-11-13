@@ -1,9 +1,10 @@
-# ~/projects 폴더 규칙 (v1.4, 2026-11-13)
+# ~/projects 폴더 규칙 (v1.5, 2026-11-13)
 
 > 규칙 지도: [RULES_MAP.md](RULES_MAP.md) — 이 파일이 폴더·저장 위치 규칙의 원본이다.
 > v1.2 (2026-11-11): 저장 위치 요약·파일명 언어 규칙 추가, 규칙 지도 연결.
 > v1.3 (2026-11-13): 파일 데이터는 모두 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>` (§4) — 사장님 결정.
 > v1.4 (2026-11-13): 3층 구조 — 엔진 층(`content-engine` 글·영상, `web-engine` 웹) · 사업 층(수집기·데이터 창구 = 데이터를 만드는 코드) · 데이터 창고. 사장님 결정, 근거 `cadam/docs/strategy/engines-and-business-folders-20261113.md`. 옮기는 중인 것은 §6 목록.
+> v1.5 (2026-11-13): 폴더 이동 완료 반영(백업·로그 정리 스크립트 = `cadam/ops/`, 사이트 = `web-engine/cadam-web`), DATA_RULES v1.0 확정.
 
 ## 0. 저장 위치 요약
 - 작업 산출물은 반드시 `~/projects/<프로젝트>/` 아래에 저장한다. 새 프로젝트는 `~/projects/<새이름>/` 폴더를 만든다.
@@ -101,7 +102,7 @@ web-engine/
   _wt-car-publish/ _wt-rent-publish/   사이트 자동 반영용 작업 사본(지우지 않는다)
 ```
 - 지금은 묶음 폴더일 뿐 공통 웹 코드는 없다. 두 사이트 이상이 같은 코드를 쓰게 되면 그때 `packages/`를 만든다.
-- 실행 기록(로그)은 그 작업의 코드가 있는 프로젝트의 `logs/`에 둔다. 5MB 넘으면 주간 정리(`cadam/cleanup_logs.sh`)가 줄인다.
+- 실행 기록(로그)은 그 작업의 코드가 있는 프로젝트의 `logs/`에 둔다. 5MB 넘으면 주간 정리(`cadam/ops/cleanup_logs.sh`)가 줄인다.
 - 공용 코드와 엔진 코드는 launchd가 쓰는 `/usr/bin/python3`(3.9)에서 돌아야 한다.
 
 ## 4. 데이터 창고
@@ -115,15 +116,15 @@ _data/<사업>/<종류>/<이름>/
 - 이름: 그 데이터를 만드는 수집기·프로그램 이름 또는 묶음 이름(영어 소문자, `_`·`-`).
 - 코드는 창고 경로를 직접 쓴다(코드 폴더 안 `data/` 금지). 이전 중 남긴 바로가기는 경로 교체 뒤 사업별로 지운다.
 - 사람이 만든 작은 파일(설정·수동 연결표)은 창고 전용 git, 큰 사진·PDF는 git 밖.
-- 예외: 사이트 배포 데이터(`cadam/cadam-web/src/data`, 사이트 빌드 입력), 세컨드 브레인 원문(읽기 전용).
+- 예외: 사이트 배포 데이터(`web-engine/cadam-web/src/data`, 사이트 빌드 입력), 세컨드 브레인 원문(읽기 전용).
 - 안내: `~/projects/_data/README.md`.
 
 ### 4.2 숫자 데이터
 
-> 데이터 한 건을 어떻게 적고(카테고리·이용 등급·쓰는 곳), 언제 늘리고 줄이는지는 `DATA_RULES.md`(v0.1 초안). 현황 화면은 `_meta/dashboard`.
+> 데이터 한 건을 어떻게 적고(카테고리·이용 등급·쓰는 곳), 언제 늘리고 줄이는지는 `DATA_RULES.md`(v1.0). 현황 화면은 엔진 대시보드(ERP `/engine-dashboard`, 만드는 코드 `_meta/dashboard/build.py`).
 
 - 숫자 데이터: 로컬 PostgreSQL 하나(현재 DB `cadam`). 사업마다 schema를 나눈다(`warehouse`=렌테일러, `data`=KOSIS, 해외파는 추후 `football`).
-- 백업은 한 경로로: `cadam/backup_cadam.sh` → `<사업>/backups/postgres/` 로컬 30개 + iCloud 사본 주 1회 8개. 겹치는 백업은 없앤다. 백업 전체 규칙은 `SAFETY_RULES.md` §6.
+- 백업은 한 경로로: `cadam/ops/backup_cadam.sh` → `_data/rentailor/backups/auto/postgres/` (14일 매일 + 12주까지 일요일분) + iCloud 사본 주 1회 8개. 겹치는 백업은 없앤다. 백업 전체 규칙은 `SAFETY_RULES.md` §6.
 - SQLite 등 옛 저장소는 이전이 확인되면 `_archive`로.
 
 ## 5. 정리·삭제 규칙

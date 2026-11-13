@@ -1,7 +1,7 @@
 # 안전 규칙 (SAFETY_RULES)
 
 > 무엇을 정하는 파일: 승인이 필요한 일, 절대 하면 안 되는 일, DB 쓰기·삭제·백업·비밀 파일 다루는 법.
-> 마지막 갱신: 2026-11-11 (사장님 결정 2 반영) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 마지막 갱신: 2026-11-13 (폴더 이동 반영: 백업·보류 스위치 경로) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
 > cadam 상세(Supabase 단계별 확인·RLS·도구별 허용 표·오류별 대응)는 `~/projects/cadam/docs/security.md`. 내용이 다르면 이 파일이 우선.
 
 ## 1. 승인 범위 (사장님 결정 3·8·10·11, 2026-11-11)
@@ -14,11 +14,11 @@
 | 서비스 재시작 (`launchctl kickstart -k`, 서버 재시작) | 새 예약 작업(launchd) 등록, 예약 작업의 파일 경로 수정 |
 | 파일 삭제 (보관함 비우기 포함) | 다시 만들 수 있는 캐시 삭제 (`.next`, `__pycache__`, 병합된 worktree) |
 | 운영 중인 예약 작업 끄기 (`launchctl unload`) | 코드 수정·읽기·조회·백업 만들기 |
-| 운영 중인 예약 작업의 **실행 시각 변경** | 글쓰기 보류 스위치 **켜기**(`cadam-pipeline/data/WRITING_PAUSE` 만들기 = 발행 멈춤) |
+| 운영 중인 예약 작업의 **실행 시각 변경** | 글쓰기 보류 스위치 **켜기**(`~/projects/_data/rentailor/work/pipeline/WRITING_PAUSE` 만들기 = 발행 멈춤) |
 | 글쓰기 보류 스위치 **끄기**(재개 — WP·네이버 발행이 다시 시작됨) | |
 | 실행 중인 서비스의 설정 변경 (위 "경로 수정"은 제외 — 전역 규칙 "확인 없이 설정 변경 금지") | |
 
-- **"마무리해줘"(세션 종료 요청) = 문서·규칙 리포(cadam-doc·_meta·_shared 등) push 승인**으로 본다. 코드·사이트 리포(cadam-web·cadam-pipeline·blog-engine 등) push는 따로 승인 (결정 10).
+- **"마무리해줘"(세션 종료 요청) = 문서·규칙 리포(_meta·_shared 등) push 승인**으로 본다. 코드·사이트 리포(cadam-doc — 2026-11-13부터 코드 포함, cadam-web·cadam-erp·content-engine·football-blog 등) push는 따로 승인 (결정 10). cadam-doc은 문서 리포가 아니라 코드 리포로 본다.
 
 - 승인은 그때 그 일 하나에만 유효하다. 한 번 "예"가 다음 일까지 허락하지 않는다.
 - 확신이 없으면 승인 필요 쪽으로 본다 (판단 순서: 안전 > 정확 > 속도).
@@ -66,13 +66,13 @@
 ## 6. 백업 (사장님 결정 4, 2026-11-11)
 | 종류 | 위치 |
 |---|---|
-| 자동 백업 (예약 작업이 만드는 것) | `~/projects/<사업>/backups/` (예: DB 덤프 `backups/postgres/`) |
-| 일회성 백업 (작업 전 손으로 뜨는 것) | `~/projects/<사업>/backups-manual/` |
+| 자동 백업 (예약 작업이 만드는 것) | 데이터 창고 `~/projects/_data/<사업>/backups/auto/` (예: DB 덤프 `_data/rentailor/backups/auto/postgres/`) |
+| 일회성 백업 (작업 전 손으로 뜨는 것) | `~/projects/_data/<사업>/backups/manual/` |
 | 기존 `~/backups/` | 옮기지 않는다. **읽기 전용 보관** — 새 백업을 여기 만들지 않는다 |
-| 로컬 PostgreSQL DB (`cadam`) | `~/projects/cadam/backup_cadam.sh`: 로컬 최근 **30개** + iCloud Drive 사본 **주 1회, 최근 8개**(약 2달) |
-| blog-engine `outbox/` 글쓰기 파일(json·md) | 같은 스크립트가 매일 `blog-engine-outbox.tar.gz`로 묶어 cadam `backups/`에 |
+| 로컬 PostgreSQL DB (`cadam`) | `~/projects/cadam/ops/backup_cadam.sh` → `_data/rentailor/backups/auto/postgres/`: 최근 **14일은 매일**, 그 뒤 **84일(12주)까지 일요일분만**(2026-11-12 사장님 결정, 검증된 덤프가 생겼을 때만 옛것 정리) + iCloud Drive 사본 **주 1회, 최근 8개**(약 2달). 기록 `_data/rentailor/backups/auto/backup.log` |
+| content-engine 글쓰기 작업 파일(json·md) | 같은 스크립트가 매일 `content-engine-outbox.tar.gz`로 묶어 `_data/rentailor/backups/auto/<날짜>/`에 |
 | 데이터 창고 `~/projects/_data` 전체 (맥 밖 사본) | `_meta/scripts/icloud_backup.sh` (예약 `com.solo.icloud-backup` 매일 01:30) → iCloud Drive `data-warehouse-backup/`: 매일 `data_날짜.tar.zst`(media 제외, SQLite 안전 사본·Postgres 덤프 포함, 최근 7개+일요일분 4개) + 매일 `system_날짜.tar.zst`(맥 복원용: `~/projects` 코드·문서, Claude 설정·메모리, LaunchAgents, 설치 목록 — 비밀 파일·node_modules 제외) + 토요일 `media_날짜.tar`(사진·영상, 최근 4개). 동기화가 아니라 날짜별 묶음이라 맥에서 지워도 백업은 남는다. 결과는 디스코드. 복원 순서: iCloud 폴더의 `RESTORE.md` (2026-11-13). **예외 승인 2건(사장님 2026-11-13)**: ① 비밀 파일은 사장님 암호로 AES-256 잠근 `secrets_날짜.tar.zst.enc`로만 보관(암호=키체인 `icloud-backup-secrets`) ② 운영 Supabase DB(사이트 public 표 전부)를 매일 **읽기 전용(GET)** 으로 내보냄 — `scripts/supabase_rest_export.py`, 사이트 서비스 키로 REST API 조회 → `_data/rentailor/backups/auto/supabase/날짜/표.jsonl.gz` 14일. (pg_dump는 임시 DB 계정이 상담 등 잠긴 표를 못 읽어 포기, auth·storage 제외) |
-| `_meta`·`content-engine`(옛 이름 blog-engine)·`_shared` 코드·문서 | 사업 폴더가 아니므로 따로 backups 폴더를 두지 않는다 — **GitHub 리모트가 백업** (커밋·push로 보관) |
+| `_meta`·`content-engine`·`web-engine`·`_shared` 코드·문서 | 사업 폴더가 아니므로 따로 backups 폴더를 두지 않는다 — **GitHub 리모트가 백업** (커밋·push로 보관) |
 
 - 파일 이름: `{원본파일명}_{YYYYMMDD}_{HHMMSS}.bak`
 - 설정 파일(plist·`brand.yaml`·`config.json` 등)은 고치기 전에 백업 → 고친 뒤 `diff`로 확인. JSON이면 `python3 -m json.tool`로 문법 확인.

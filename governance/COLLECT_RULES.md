@@ -13,7 +13,7 @@
 | 예약 실행 수집기 코드에서 브라우저가 필요할 때 | `solo_common.ego_browser`의 `browser_page()` (비동기는 `async_browser_page()`). ego lite가 없으면 모듈이 자동으로 대체 |
 | 공식 Open API(키 발급형)·RSS | 브라우저 없이 HTTP 호출 가능 |
 
-- **Playwright 직접 호출 금지는 수집기 한정.** 화면 점검·영상 확인용 Playwright(예: my-shorts)는 허용.
+- **Playwright 직접 호출 금지는 수집기 한정.** 화면 점검·영상 확인용 Playwright(예: `content-engine/video`)는 허용.
 - 브라우저 없이 잘 되던 수집이 차단·빈 응답을 내면 `browser_page()`로 바꾼다.
 
 ## 2. 예절 수집 (2026-11-02 전체 적용)

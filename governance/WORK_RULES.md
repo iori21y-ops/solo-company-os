@@ -1,7 +1,7 @@
 # 일하는 방식 (WORK_RULES)
 
 > 무엇을 정하는 파일: 사장님과 소통하는 법, 추측 금지, 완료 보고, 동시 세션, 세션 관리, Linear 기록, 비용, 실행 환경.
-> 마지막 갱신: 2026-11-11 · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 마지막 갱신: 2026-11-13 (폴더 이동 반영) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
 
 ## 1. 소통 (사장님 결정 7, 2026-11-11)
 - 사장님은 비개발자 — **한국어**로, 간결하게. 전문 용어는 괄호 안에 쉬운 설명.
@@ -60,6 +60,6 @@
 ## 8. 실행 환경
 | 어디 | 무엇으로 실행 |
 |---|---|
-| launchd 예약 작업, `_shared`(solo_common), blog-engine, cadam-pipeline | `/usr/bin/python3` (시스템 3.9) — 새 문법(3.10+) 쓰지 않기 |
-| my-shorts | `.venv/bin/python` (시스템 python3에는 librosa 없음) |
+| launchd 예약 작업, `_shared`(solo_common), `content-engine`, `cadam`(core·collect·check 등) | `/usr/bin/python3` (시스템 3.9) — 새 문법(3.10+) 쓰지 않기 |
+| `content-engine/video` (수동 쇼츠, 옛 my-shorts) | `.venv/bin/python` (시스템 python3에는 librosa 없음) |
 | GPU 서버 (Windows, Tailscale) | 항상 `ssh gpu-server "명령"` — IP 직접 입력 금지, 한 명령씩 |
