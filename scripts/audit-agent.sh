@@ -9,8 +9,8 @@
 #   1단계 = 결정론 쉘 판정(A1~A9), 항상 실행 / 2단계 = claude -p sonnet 리포트, 결함 있을 때만.
 #
 # launchd: com.cadam.audit, 매일 07:30 (헬스체크 07:00·사이트맵스캔 06:00 직후).
-# 사용법: audit-agent.sh          (실운영: 발송·카드·상태기록 수행)
-#         audit-agent.sh --dry-run (검증: 수집·판정·발송예정문구만 출력, 무발송·무카드·무상태기록)
+# 사용법: audit-agent.sh          (실운영: 디스코드 발송·Linear 이슈·상태기록 수행)
+#         audit-agent.sh --dry-run (검증: 수집·판정·발송예정문구만 출력, 무발송·무이슈·무상태기록)
 
 export LANG=en_US.UTF-8
 HOME="${HOME:-/Users/kim}"
@@ -27,7 +27,6 @@ UIDN=$(id -u)
 AUDIT_DIR="$HOME/projects/_meta/audit"
 LOG="$AUDIT_DIR/audit.log"
 STREAK="$AUDIT_DIR/audit-streak.txt"   # A1: "label count" (연속 실패 카운트)
-SEEN="$AUDIT_DIR/audit-seen.txt"        # 카드 dedup: 미해결 결함키 목록(재카드 방지)
 [ "$DRY_RUN" = false ] && mkdir -p "$AUDIT_DIR"
 
 # ── 판정 노브(열린 결정 확정값) ─────────────────────────────
@@ -42,37 +41,12 @@ add_finding(){ FINDINGS="${FINDINGS}$1"$'\n'; }
 # ══════════════════════════════════════════════════════════════
 # A1. 죽은 잡 탐지 — KeepAlive 상주 PID 없음(즉시) + 예약잡 연속 실패 N회
 # ══════════════════════════════════════════════════════════════
-# 상주(KeepAlive) 서비스: PID 없으면 죽음. (monitor·gpu-agent은 상주 아님 → 제외; 텔레그램 clipserver는 2026-11-13 폐지)
-RESIDENT="com.cadam.erp com.cadam.naver homebrew.mxcl.postgresql@18"
-for L in $RESIDENT; do
-  LINE=$(launchctl list 2>/dev/null | awk -v l="$L" '$3==l{print $1}')
-  if [ -z "$LINE" ]; then
-    add_finding "A1|high|$L|상주 서비스 LaunchAgent 미적재(launchctl 목록에 없음)"
-  elif [ "$LINE" = "-" ]; then
-    add_finding "A1|high|$L|상주(KeepAlive) 서비스인데 PID 없음 — 프로세스 죽음 의심"
-  fi
-done
-
-# 예약잡: 마지막 종료코드 ≠0 이 연속 A1_STREAK_N 회 이상 → 구조적 실패
-# (외부 일시장애 1회는 제외. 상태파일에 잡별 연속 실패수 영속)
-SCHEDULED="com.cadam.gwp1-pipeline com.rentailor.recall-collect com.user.secondbrain.ingest com.cadam.kosis com.cadam.encar-crawler-v2 com.cadam.api-hub.ev-chargers com.cadam.api-hub.car-sales com.cadam.terms-monitor com.cadam.wp-sync"
-read_streak(){ [ -f "$STREAK" ] && awk -v l="$1" '$1==l{print $2}' "$STREAK" | head -1 || true; }
-NEW_STREAK=""
-for L in $SCHEDULED; do
-  ST=$(launchctl list 2>/dev/null | awk -v l="$L" '$3==l{print $2}')
-  [ -z "$ST" ] && continue
-  PREV=$(read_streak "$L"); PREV=${PREV:-0}
-  # -15/143(SIGTERM)·0 은 성공/정상종료로 간주, 그 외 비영(1 등)은 실패
-  if [ "$ST" = "0" ] || [ "$ST" = "-15" ] || [ "$ST" = "143" ]; then
-    CUR=0
-  else
-    CUR=$((PREV + 1))
-  fi
-  NEW_STREAK="${NEW_STREAK}${L} ${CUR}"$'\n'
-  if [ "$CUR" -ge "$A1_STREAK_N" ]; then
-    add_finding "A1|med|$L|예약잡 연속 실패 ${CUR}회(종료코드 $ST) — 구조적 실패 의심"
-  fi
-done
+# Coverage comes from the plists themselves (audit_jobs.py, 2026-11-13): every loaded job of ours —
+# resident without process, scheduled job failing STREAK_N audits in a row (SIGTERM counts for scheduled jobs),
+# and log age > 2 x schedule period (A4). Replaces the hand-written RESIDENT/SCHEDULED/check_frozen lists.
+JOB_ARGS=(--streak "$STREAK"); [ "$DRY_RUN" = true ] && JOB_ARGS+=(--dry-run)
+JOB_FINDINGS=$(/usr/bin/python3 "$HOME/projects/_meta/scripts/audit_jobs.py" "${JOB_ARGS[@]}" 2>&1)
+while IFS= read -r f; do [ -n "$f" ] && add_finding "$f"; done <<< "$JOB_FINDINGS"
 
 # ══════════════════════════════════════════════════════════════
 # A2. 거짓성공 탐지 — 성공 문자열 O 그러나 산출물 없음/mtime 안바뀜
@@ -115,26 +89,6 @@ check_silent(){
 }
 check_silent "com.rentailor.recall-collect" "$HOME/projects/cadam/collect/recall/recall_collect.py"
 check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/collect/scrape_encar.py"
-check_silent "com.cadam.wp-sync" ""
-
-# ══════════════════════════════════════════════════════════════
-# A4. 로그 정지(frozen) — 로그 mtime이 주기×1.5 넘게 안 갱신
-# ══════════════════════════════════════════════════════════════
-# 형식: label|로그경로|주기초
-check_frozen(){
-  local label="$1" log="$2" cadence="$3"
-  [ -f "$log" ] || { add_finding "A4|med|$label|로그 파일 없음($log) — 잡 미실행 의심"; return 0; }
-  local m age limit
-  m=$(mtime_epoch "$log"); age=$((NOW - m))
-  limit=$(( cadence * A4_CADENCE_MULT / 10 ))
-  if [ "$age" -gt "$limit" ]; then
-    add_finding "A4|med|$label|로그 정지 — 마지막 갱신 $((age/3600))시간 전(임계 $((limit/3600))h 초과)"
-  fi
-}
-check_frozen "secondbrain.ingest" "$HOME/second-brain/logs/cron.log" 86400
-check_frozen "sitemap-scan"       "$HOME/projects/_meta/sitemap/scan.log" 86400
-check_frozen "health-check"       "$HOME/projects/_meta/logs/health-check.log" 86400
-check_frozen "secrets-drift"      "$HOME/.cadam-secrets/check-drift.log" 86400
 
 # ══════════════════════════════════════════════════════════════
 # A5. 하트비트 누락 — 당일 헬스체크 하트비트(heartbeat/ALL OK) 흔적 없음
@@ -217,13 +171,9 @@ fi
 FINDINGS=$(printf '%s' "$FINDINGS" | grep -v '^$' || true)
 FCOUNT=$(printf '%s\n' "$FINDINGS" | grep -c '|'); FCOUNT=${FCOUNT:-0}
 
-# 카드 생성 대상(조치필요): A1(high/med)·A2·A3·A4·A5. A6/A7/A8/A9는 요약만(리마인드).
-actionable_line(){ echo "$1" | grep -Eq '^A1\||^A2\||^A3\||^A4\||^A5\|'; }
 
 # 채널·토큰
 SECRETS="$HOME/.cadam-secrets/secrets.env"
-DASH_TOKEN=$(grep '^DASHBOARD_AUTH_TOKEN=' "$SECRETS" 2>/dev/null | head -1 | cut -d= -f2 | tr -d "\"' ")
-ERP_URL="http://localhost:3001/api/tasks"
 
 # ── 2단계: 요약 리포트 문구 작성 (결함 있으면 claude, 없으면 정형문) ──
 if [ "$FCOUNT" -eq 0 ]; then
@@ -259,54 +209,19 @@ if [ "$DRY_RUN" = true ]; then
   printf '%s\n' "$SUMMARY"
   echo "----------------------------------------"
   echo
-  echo "[ERP 카드 생성 예정(조치필요 결함만, source=스팟·agent=관리팀장·status=배분대기)]"
-  CARD_N=0
-  while IFS= read -r f; do
-    [ -z "$f" ] && continue
-    if actionable_line "$f"; then
-      CARD_N=$((CARD_N+1))
-      code=$(echo "$f"|cut -d'|' -f1); tgt=$(echo "$f"|cut -d'|' -f3); desc=$(echo "$f"|cut -d'|' -f4)
-      echo "  카드$CARD_N: title=[감사 $code] $tgt / instruction=$desc"
-    fi
-  done <<< "$FINDINGS"
-  [ "$CARD_N" -eq 0 ] && echo "  (조치필요 결함 없음 → 카드 생성 안 함)"
+  echo "[Linear 이슈 등록 대상(A1~A5)]"
+  printf '%s\n' "$FINDINGS" | grep -E '^A[1-5]\|' | awk -F'|' '{printf "  [감사 %s] %s — %s\n",$1,$3,$4}'
   echo
   echo "[검증] dry-run: 실발송·카드생성·상태기록 모두 생략됨"
   exit 0
 fi
 
 # ── 실운영: 상태기록 + 요약발송 + 카드생성 ──
-# A1 streak 영속
-printf '%s' "$NEW_STREAK" > "$STREAK"
-
+# (A1 streak is written by audit_jobs.py)
 # (항상) 요약 1줄 발송 = 감사 생존 하트비트 겸용
 source "$SECRETS" 2>/dev/null
 source "$HOME/.cadam-secrets/notify_discord.sh"
 notify_discord "$SUMMARY"
-
-# (조치필요 결함만) 카드 생성 + dedup
-touch "$SEEN"
-NEW_SEEN=""
-while IFS= read -r f; do
-  [ -z "$f" ] && continue
-  if actionable_line "$f"; then
-    code=$(echo "$f"|cut -d'|' -f1); tgt=$(echo "$f"|cut -d'|' -f3); desc=$(echo "$f"|cut -d'|' -f4)
-    key="${code}:${tgt}"
-    NEW_SEEN="${NEW_SEEN}${key}"$'\n'
-    if grep -qxF "$key" "$SEEN" 2>/dev/null; then
-      echo "[$TS] dedup skip $key (미해결 재카드 방지)" >> "$LOG"
-      continue
-    fi
-    TITLE="[감사 $code] $tgt"
-    TITLE=$(echo "$TITLE" | cut -c1-60)
-    INSTR="[시스템 감사 자동생성] $desc  (근거: audit-agent.sh $code, $TS. 조치 후 결재 상신 요망.)"
-    PAYLOAD=$(t="$TITLE" i="$INSTR" /usr/bin/python3 -c 'import json,os;print(json.dumps({"title":os.environ["t"],"agent":"관리팀장","source":"스팟","status":"배분대기","instruction":os.environ["i"]}))')
-    HTTP=$(/usr/bin/curl -s -o /dev/null -w '%{http_code}' -X POST -H "x-dashboard-token: $DASH_TOKEN" -H "Content-Type: application/json" -d "$PAYLOAD" "$ERP_URL")
-    echo "[$TS] card create $key → HTTP $HTTP" >> "$LOG"
-  fi
-done <<< "$FINDINGS"
-# 해소된 결함은 seen에서 자동 제거(이번에 안 잡힌 키는 NEW_SEEN에 없음)
-printf '%s' "$NEW_SEEN" | grep -v '^$' > "$SEEN" || true
 
 # Linear: one issue per actionable finding; closed automatically once the finding disappears (never blocks the audit)
 printf '%s\n' "$FINDINGS" | /usr/bin/python3 -c '
