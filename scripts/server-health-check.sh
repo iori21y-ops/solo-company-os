@@ -20,15 +20,7 @@ if [ -n "$MEM_PRESSURE" ] && [ "$MEM_PRESSURE" -le 10 ]; then
   PROBLEMS="${PROBLEMS}🔴 메모리 여유 ${MEM_PRESSURE}%만 남음\n　→ 불필요 프로세스 종료 또는 Ollama 모델 언로드 필요\n"
 fi
 
-# --- 3. claude-broker 프로세스 ---
-if ! pgrep -f "node src/main.js" > /dev/null 2>&1; then
-  PROBLEMS="${PROBLEMS}🔴 claude-broker 프로세스 없음\n　→ 복구: launchctl kickstart gui/501/com.rentailor.claude-broker\n"
-fi
-
-# --- 4. OpenClaw 프로세스 ---
-if ! pgrep -f "openclaw" > /dev/null 2>&1; then
-  PROBLEMS="${PROBLEMS}🔴 OpenClaw(기획팀장) 프로세스 없음\n　→ 복구: launchctl kickstart gui/501/ai.openclaw.gateway\n"
-fi
+# --- 3·4. claude-broker / OpenClaw checks removed 2026-11-13 (agent system retired, services disabled) ---
 
 # --- 5. n8n Docker 컨테이너 ---
 # launchd 스케줄: 23:00 기동 / 07:00 종료 → 07:00~22:59는 정상 종료 시간대이므로 체크 제외
@@ -79,20 +71,13 @@ if [ "$DOM" = "02" ] || [ "$DOM" = "03" ]; then
 fi
 
 # --- 9. LaunchAgent 상태 ---
-for AGENT in com.rentailor.claude-broker com.cadam.audit; do
+for AGENT in com.cadam.audit com.cadam.discord-clipper; do
   if ! launchctl list 2>/dev/null | grep -q "$AGENT"; then
     PROBLEMS="${PROBLEMS}🔴 LaunchAgent ${AGENT} 미로드\n　→ 복구: launchctl load ~/Library/LaunchAgents/${AGENT}.plist\n"
   fi
 done
 
-# --- 10. broker 로그 최근 24시간 ERROR ---
-BROKER_LOG="$HOME/.openclaw/workspace/claude-broker/logs"
-if [ -d "$BROKER_LOG" ]; then
-  ERROR_COUNT=$(find "$BROKER_LOG" -name "*.log" -mtime -1 -exec grep -ci "ERROR\|FATAL\|CRASH" {} + 2>/dev/null || echo 0)
-  if [ "$ERROR_COUNT" -gt 0 ] 2>/dev/null; then
-    PROBLEMS="${PROBLEMS}🟡 broker 로그에 ERROR ${ERROR_COUNT}건 (24h)\n　→ 로그 확인: tail -50 ~/.openclaw/workspace/claude-broker/logs/*.log | grep ERROR\n"
-  fi
-fi
+# --- 10. broker log check removed 2026-11-13 (broker retired) ---
 
 # --- 11. rentailor.co.kr 접근 ---
 HTTP_CODE=$(curl -sL -o /dev/null -w '%{http_code}' --max-time 10 https://rentailor.co.kr 2>/dev/null)

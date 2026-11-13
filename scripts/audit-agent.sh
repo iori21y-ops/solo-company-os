@@ -43,7 +43,7 @@ add_finding(){ FINDINGS="${FINDINGS}$1"$'\n'; }
 # A1. 죽은 잡 탐지 — KeepAlive 상주 PID 없음(즉시) + 예약잡 연속 실패 N회
 # ══════════════════════════════════════════════════════════════
 # 상주(KeepAlive) 서비스: PID 없으면 죽음. (monitor·gpu-agent은 상주 아님 → 제외)
-RESIDENT="com.rentailor.claude-broker com.cadam.erp com.cadam.clipserver com.rentailor.md-viewer com.cadam.naver ai.openclaw.gateway homebrew.mxcl.postgresql@18"
+RESIDENT="com.cadam.erp com.cadam.clipserver com.cadam.naver homebrew.mxcl.postgresql@18"
 for L in $RESIDENT; do
   LINE=$(launchctl list 2>/dev/null | awk -v l="$L" '$3==l{print $1}')
   if [ -z "$LINE" ]; then
