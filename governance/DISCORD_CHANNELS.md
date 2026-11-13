@@ -23,15 +23,15 @@
 - 채널 삭제·카테고리 이동은 봇 권한 부족(403) → 사장님이 디스코드 앱에서 직접.
 - 주식 모닝 브리핑(ADMIN-06) 중지 — recurring-tasks.md 참고.
 
-## #시스템알림 정리안 (승인 대기 — 아직 아무것도 옮기지 않음)
+## #시스템알림 정리안 (2026-11-13 사장님 전체 승인)
 
 | 메시지 | 보내는 곳 | 제안 위치 |
 |---|---|---|
 | iCloud 백업, 카담 백업, 비밀값 점검(secrets-drift), 서버 자동점검, 감사, Supabase 로그 한도, 사이트맵 변화 | `_meta/scripts/*`, `cadam/backup_cadam.sh`, `~/.cadam-secrets/check-drift.mjs` 등 (`notify_discord.sh`) | 그대로 #시스템알림 |
-| 가격표 대조·가격 변경·옵션·색상 변경·차량 데이터 반영·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 | `cadam/collectors/lib/notify.py` 한 곳을 거침 (수집기 15개) | 📁렌테일러 #데이터 — 이 파일 1곳만 고치면 됨 |
-| 카담 일일 리포트(블로그 누적·서버 상태) | `cadam/daily_report.sh` | #데이터 또는 그대로 (결정 필요) |
-| 엔카 시세 수집, RSS 신규 0건 | `~/second-brain/scripts/scrape_encar.py`, `rss_collector.py` | #데이터 |
-| 🆕 새 상담 R-#### | Spidey Bot 웹훅 (ERP) | 렌테일러 쪽 새 채널(#상담) — 디스코드 웹훅 설정에서 채널만 바꾸면 됨, 코드 수정 없음 |
-| 🩺 REN-### 진단·🔧 수리 결과 | Linear 진단 봇 (모든 사업 공통) | 결정 필요 — 그대로 둘지, 사업별로 나눌지 |
+| 가격표 대조·가격 변경·옵션·색상 변경·차량 데이터 반영·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 | `cadam/collectors/lib/notify.py` 한 곳을 거침 (수집기 15개) | ✅ #데이터로 옮김 (collectors 커밋 2e0563d, 시험 메시지 확인) |
+| 카담 일일 리포트(블로그 누적·서버 상태) | `cadam/daily_report.sh` | 그대로 #시스템알림 (서버 상태 위주) |
+| 엔카 시세 수집, RSS 신규 0건 | `~/second-brain/scripts/scrape_encar.py`, `rss_collector.py` (같은 lib.notify 사용) | ✅ #데이터로 함께 옮겨짐 |
+| 🆕 새 상담 R-#### | Spidey Bot 웹훅 (ERP) | 📁렌테일러 #상담 신설 후 웹훅 채널 변경 — 디스코드 화면 작업 대기 |
+| 🩺 REN-### 진단·🔧 수리 결과 | Linear 진단 봇 (모든 사업 공통) | 그대로 #시스템알림 (모든 사업 공통) |
 | CADAM 아침 브리핑·경보 해결(RESOLVED) | ERP 모니터링 (`web-engine/cadam-erp`) | 그대로 (ERP 코드 수정 = 배포라 별도 승인) |
 | GPU 서버에서 보내는 알림 | 미확인 — 11/13 접속 시간 초과 | 확인 후 결정 |
