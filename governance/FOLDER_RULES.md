@@ -54,7 +54,7 @@
   logs/        ⑨ 실행 기록 (git 제외)
 ```
 - 사업 폴더에 두지 않는 것: 데이터 → `_data/<사업>/`, 글·영상 코드 → `content-engine`, 사이트·ERP → `web-engine`, 두 사업 이상이 쓰는 코드 → `_shared/solo_common`, 임시 작업 파일 → `_data/<사업>/work/<이름>` (코드 폴더 안 `_scratch`·`temp` 금지).
-- 기존 사업의 현재 위치(옮기는 중): cadam = `collectors/`(①) + `cadam-pipeline/scripts/*`(①②③④⑥⑦) + `supabase/`(⑤) + `scripts/`(⑧); football-blog = 표준 틀 완료(2026-11-13): `football/{collect,process,check}/`(①②③, 영상·사진은 `football/content/`) + `facts/`(④) + `ops/`(⑧, launchd·tools) — brain 페이지는 데이터라 `_data/football/work/football-blog/brain`; import-lease = `crawler/`(①②③) + `db/`(⑤). 분석표: `cadam/docs/strategy/engines-and-business-folders-20261113.md` §8.
+- 기존 사업의 현재 위치(옮기는 중): cadam = `collectors/`(①) + `cadam-pipeline/scripts/*`(①②③⑦) + `facts/`(④) + `db/`(⑤) + `knowledge/`(⑥) + `ops/`(⑧) — 2026-11-13 2~4단계 완료, git 하나로 합침; football-blog = 표준 틀 완료(2026-11-13): `football/{collect,process,check}/`(①②③, 영상·사진은 `football/content/`) + `facts/`(④) + `ops/`(⑧, launchd·tools) — brain 페이지는 데이터라 `_data/football/work/football-blog/brain`; import-lease = `crawler/`(①②③) + `db/`(⑤). 분석표: `cadam/docs/strategy/engines-and-business-folders-20261113.md` §8.
 - 데이터(수집 원본·캐시·내보내기)는 이 폴더가 아니라 `_data/<사업>/...`(§4). 숫자 데이터의 원본은 로컬 PostgreSQL.
 - 글·영상을 만드는 코드는 `content-engine`, 사이트·ERP 코드는 `web-engine`에 둔다(사업 폴더에 두지 않는다).
 - 수집기 출력 규칙은 `cadam/collectors/COLLECTOR_CONVENTION.md`를 따른다: 숫자 → PostgreSQL, 맥락 → second-brain, 사이트 노출값 → Supabase.

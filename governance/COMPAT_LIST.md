@@ -29,6 +29,11 @@
 | `football-blog/tools/upgrade_posts.py` | 렌테일러 브랜드 코드 `naver_rewrite.naver_markup` (수동 일회용 도구). 2026-11-10부터 `football.draft`도 없고 2026-11-11부터 `data/posts` 링크도 없어 **지금은 실행 안 됨** | 다음에 쓸 일이 생기면 blog-engine으로 옮김(`swap_insta_photos.py`처럼 `brands/football/tools/`) | 쓸 때 |
 | `cadam-pipeline/scripts/common/writing_pause.py` | `blog-engine/brands/rentailor/writing_pause.py` | 글쓰기 보류 스위치 도우미. 내용이 다르고 cadam 안에서 부르는 곳이 없음(2026-11-11 확인) | 부르는 곳이 정말 없는지 한 번 더 본 뒤 보관함으로 | 2026-12-15 |
 
+- (2026-11-13, 렌테일러 표준 틀) `cadam-pipeline/scripts/common/*` — `solo_common`을 다시 내보내는 15줄 연결 파일 8개(claude·content_extractor·discord_client·ego_browser·llm_client·notify·polite·warehouse) + 렌테일러 전용 모듈. 쓰는 곳 약 149줄(`sys.path`에 `scripts/` 넣고 `from common…`). 없애는 조건: `cadam-pipeline/scripts`를 비우는 마지막 단계(engines doc §8-2 5~7단계)에서 부르는 쪽을 `solo_common` 직접 import로. 기한: 2026-11-27.
+- (2026-11-13) `cadam/collectors/lib`(notify·polite·ego_browser·change_alert·section7) — pipeline api-hub 등 약 48곳이 `sys.path`에 `~/projects/cadam/collectors`를 넣어 불러 씀. 없애는 조건: 7단계(수집기 이사)에서 같이 정리, 새 패키지는 `lib` 말고 겹치지 않는 이름. 기한: 2026-11-27.
+- (2026-11-13) 렌테일러 데이터 창구 `cadam/facts/facts_cli.py`가 계산 모듈(`price_facts`·`fact_pack`·`insight_facts`·`insurance_facts`·`data_topics`·`source_gate`·`promo_collector`)을 `cadam-pipeline/scripts/content`에서 `sys.path`로 불러 씀(큐레이터·프로모 발행도 같은 모듈 사용). 없애는 조건: 그 콘텐츠 코드가 엔진으로 가면 계산 모듈을 `facts/`로. 기한: 2026-11-27.
+- (2026-11-13) `content-engine/brands/football/video/*` — `sys.path`에 `football-blog` 넣고 `football.*` 패키지를 직접 import(31곳). 없애는 조건: 쇼츠 과정 재설계 때 `football/content/`와 함께 정리. 기한: 쇼츠 재설계 때.
+
 ## D. 끝난 것 (참고)
 - 2026-11-13: 모든 사업의 데이터(작업 파일·수집 원본·사진·백업)를 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>`으로 옮기고 코드 폴더의 바로가기를 모두 지움(`_data/README.md`). 아래 기록의 경로는 그때 기준이다.
 - 2026-11-11 (REN-134): 해외파 morning·poll 예약 작업을 엔진 직접 실행으로 교체(`blog-engine/launchd/com.iori21y.football-morning|poll.plist`, 설치본 교체·**load 안 함**, 기록 `blog-engine/logs/football-*.log`). 잠금·자동 점검·미실행 알림·네이버 로그인 점검도 엔진(`brands/football/jobs.py`, 공통 `_shared/solo_common/jobhealth.py`). 영상·쇼츠 점검은 football-blog `run.py videopoll`(plist는 저장소에만, 다시 켤 때 설치). 옛 설치본 백업 `_archive/2026-11-11/football-launchd/`(2026-11-12 비움, REN-160 — 휴지통).
