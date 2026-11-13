@@ -22,18 +22,7 @@ fi
 
 # --- 3·4. claude-broker / OpenClaw checks removed 2026-11-13 (agent system retired, services disabled) ---
 
-# --- 5. n8n Docker 컨테이너 ---
-# launchd 스케줄: 23:00 기동 / 07:00 종료 → 07:00~22:59는 정상 종료 시간대이므로 체크 제외
-HOUR=$(date '+%H')
-N8N_ACTIVE_HOUR=false
-if [ "$HOUR" -ge 23 ] || [ "$HOUR" -lt 7 ]; then
-  N8N_ACTIVE_HOUR=true
-fi
-if [ "$N8N_ACTIVE_HOUR" = "true" ]; then
-  if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -qi "n8n"; then
-    PROBLEMS="${PROBLEMS}🔴 n8n Docker 컨테이너 중지됨\n　→ 복구: docker start n8n\n"
-  fi
-fi
+# --- 5. n8n checks removed 2026-11-13 (n8n retired 2026-11-10) ---
 
 # --- 6. Ollama ---
 if ! pgrep -f "ollama" > /dev/null 2>&1; then
@@ -46,13 +35,6 @@ if [ $? -ne 0 ] || echo "$TS_STATUS" | grep -qi "stopped\|logged out"; then
   PROBLEMS="${PROBLEMS}🔴 Tailscale 연결 끊김\n　→ 복구: tailscale up\n"
 fi
 
-# --- 8. 포트 응답 (n8n 5678) ---
-# launchd 스케줄 동일: 운영 시간대(23:00~06:59)에만 포트 체크
-if [ "$N8N_ACTIVE_HOUR" = "true" ]; then
-  if ! curl -s -o /dev/null -w '' --max-time 5 http://localhost:5678 > /dev/null 2>&1; then
-    PROBLEMS="${PROBLEMS}🔴 n8n(5678) 포트 무응답\n　→ docker restart n8n 후 재확인\n"
-  fi
-fi
 # --- 8-1. 월간 가격크롤러 수집 성공 검증 (매월 2~3일에만) ---
 #   [2026-06-02 A안] 9722는 매월 1일 1회 실행 후 종료되는 배치 작업이므로 상시 포트 감시 제외.
 #   대신 '이번 달 수집이 성공했는지'를 1일 다음(2~3일)에만 1회 검증한다.
