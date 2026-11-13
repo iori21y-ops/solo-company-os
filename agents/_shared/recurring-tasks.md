@@ -94,7 +94,7 @@ references:
 | ADMIN-03 | 익일 7시 대표 요약 보고 | 매일 07시 | schedule | 결재·발행·이상 요약 | 운영중 | admin SKILL |
 | ADMIN-04 | pending 48h 미처리 에스컬레이트 | 상시 | 스캔 | [ESCALATE] | 정의됨 | admin SKILL |
 | ADMIN-05 | 미결재 알림(pending 1건↑ 시만 전송, 0건 침묵) | 매일 09시 | broker adminStatusPoll | 최근 7일 결재 대기만 #대표이사실 알림(역할멘션 없음). 담당 봇 없는 원장 요청은 Linear로 자동 이관 | 운영중(2026-11-04 개편: 결재 창구 Linear 일원화) | 대표님 지시: 자동 다이제스트→pending-only 축소 |
-| ADMIN-06 | 주식 모닝 브리핑(~/projects/stocks 파이프라인 실행+발송) | 평일 07:25 | 카드(scheduledCardPoll, cadence=daily·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드 뉴스레터 | 운영중(2026-07-17 카드 등록, card id 220) | admin/SKILL.md §8, tools/send_morning_briefing.py |
+| ADMIN-06 | 주식 모닝 브리핑(~/projects/stocks 파이프라인 실행+발송) | 평일 07:25 | 카드(scheduledCardPoll, cadence=daily·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드 뉴스레터 | **중지**(2026-10-28 마지막 실행, stocks는 _paused로 이동, 사장님 확인 2026-11-13 — 다시 안 함, card id 220) | admin/SKILL.md §8, tools/send_morning_briefing.py |
 | ADMIN-07 | 주식 주말 경량 브리핑(미국 금요장 마감 요약, us-only) | 토요일 07:25(일요일 없음) | 카드(scheduledCardPoll, cadence=weekly:6·earliest_hour=7) | 디스코드 채널 1527296041169322135 임베드(미국지표+코멘트만) | 운영중(2026-07-17 카드 등록) | admin/SKILL.md §8-1, main.py --us-only |
 
 ## 미정의 직무 (현재 주기 업무 없음)
