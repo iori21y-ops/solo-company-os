@@ -101,7 +101,7 @@ gate2 패키지:
 발행(2026-06-09) 후 27일 경과. D+7 1차 측정(6-15) 이후 Instagram Insights 수동 확인이 3주+ 미이행 상태로 확인.
 
 ### 재확인한 사실
-- `.env`(`~/projects/cadam/cadam-n8n/.env`) 재확인 결과 `META_ACCESS_TOKEN`·`IG_USER_ID` 여전히 미발급 — cycle-003 이후 자동 수집 경로 없음 (2026-06-09, 06-10 결정 요청 두 건 모두 pending-approval 상태로 미종결).
+- `.env`(`~/projects/cadam/collectors/.env`) 재확인 결과 `META_ACCESS_TOKEN`·`IG_USER_ID` 여전히 미발급 — cycle-003 이후 자동 수집 경로 없음 (2026-06-09, 06-10 결정 요청 두 건 모두 pending-approval 상태로 미종결).
 - DB 기반 전환(§5-1)은 재변동 요인 없음 — utm_source=instagram·쏘렌토 HEV 상담 여전히 0건 (data 재조회 없이는 D+27 누적치 미확인, 필요 시 데이터 에이전트에 재조회 요청 가능).
 - Instagram 앱 자체 포스트 인사이트는 시간 경과와 무관하게 조회 가능하므로 "기간 만료로 측정 불가"는 아님 — 단지 수동 입력 담당자가 아직 확인·기입하지 않은 상태.
 

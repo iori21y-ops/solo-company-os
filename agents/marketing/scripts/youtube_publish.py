@@ -22,7 +22,7 @@ marketing 에이전트 — 유튜브 발행 스크립트
 """
 import os, sys, argparse
 
-ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+ENV_PATH = os.path.expanduser('~/projects/cadam/collectors/.env')
 # yt_oauth_setup.py 가 저장하는 자격증명 캐시 (scripts/ 디렉터리 기준)
 CREDS_CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'yt_credentials.json')
 SCOPES = ['https://www.googleapis.com/auth/youtube.upload']

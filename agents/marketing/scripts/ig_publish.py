@@ -21,7 +21,7 @@ marketing 에이전트 — 인스타그램 발행 스크립트 (스캐폴드 / M
 """
 import os, sys, json, time, argparse, urllib.parse, urllib.request, urllib.error
 
-ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+ENV_PATH = os.path.expanduser('~/projects/cadam/collectors/.env')
 GRAPH = 'https://graph.facebook.com/v21.0'
 REQUIRED = ['IG_USER_ID', 'META_ACCESS_TOKEN']
 

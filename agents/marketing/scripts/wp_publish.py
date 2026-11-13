@@ -10,7 +10,7 @@ marketing 에이전트 발행 스크립트 (MVP)
 """
 import os, sys, base64, json, argparse, urllib.request, urllib.error
 
-ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+ENV_PATH = os.path.expanduser('~/projects/cadam/collectors/.env')
 
 def load_env():
     env = {}

@@ -24,7 +24,7 @@ import json
 import argparse
 
 SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
-ENV_PATH = os.path.expanduser('~/projects/cadam/cadam-n8n/.env')
+ENV_PATH = os.path.expanduser('~/projects/cadam/collectors/.env')
 CREDS_CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'yt_credentials.json')
 DEFAULT_SECRETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'client_secrets.json')
 

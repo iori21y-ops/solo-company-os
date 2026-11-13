@@ -9,7 +9,7 @@
 | 옛 자리 | 새 자리 | 종류 | 쓰는 곳 (11/10) | 없애는 조건 | 기한 |
 |---|---|---|---|---|---|
 | `cadam/cadam-naver` | `blog-engine/publishers/naver` | 폴더 링크 | cadam-erp 3곳(`naver-log.ts`·`collector.ts`·`infra.ts`) — 2026-11-11 점검에서 발견, REN-158에서 새 경로로 교체 | 1주일간 발행·백업 오류 없음 | 2026-11-17 |
-| `cadam/cadam-n8n` | `cadam/collectors` | 폴더 링크 | 코드 46곳 (`_meta/handoff/cadam-n8n-references-20261110.txt`) + cadam-erp `quote-reference.ts`(목록에 없던 곳, REN-158에서 교체) | 46곳을 `collectors` 또는 `solo_common`으로 고친 뒤 | 2026-12-15 |
+| `cadam/collectors` | `cadam/collectors` | 폴더 링크 | 코드 46곳 (`_meta/handoff/cadam-n8n-references-20261110.txt`) + cadam-erp `quote-reference.ts`(목록에 없던 곳, REN-158에서 교체) | 46곳을 `collectors` 또는 `solo_common`으로 고친 뒤 | 2026-12-15 |
 | `cadam-pipeline/scripts/common/` discord_client·notify·claude·ego_browser·polite·warehouse·llm_client·content_extractor `.py` | `_shared/solo_common/` 같은 이름 | 호환 파일(같은 모듈을 가리킴) | cadam 코드 65개 파일 | 65곳의 `from common…`을 `from solo_common…`으로 바꾼 뒤 | 2027-01-31 |
 | `cadam-pipeline/scripts/content/evidence_body.py` | `_shared/solo_common/evidence_body.py` | 호환 파일 | 1곳 (shorts_scripts) | 그 1곳을 고친 뒤 | 2026-12-15 |
 
