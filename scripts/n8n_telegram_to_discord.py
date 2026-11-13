@@ -20,7 +20,6 @@ from pathlib import Path
 
 HOME = Path.home()
 SECRETS = HOME / ".cadam-secrets/secrets.env"
-BROKER_ENV = HOME / ".openclaw/workspace/claude-broker/.env"
 BACKUP_ROOT = HOME / "projects/_meta/n8n-backups"
 CRED_NAME = "Discord Bot (시스템알림)"
 CRED_FILE = BACKUP_ROOT / "discord_credential_id.txt"
@@ -90,7 +89,7 @@ def ensure_credential(apply: bool) -> dict:
         return {"id": CRED_FILE.read_text().strip(), "name": CRED_NAME}
     if not apply:
         return {"id": "<created on --apply>", "name": CRED_NAME}
-    token = envfile(BROKER_ENV).get("DISCORD_BOT_TOKEN", "")
+    token = envfile(SECRETS).get("DISCORD_BOT_TOKEN", "")
     if not token:
         raise SystemExit("Discord bot token not found")
     d = n8n("POST", "/api/v1/credentials", {"name": CRED_NAME, "type": "httpHeaderAuth",

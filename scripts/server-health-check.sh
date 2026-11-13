@@ -124,7 +124,7 @@ if [ -n "$PROBLEMS" ]; then
   echo -e "$PROBLEMS" | grep "→ 복구:" | sed 's/.*→ 복구: //' > "$FIXES_FILE"
 
   # 3) 봇 토큰 / 채널 준비
-  BOT_TOKEN=$(grep DISCORD_BOT_TOKEN "$HOME/.openclaw/workspace/claude-broker/.env" 2>/dev/null | cut -d= -f2 | tr -d "'" | tr -d '"')
+  BOT_TOKEN=$(grep '^DISCORD_BOT_TOKEN=' "$HOME/.cadam-secrets/secrets.env" 2>/dev/null | head -1 | cut -d= -f2 | tr -d "'" | tr -d '"')
   # 죽은 HEALTH_CHECK_CHANNEL_ID → 시스템알림 채널(secrets.env)로 교체 (2026-07-12)
   CHANNEL_ID=$(grep '^DISCORD_SYSTEM_CHANNEL_ID=' "$HOME/.cadam-secrets/secrets.env" 2>/dev/null | head -1 | cut -d= -f2 | tr -d "'" | tr -d '"' | tr -d ' ')
 
