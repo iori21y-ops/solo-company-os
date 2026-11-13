@@ -126,7 +126,7 @@ def check_missing_paths(files, reg) -> list[dict]:
             if is_history(line, markers):
                 continue
             for mo in PATH_RE.finditer(line):
-                if line[mo.end():mo.end() + 1] in ("*", "{"):
+                if line[mo.end():mo.end() + 1] in ("*", "{", "<"):
                     continue  # glob or brace pattern (e.g. weekly_check_*.md) — not a single path
                 p = mo.group(0).rstrip(".:")
                 if any(c in p for c in "<>$[]") or "YYYY" in p or "MM-DD" in p:
