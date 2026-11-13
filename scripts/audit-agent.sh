@@ -318,6 +318,6 @@ for line in sys.stdin:
         items.append({"key": f"audit:{p[0]}:{p[2]}", "title": f"[감사 {p[0]}] {p[2]}",
                       "body": f"일일 감사(audit-agent.sh, 매일 07:30)에서 발견: {p[3]}"})
 print(json.dumps(items, ensure_ascii=False))
-' | /usr/bin/python3 "$HOME/projects/cadam/core/scripts/common/linear_alert.py" sync "audit:" >> "$LOG" 2>&1 || true
+' | /usr/bin/python3 "$HOME/projects/_shared/solo_common/linear_alert.py" sync "audit:" >> "$LOG" 2>&1 || true
 
 echo "[$TS] audit done — findings=$FCOUNT" >> "$LOG"
