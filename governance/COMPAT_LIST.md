@@ -12,19 +12,19 @@
 
 | 사본 | 원본 | 내용 | 하나로 합치는 방법 | 기한 |
 |---|---|---|---|---|
-| `content-engine/brands/rentailor/trend_api.py` | `cadam/collect/trends/trend_collector.py` | norm·strip_tags·apihub_headers·fetch_news_evidence·CAR_TERMS·searchad_related | 6개를 `solo_common`으로 옮기고 양쪽이 거기서 가져다 씀 | 2026-12-15 |
-| `cadam/collect/lib/` ego_browser.py·polite.py·notify.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기·알림 (세 파일 모두 내용이 다름, 2026-11-13 다시 확인. ego_bridge.js는 같음). 쓰는 곳 61개 파일(`sys.path`에 `cadam/collect` 넣고 `from lib…`, 임포리스 포함) | 차이를 합친 뒤 lib 쪽을 호환 파일로 → 부르는 쪽을 `solo_common`으로. 새 패키지 이름은 `lib` 말고 겹치지 않는 이름 | 2026-12-15 |
+| `content-engine/brands/rentailor/video/uploader.py`·`brands/football/video/publish.py`·`upload_all.py` | `content-engine/video/pipeline/youtube.py` | 유튜브 업로드·썸네일·댓글·공개 범위 (토큰 파일 경로는 `video/pipeline/common._cred`) | 실제 게시 없이는 검증할 수 없고 두 쇼츠 라인 모두 보류 중 → 쇼츠 과정 재설계 때 `engine/`으로 하나로 | 쇼츠 재설계 때 |
 
 ## C. 아직 규칙을 어기는 곳 (다른 프로젝트 코드를 직접 불러 씀)
 
 | 어디 | 무엇을 | 고치는 방법 | 기한 |
 |---|---|---|---|
-| `content-engine/brands/rentailor/video/run.py` notify() | cadam `core/scripts/common/telegram_notifier` (`python3 -c "from common.telegram_notifier …"`) | 알림을 `solo_common.notify`로 | 쇼츠 과정 재설계 때 |
-| `import-lease/collect/encar_used_prices.py`·`collect/fetch_official_pdfs.py`·`process/lease_fallback.py`·`check/db_size_check.py`·`ops/run_daily.sh` | cadam `collect/lib`(ego_browser·notify)·`collect/price_crawler` 코드·`collect/.env`·`core/scripts/common/linear_alert.py` | lib → `solo_common`, linear_alert → `solo_common`(두 사업이 씀), price_crawler 재사용분은 사본 정리 또는 데이터 창구 | 2026-12-15 |
+| `import-lease/ops/run_daily.sh`·`collect/encar_used_prices.py` | 알림: cadam `collect/lib/notify.py`(렌테일러 #데이터 채널)·`core/scripts/common/linear_alert.py`(subprocess) | `linear_alert`를 `solo_common`으로 올리고 양쪽이 거기서 부름. 임포리스 알림 채널은 사장님 결정(지금은 렌테일러 #데이터). **11-14 03:40 첫 실행(폴더 나눈 뒤) 확인 후** — 알림 경로와 코드를 같은 날 바꾸면 실패가 조용히 묻힐 수 있음 | 2026-11-20 |
+| `import-lease/process/lease_fallback.py` | 함수 안에서 cadam `collect/price_crawler`의 `rent_compare_report`·`rent_sources_common`을 import (차즘 렌트 비교 계산 재사용) | 렌테일러 데이터 창구(`cadam/facts/facts_cli.py`)에 비교 함수를 내놓고 subprocess로 받기 | 2026-12-15 |
 | `content-engine/brands/football/video/*` (11개 파일) | `sys.path`에 `football-blog` 넣고 `football.*` 패키지를 직접 import | 쇼츠 과정 재설계 때 `football/content/`와 함께 정리 | 쇼츠 재설계 때 |
 | `football-blog/ops/tools/upgrade_posts.py` | 렌테일러 브랜드 코드 `naver_rewrite.naver_markup` (수동 일회용 도구, `football.draft`가 없어 **지금은 실행 안 됨**) | 다음에 쓸 일이 생기면 `content-engine/brands/football/tools/`로 옮김 | 쓸 때 |
 
 ## D. 끝난 것 (참고)
+- 2026-11-13 저녁(사장님 "1·2 정리"): ① `trend_api.py` 사본 → `_shared/solo_common/naver_api.py` 하나로(키는 각자 `get_env`를 넘김, 바꾸기 전후 결과 동일; solo-shared `6227cab`, content-engine `f80db96`, cadam `d2ac0c5`) ② `cadam/collect/lib`의 ego_browser·polite·ego_bridge.js — 설명문만 다르고 코드는 solo_common과 같았음(11-11 "내용이 다름"은 잘못된 기록) → 쓰는 곳 5개 파일을 solo_common으로, 사본은 `_archive/2026-11-13-cadam-cleanup/collect-lib-copies/`(cadam `9218bf3`, import-lease `d11ca4c`). 남은 `collect/lib`(notify→#데이터·change_alert·section7)는 사본이 아니라 렌테일러 수집기 전용 라이브러리 ③ 렌테일러 자동 쇼츠 `run.py` 알림: cadam telegram_notifier(텔레그램) → `solo_common.notify` 디스코드 #콘텐츠기획(content-engine `f08363e`) ④ 임포리스 `db_size_check` → `~/.cadam-secrets/secrets.env`(같은 값 확인; `92c07d7`), `fetch_official_pdfs`의 cadam 경로 줄 제거(`2ebb59b`) ⑤ 영상 `video/pipeline`의 `_cred` 사본 → `common.py` 하나(video `b8ad144`). 함수 이름이 같은 나머지(build·main·bt·fit·josa·cover.inject)는 내용이 달라 중복 아님.
 - 2026-11-13 오후 점검(이 목록 다시 셈): ① `cadam/cadam-naver`·`cadam/cadam-n8n` 폴더 링크 없음 확인 ② `core/scripts/common`의 별칭 파일 8개(claude·content_extractor·discord_client·ego_browser·llm_client·notify·polite·warehouse) — 부르는 57개 파일을 `solo_common` 직접 import로 바꾸고 별칭 파일은 `_archive/2026-11-13-cadam-cleanup/core-scripts-common-shims/`로(cadam `0b0a805`) ③ `evidence_body` — 부르는 곳 모두 `solo_common.evidence_body` ④ 계산 모듈 `sys.path` 연결 — 모듈을 `cadam/facts/`로 옮겨 해소(cadam `899a9bf`) ⑤ `writing_pause.py` 사본 — cadam 쪽 없음, 엔진 `brands/rentailor/writing_pause.py`만 남음.
 - 2026-11-13: 모든 사업의 데이터(작업 파일·수집 원본·사진·백업)를 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>`으로 옮기고 코드 폴더의 바로가기를 모두 지움(`_data/README.md`). 아래 기록의 경로는 그때 기준이다.
 - 2026-11-11 (REN-134): 해외파 morning·poll 예약 작업을 엔진 직접 실행으로 교체(`blog-engine/launchd/com.iori21y.football-morning|poll.plist`, 설치본 교체·**load 안 함**, 기록 `blog-engine/logs/football-*.log`). 잠금·자동 점검·미실행 알림·네이버 로그인 점검도 엔진(`brands/football/jobs.py`, 공통 `_shared/solo_common/jobhealth.py`). 영상·쇼츠 점검은 football-blog `run.py videopoll`(plist는 저장소에만, 다시 켤 때 설치). 옛 설치본 백업 `_archive/2026-11-11/football-launchd/`(2026-11-12 비움, REN-160 — 휴지통).
