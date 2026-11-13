@@ -68,7 +68,7 @@ plist_copies:
   - ~/projects/football-blog/launchd
   - ~/projects/_meta/dashboard/launchd
   - ~/projects/_meta/scripts/launchd
-  - ~/projects/cadam/cadam-pipeline/scripts/content
+  - ~/projects/cadam/core/scripts/content
 
 # 이 낱말이 com.xxx 예약 작업 이름과 같은 줄에 있으면, 실제로 켜져 있는지와 비교한다.
 status_words:
@@ -83,8 +83,8 @@ code:
   - ~/projects/web-engine/cadam-erp/scripts/**/*.sh
   - ~/projects/web-engine/cadam-web/src/**/*.ts
   - ~/projects/web-engine/cadam-web/src/**/*.tsx
-  - ~/projects/cadam/cadam-pipeline/scripts/**/*.py
-  - ~/projects/cadam/cadam-pipeline/scripts/**/*.sh
+  - ~/projects/cadam/core/scripts/**/*.py
+  - ~/projects/cadam/core/scripts/**/*.sh
   - ~/projects/cadam/collect/**/*.py
   - ~/projects/cadam/collect/**/*.sh
   - ~/projects/cadam/*.sh

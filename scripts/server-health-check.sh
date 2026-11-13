@@ -178,10 +178,10 @@ PYEOF
 import json, sys
 body = "서버 자동점검(매일 07:00)에서 발견된 문제:\n\n" + sys.stdin.read().strip()
 print(json.dumps([{"key": "health:problems", "title": "[서버 자동점검] 문제 감지", "body": body}], ensure_ascii=False))
-' | /usr/bin/python3 "$HOME/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
+' | /usr/bin/python3 "$HOME/projects/cadam/core/scripts/common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
 else
   # Linear: close the health issue if one is open
-  echo "[]" | /usr/bin/python3 "$HOME/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
+  echo "[]" | /usr/bin/python3 "$HOME/projects/cadam/core/scripts/common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
   # 정상 → 로그 + 하트비트 1회.
   #   '문제 시에만 알림' 구조는 알림 경로 자체가 죽어도 무음이라 '무소식=정상'을 검증할 수 없다.
   #   매일 1회 "정상 작동 중" 신호를 같은 시스템 채널로 보내 알림 파이프라인 생존까지 함께 확인한다.

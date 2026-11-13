@@ -153,7 +153,7 @@ fi
 # ══════════════════════════════════════════════════════════════
 # A6. 중복 알람 — 동일 잡 하루 발신 횟수 임계 초과
 # ══════════════════════════════════════════════════════════════
-DR_LOG="$HOME/projects/cadam/cadam-pipeline/logs/daily_report.log"
+DR_LOG="$HOME/projects/cadam/core/logs/daily_report.log"
 if [ -f "$DR_LOG" ]; then
   # daily_report.log 는 "요일 월 일 HH:MM:SS ... 전송 완료" 형식 → 오늘 발신 수 카운트
   DR_CNT=$(grep "$(date '+%b %e')" "$DR_LOG" 2>/dev/null | grep -c "전송 완료"); DR_CNT=${DR_CNT:-0}
@@ -318,6 +318,6 @@ for line in sys.stdin:
         items.append({"key": f"audit:{p[0]}:{p[2]}", "title": f"[감사 {p[0]}] {p[2]}",
                       "body": f"일일 감사(audit-agent.sh, 매일 07:30)에서 발견: {p[3]}"})
 print(json.dumps(items, ensure_ascii=False))
-' | /usr/bin/python3 "$HOME/projects/cadam/cadam-pipeline/scripts/common/linear_alert.py" sync "audit:" >> "$LOG" 2>&1 || true
+' | /usr/bin/python3 "$HOME/projects/cadam/core/scripts/common/linear_alert.py" sync "audit:" >> "$LOG" 2>&1 || true
 
 echo "[$TS] audit done — findings=$FCOUNT" >> "$LOG"

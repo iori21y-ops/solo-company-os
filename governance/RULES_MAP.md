@@ -22,7 +22,7 @@
 | 세션 관리 | WORK_RULES §5 | `/advisor`, 용량 과다 시 메모리 저장·인계 | `~/.claude/CLAUDE.md`, `cadam/CLAUDE.md` |
 | 작업 기록 (Linear) | WORK_RULES §6 | REN 이슈 댓글·완료, 남은 일은 새 이슈, 커밋에 `Refs/Fixes REN-N` | `~/.claude/CLAUDE.md`, 메모리 `project_linear.md` |
 | 비용 | WORK_RULES §7 | Supabase 무료 한도, Vercel Hobby 주의, HyperFrames, API 예산 | 메모리 `feedback_supabase_free_plan.md`·`project_netlify_standby.md`, `my-shorts/CLAUDE.md` |
-| 실행 환경 | WORK_RULES §8 | launchd·공용·엔진 = `/usr/bin/python3` 3.9, my-shorts = `.venv`, GPU = `ssh gpu-server` | `cadam/cadam-pipeline/CLAUDE.md`, `my-shorts/CLAUDE.md`, `FOLDER_RULES.md` §3, `security.md` |
+| 실행 환경 | WORK_RULES §8 | launchd·공용·엔진 = `/usr/bin/python3` 3.9, my-shorts = `.venv`, GPU = `ssh gpu-server` | `cadam/core/CLAUDE.md`, `my-shorts/CLAUDE.md`, `FOLDER_RULES.md` §3, `security.md` |
 | 승인 범위 | [SAFETY_RULES.md](SAFETY_RULES.md) §1 | 되돌릴 수 없는 것만 승인(DB 쓰기·push·재시작·삭제·예약 작업 끄기) | `~/.claude/CLAUDE.md` 전역 안전 규칙, `cadam/CLAUDE.md` 최우선 규칙, `security.md` 작업 전 절차·도구 규칙, `_meta/agents/CLAUDE.md` §13 |
 | 절대 금지 | SAFETY §2 | DROP·TRUNCATE·조건 없는 DELETE/UPDATE·비밀 커밋·`rm -rf`·강제 push 등 | `~/.claude/CLAUDE.md`, `cadam/CLAUDE.md`, `cadam-pipeline/CLAUDE.md`, `cadam-web/CLAUDE.md`, `security.md` 절대 금지 |
 | DB 쓰기 절차 | SAFETY §3 | 지금 상태 → 요약 → 되돌리는 법 → 승인, 10행+ 나눠서 | `security.md` Supabase 데이터 변경, `cadam/CLAUDE.md` |

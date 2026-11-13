@@ -10,7 +10,7 @@ engines:
     brands:
       rentailor:
         business: ~/projects/cadam            # the business project that owns the collectors and data
-        facts_cli: ~/projects/cadam/cadam-pipeline/scripts/content/facts_cli.py
+        facts_cli: ~/projects/cadam/core/scripts/content/facts_cli.py
         registry: ~/projects/cadam/docs/data-registry.md
         registry_counts: ~/projects/cadam/docs/data-registry-counts.md
         outbox: ~/projects/_data/rentailor/work/content-engine   # engine work files (data warehouse)
@@ -51,12 +51,12 @@ data:
     counts: ~/projects/cadam/docs/data-registry-counts.md
     content_plan: ~/projects/content-engine/brands/rentailor/content_plan.yaml   # which posts are planned and which data each one uses
     usage:
-      블로그 글감·사실 묶음: [~/projects/cadam/cadam-pipeline/scripts/content]
+      블로그 글감·사실 묶음: [~/projects/cadam/core/scripts/content]
       블로그 글쓰기(엔진): [~/projects/content-engine/brands/rentailor]
       쇼츠: [~/projects/content-engine/video/pipeline, ~/projects/content-engine/brands/rentailor/video]   # datashorts moved into the engine 2026-11-13
       분석·유입: [~/projects/cadam/check/analysis, ~/projects/cadam/check/growth]
-      창고 파생표 만들기: [~/projects/cadam/cadam-pipeline/scripts/maintenance]
-      사이트 API(파이프라인 서버): [~/projects/cadam/cadam-pipeline/scripts/api_server.py]
+      창고 파생표 만들기: [~/projects/cadam/core/scripts/maintenance]
+      사이트 API(파이프라인 서버): [~/projects/cadam/core/scripts/api_server.py]
   - id: football
     name: 해외파 리포트 (football-blog)
     tab: 해외파 데이터
