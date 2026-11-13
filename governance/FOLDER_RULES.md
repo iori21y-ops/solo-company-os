@@ -31,7 +31,7 @@
   web-engine/     웹 묶음 — 사이트·ERP (§3.1). 임포리스 웹은 렌테일러 사이트 안 구역으로
   ── 사업 층: 그 사업의 데이터를 만드는 코드(수집기·점검·데이터 창구 facts_cli)와 문서 ──
   keyword-scan/   여러 사업이 쓰는 키워드 수집기(결과는 _data/shared)
-  <사업>/          cadam = 렌테일러, import-lease = 임포리스, football-blog = 해외파, money = 재테크, cert = 자격증
+  <사업>/          cadam = 렌테일러, import-lease = 임포리스, football-blog = 해외파 (재테크 money·자격증 cert는 2026-11-13부터 보류 → _archive/paused-*)
                   (폴더 이름은 바꾸지 않는다. 창고 이름과의 대응은 _data/README.md)
 ```
 - 수집기는 **코드**라서 사업 폴더(git)에 둔다. 수집기가 만든 결과물만 데이터 창고로 간다. 창고에는 코드를 두지 않는다.
