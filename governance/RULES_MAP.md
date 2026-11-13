@@ -89,7 +89,7 @@
 사장님 결정 2(2026-11-11): 아래는 Linear 후속 이슈로 확인한다. 확인 전까지 [COLLECT_RULES.md](COLLECT_RULES.md) 예외 표에 넣지 않는다. (해외파 TM·FBref·Capology의 **이용 등급**은 DATA_RULES v1.0에서 C로 확정 — 약관 확인은 여전히 아래 이슈로.)
 1. **Transfermarkt 감독 이력**(`tm_managers`) 수집 승인일이 기록에 없음.
 2. **Capology** 연봉 수집(사용자 결정 2026-11-10, robots `use=reference` 준수) — 약관상 자동 수집 금지인지 기록이 없음.
-3. **리그 공식 사이트**: `football-blog/CLAUDE.md`에 "보류(premierleague.com 약관이 DB 생성 금지)"와 "추가 수집 `official.py`(2026-11-09 사용자 지시)"가 함께 있음.
+3. **리그 공식 사이트**: `football-blog/docs/operations.md`(옛 CLAUDE.md 내용)에 "보류(premierleague.com 약관이 DB 생성 금지)"와 "추가 수집 `official.py`(2026-11-09 사용자 지시)"가 함께 있음.
 4. **엔카 웹 시세**(`scrape_encar.py`): 수집기 규약은 "엔카 API 금지"만 적혀 있고 웹 페이지 약관 상태는 기록이 없음.
 5. **인스타그램** 공식 계정 사진 수집(2026-11-06 사용자 결정, 수집 전용 계정) — 약관 상태 기록 없음.
 6. **무공해차 통합누리집 충전요금**(ego 수집): 규약에 "약관 미확인 → 노출 전 확인".

@@ -8,7 +8,7 @@
 |---------|------|------|
 | `agents/` | 9개 직무별 에이전트 정의 (marketing, content, data, sales, cs, ops, finance, legal, strategy) | 진행중 (3/9 정의) |
 | `handoff/` | 세션 간 핸드오프 시스템 (모바일 ↔ 맥미니) | 운영중 |
-| `governance/` | 규정·폴더 규칙(FOLDER_RULES)·임시 연결 목록(COMPAT_LIST)·데이터 기준(DATA_RULES) — 목록은 `governance/index.md` | 운영중 |
+| `governance/` | 규정·폴더 규칙(FOLDER_RULES)·임시 연결 목록(COMPAT_LIST)·데이터 기준(DATA_RULES) — 목록은 `governance/RULES_MAP.md` | 운영중 |
 | `dashboard/` | 엔진 대시보드 생성기 `build.py`(launchd `com.blogengine.dashboard`) + 화면 `serve.py`(:8787, `com.blogengine.dashboard-web`) | 운영중 |
 
 ## 왜 공개인가

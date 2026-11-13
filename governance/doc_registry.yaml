@@ -11,6 +11,11 @@ docs:
   - ~/projects/*/CLAUDE.md
   - ~/projects/*/AGENTS.md
   - ~/projects/cadam/*/CLAUDE.md
+  - ~/projects/web-engine/CLAUDE.md
+  - ~/projects/web-engine/*/CLAUDE.md
+  - ~/projects/content-engine/CLAUDE.md
+  - ~/projects/content-engine/video/CLAUDE.md
+  - ~/projects/football-blog/docs/operations.md
   - ~/projects/cadam/*/AGENTS.md
   - ~/projects/cadam/docs/*.md
   - ~/projects/cadam/collect/COLLECTOR_CONVENTION.md
@@ -61,6 +66,17 @@ retired:
   - {pattern: 'scripts/common/writing_pause', since: 2026-11-11, now: 'content-engine/brands/rentailor/writing_pause.py'}
   - {pattern: 'rentailor/rules/channel/', since: 2026-11-11, now: 'brands/rentailor/rules/wordpress/'}
   - {pattern: '/Users/kim/backup_cadam\.sh|~/backup\.log', since: 2026-11-10, now: '~/projects/cadam/backup_cadam.sh, backups/backup.log'}
+
+  # 2026-11-13 폴더 이동·결재 에이전트 체계 폐지 (규칙 재정비 phase 3)
+  - {pattern: 'projects/cadam/cadam-(web|erp)|cadam/cadam-(web|erp)', since: 2026-11-13, now: '~/projects/web-engine/cadam-web · cadam-erp'}
+  - {pattern: 'projects/blog-engine|blog-engine/(launchd|logs|brands|outbox|engine|graphics|rules|publishers)', since: 2026-11-13, now: '~/projects/content-engine (GitHub 리포 이름만 blog-engine)'}
+  - {pattern: 'projects/my-shorts', since: 2026-11-13, now: '~/projects/content-engine/video'}
+  - {pattern: '\bcadam-pipeline/', since: 2026-11-13, now: 'cadam/core (설정·공용 모듈) / cadam/{collect,process,check,facts,services}'}
+  - {pattern: 'projects/collectors|cadam/collectors', since: 2026-11-13, now: 'cadam/collect'}
+  - {pattern: 'cadam/scripts/|projects/cadam/backup_cadam\.sh|cadam/(daily_report|cleanup_logs)\.sh', since: 2026-11-13, now: 'cadam/ops/'}
+  - {pattern: '_meta/agents|REG-001|md-viewer|:9724\b', since: 2026-11-13, now: '없음 — 결재 에이전트 체계 폐지, _meta/_trash/20261113_agent-system'}
+  - {pattern: 'claude-broker|[Oo]pen[Cc]law|\.openclaw', since: 2026-11-13, now: '없음 — 폐지(2026-11-13), 알림은 "알림" 봇 하나'}
+  - {pattern: 'governance/index\.md', since: 2026-11-13, now: 'governance/RULES_MAP.md'}
 
 # 예약 작업(launchd) 설정 사본 폴더 — ~/Library/LaunchAgents의 원본과 글자 하나까지 같아야 한다.
 plist_copies:
