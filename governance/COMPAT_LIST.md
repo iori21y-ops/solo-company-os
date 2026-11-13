@@ -17,7 +17,7 @@
 
 | 사본 | 원본 | 내용 | 하나로 합치는 방법 | 기한 |
 |---|---|---|---|---|
-| `blog-engine/brands/rentailor/trend_api.py` | `cadam-pipeline/scripts/trends/trend_collector.py` | norm·strip_tags·apihub_headers·fetch_news_evidence·CAR_TERMS·searchad_related | 6개를 `solo_common`으로 옮기고 양쪽이 거기서 가져다 씀 | 2026-12-15 |
+| `blog-engine/brands/rentailor/trend_api.py` | `collect/trends/trend_collector.py` | norm·strip_tags·apihub_headers·fetch_news_evidence·CAR_TERMS·searchad_related | 6개를 `solo_common`으로 옮기고 양쪽이 거기서 가져다 씀 | 2026-12-15 |
 | `cadam/collectors/lib/` ego_browser.py·polite.py·notify.py | `_shared/solo_common/` 같은 이름 | 수집기용 브라우저·예절 대기·알림 (세 파일 모두 내용이 다름, 2026-11-11 확인. ego_bridge.js는 같음) | 차이를 합친 뒤 lib 쪽을 호환 파일로 | 2026-12-15 |
 
 ## C. 아직 규칙을 어기는 곳 (다른 프로젝트 코드를 직접 불러 씀)

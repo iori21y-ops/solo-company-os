@@ -113,7 +113,7 @@ check_silent(){
     add_finding "A3|med|$label|잡 실패(종료코드 $st)인데 스크립트에 알림 발신 경로 없음 — 무알림 사각"
   fi
 }
-check_silent "com.rentailor.recall-collect" "$HOME/projects/cadam/cadam-pipeline/scripts/recall/recall_collect.py"
+check_silent "com.rentailor.recall-collect" "$HOME/projects/cadam/collect/recall/recall_collect.py"
 check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/collectors/scrape_encar.py"
 check_silent "com.cadam.wp-sync" ""
 

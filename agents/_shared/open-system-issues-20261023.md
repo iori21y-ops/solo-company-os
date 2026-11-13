@@ -17,7 +17,7 @@ broker 작업대장에 owner='시스템'/'기획팀장'으로 쌓여 있던 미�
 |---|---|---|---|
 | 1 | vehicle_msrp 수집 정지 | 최신 week_key 2026-W17. `~/second-brain/scripts/upload_msrp_to_supabase.py` 계열, 자동 스케줄 없음 | 0009·0011·0018·0029 (7/5) |
 | 2 | ev_subsidies·finance_rates 미수집 | ev_subsidies 6/9, finance_rates 7/11이 마지막. `fetch_ev_subsidies.py`는 미커밋·스케줄 없음 | 0701-0003·0725-0004·0726-0005 |
-| 3 | 인사이트 추출 | **해결(10/23)**: `cadam-pipeline/scripts/extract/insight_extractor.py` 신설(5d047cd), gwp1 3단계로 매일 새벽 자동 실행. 자동 검증(근거 문장·수치·차명·구체성·약관 문구·중복)을 통과한 행만 status=approved로 저장(WF-7은 pending만 병합하므로 마스터 데이터 무영향). 잔여 위험=GWP-2가 글감과 무관하게 상위 8건을 가져옴(관련도 필터 필요) | 0724-0003·0725-0003 |
+| 3 | 인사이트 추출 | **해결(10/23)**: `collect/extract/insight_extractor.py` 신설(5d047cd), gwp1 3단계로 매일 새벽 자동 실행. 자동 검증(근거 문장·수치·차명·구체성·약관 문구·중복)을 통과한 행만 status=approved로 저장(WF-7은 pending만 병합하므로 마스터 데이터 무영향). 잔여 위험=GWP-2가 글감과 무관하게 상위 8건을 가져옴(관련도 필터 필요) | 0724-0003·0725-0003 |
 | 4 | audit-agent.sh 실패 시 무알림 | A3/A4 경보가 실패해도 알림 경로 없음 | 0713-0006·0721-0012·0721-0013·0730-0007 |
 | 5 | 모닝브리핑 message2 Discord 500 | 7/28 재현성 500(개별 전송은 200). 재발 여부 미확인 | 0728-0011 |
 | 6 | 카드 title 콜론 뒤 잘림·instruction 비는 저장 버그 | #161·#171 사례, 원인 미조사 | 0705-0039 |
