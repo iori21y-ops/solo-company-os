@@ -1,4 +1,4 @@
-# ~/projects 폴더 규칙 (v1.6, 2026-11-13)
+# ~/projects 폴더 규칙 (v1.7, 2026-11-13)
 
 > 규칙 지도: [RULES_MAP.md](RULES_MAP.md) — 이 파일이 폴더·저장 위치 규칙의 원본이다.
 > v1.2 (2026-11-11): 저장 위치 요약·파일명 언어 규칙 추가, 규칙 지도 연결.
@@ -6,11 +6,13 @@
 > v1.4 (2026-11-13): 3층 구조 — 엔진 층(`content-engine` 글·영상, `web-engine` 웹) · 사업 층(수집기·데이터 창구 = 데이터를 만드는 코드) · 데이터 창고. 사장님 결정, 근거 `cadam/docs/strategy/engines-and-business-folders-20261113.md`. 옮기는 중인 것은 §6 목록.
 > v1.5 (2026-11-13): 폴더 이동 완료 반영(백업·로그 정리 스크립트 = `cadam/ops/`, 사이트 = `web-engine/cadam-web`), DATA_RULES v1.0 확정.
 > v1.6 (2026-11-13): §0.1 새 폴더 만들 때 순서 추가 + 모든 세션 자동 점검 훅(`~/.claude/hooks/check_folder_rules.py`) 연결.
+> v1.7 (2026-11-13): 지울 것 보관 장소를 `_archive/<날짜>/` 하나로 통일(`_trash`·`_meta/_trash`·`_meta/_archive`·`_meta/archive`·`_meta/tmp` 없앰), 이름 규칙·ERP 폴더 설명 갱신 규칙 추가, §0 새 프로젝트 문장 → §0.1 순서, §4.1 예외에 ERP `src/data` 추가, 홈 예외(`~/backups`·second-brain) 명시. 사장님 승인.
 
 ## 0. 저장 위치 요약
-- 작업 산출물은 반드시 `~/projects/<프로젝트>/` 아래에 저장한다. 새 프로젝트는 `~/projects/<새이름>/` 폴더를 만든다.
+- 작업 산출물은 반드시 `~/projects/<프로젝트>/` 아래에 저장한다. 새 폴더 자리는 §0.1 순서로 고른다(새 최상위 폴더는 먼저 확인).
 - 저장 금지 위치: 홈 루트 직속, `~/Downloads`, `~/Desktop`, `~/logs`, 도구 임시폴더(`/tmp`는 잠금 파일만 — `COLLECT_RULES.md`).
-- 건드리지 않는 곳(도구가 관리): `~/.claude`, `~/.cursor`, `~/Library/Caches`, second-brain 볼트, `~/.cadam-secrets`.
+- 건드리지 않는 곳(도구가 관리): `~/.claude`, `~/.cursor`, `~/Library/Caches`, second-brain 볼트(`~/second-brain`, `~/second-brain-git` — 엔카 크롤러 launchd 기록도 여기), `~/.cadam-secrets`.
+- 홈 루트에 남겨 두는 예외: `~/backups/`(2026-07 옛 설정 백업, **읽기 전용** — 새 백업 금지, `SAFETY_RULES.md` §6), macOS 기본 폴더(Documents·Pictures 등)·`Google Drive`. 그 밖의 홈 직속 폴더·파일은 위반.
 - **데이터(수집 원본·이미지·작업 파일·백업)는 코드 폴더가 아니라 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>`에 둔다(§4).**
 - 세션 인계 문서는 `~/projects/_meta/handoff/`. 위치가 모호하면 추측하지 말고 먼저 확인.
 - **파일명 언어**: 거버넌스·문서 파일명은 한국어 허용. 코드·스크립트·데이터 파일명은 영어.
@@ -24,8 +26,15 @@
 5. 한 사업의 데이터를 만드는 코드인가? → 그 사업 폴더의 표준 틀 자리(`collect/ process/ check/ facts/ db/ knowledge/ manual/ services/ ops/ docs/ logs/`, §2)
 6. 규칙·인계 문서인가? → `_meta/governance/`, `_meta/handoff/`
 7. 위 어디에도 안 맞는 새 사업·새 프로젝트 → `~/projects/<새이름>/`을 §2 표준 틀로 만든다. **새 최상위 폴더는 사장님께 이름·자리를 먼저 확인**한다.
-- 이름: 영어 소문자, `-` 또는 `_`. 코드 폴더 안에 `data/`·`temp`·`tmp`·`_scratch` 금지(예외: 사이트·ERP 빌드 입력 `src/data`).
+- 이름 (영어 소문자만, 공백·한글·대문자 금지 — 사람이 보는 문서 파일명만 한국어 허용):
+  - 프로젝트·엔진·브랜드·데이터 묶음 폴더 = 낱말을 `-`로 (`keyword-scan`, `content-engine`, `shorts-references`)
+  - 파이썬 패키지·모듈 폴더(코드가 `import`하는 폴더) = 낱말을 `_`로 (`solo_common`, `terms_crawler`) — 파이썬은 `-`를 import할 수 없다
+  - 앞에 `_`가 붙은 이름은 최상위 공용 폴더(`_meta`·`_shared`·`_data`·`_archive`)만. 새로 만들지 않는다
+  - 날짜가 들어가면 `YYYYMMDD`(파일)·`YYYY-MM-DD`(보관함 날짜 폴더)
+  - 이미 있는 폴더는 이 규칙 때문에 이름을 바꾸지 않는다(바꾸면 경로가 깨짐) — 새로 만드는 것부터 적용
+- 코드 폴더 안에 `data/`·`temp`·`tmp`·`_scratch`·`_trash`·`archive` 금지(예외: 사이트·ERP 빌드 입력 `src/data`). 지울 것은 `_archive/<날짜>/`, 임시 파일은 `_data/<사업>/work/<이름>`.
 - 표준 틀에 없는 폴더를 새로 두면 그 프로젝트 `CLAUDE.md`(또는 README) 폴더 지도에 한 줄 적는다.
+- ERP 파일 화면 설명: 새 폴더 이름이 ERP `/monitoring/files` 설명표에 없으면 `web-engine/cadam-erp/src/folder-descriptions.json`에 `"폴더이름": {title, desc}`를 더한다(이름이 같으면 모든 사업에 같이 보이므로 공통 이름으로 설명). 반영하려면 ERP 재배포(`scripts/deploy.sh`) — 재시작이라 사장님 승인 후, 다른 일과 묶어서 한 번에.
 - 자동 점검: 모든 세션의 `mkdir`·새 폴더 파일 쓰기를 훅 `~/.claude/hooks/check_folder_rules.py`가 본다. 홈 바로 아래·`~/Downloads`·`~/Desktop`·`~/logs`는 막고, 나머지 어긋남은 알림만 준다. 스크립트·예약 작업이 만드는 폴더는 보지 못한다. 끄려면 `~/.claude/settings.json`의 해당 훅 줄을 지운다.
 
 > 목적: 블로그 엔진·데이터 창고·수집 인프라를 사업(브랜드)별로 같은 모양으로 두고, 새 형식(브랜드)을 폴더 하나 추가로 붙인다.
@@ -39,8 +48,10 @@
   _shared/        공용 파이썬 라이브러리 패키지 `solo_common` (discord, notify, claude 호출, ego_browser, polite, config 로더,
                   창고 DB 접속, LLM 호출, 기사 본문 추출 — 두 프로젝트 이상이 쓰는 도구만)
   _data/          데이터 창고: <사업>/<collected|media|work|backups>/<이름> (§4) — 모든 파일 데이터
-  _archive/       삭제 대기 보관함: _archive/<YYYY-MM-DD>/<원래 경로> — 7일간 문제 없으면 비운다
+  _archive/       삭제 대기 보관함 — **지울 것을 두는 유일한 곳**: _archive/<YYYY-MM-DD>/<원래 경로 또는 묶음 이름>
+                  + 날짜 폴더마다 MOVED.txt(무엇을·어디서·왜·언제 비울지). 7일간 문제 없으면 사장님 확인 후 비운다
                   보류 프로젝트도 여기로: _archive/paused-<이름>/ (+ README에 보류 날짜·재개 방법). `_paused/`는 2026-11-13 없앰
+                  `_trash`·`archive`·`tmp`·`<날짜>-<설명>` 같은 다른 보관 폴더는 만들지 않는다(2026-11-13 모두 여기로 합침)
   ── 엔진 층: 사업이 없는 공용 생산 라인. 사업마다 다른 것은 brands/<브랜드>/ 설정만 ──
   content-engine/ 콘텐츠 엔진 — 글(blog)·영상(video) 두 라인, 모든 브랜드 공용 (§3). 옛 이름 blog-engine
   web-engine/     웹 묶음 — 사이트·ERP (§3.1). 임포리스 웹은 렌테일러 사이트 안 구역으로
@@ -130,7 +141,7 @@ _data/<사업>/<종류>/<이름>/
 - 이름: 그 데이터를 만드는 수집기·프로그램 이름 또는 묶음 이름(영어 소문자, `_`·`-`).
 - 코드는 창고 경로를 직접 쓴다(코드 폴더 안 `data/` 금지). 이전 중 남긴 바로가기는 경로 교체 뒤 사업별로 지운다.
 - 사람이 만든 작은 파일(설정·수동 연결표)은 창고 전용 git, 큰 사진·PDF는 git 밖.
-- 예외: 사이트 배포 데이터(`web-engine/cadam-web/src/data`, 사이트 빌드 입력), 세컨드 브레인 원문(읽기 전용).
+- 예외: 사이트·ERP 빌드 입력 데이터(`web-engine/cadam-web/src/data`, `web-engine/cadam-erp/src/data`, 자동 반영 작업 사본 `web-engine/_wt-*/src/data` — 코드와 같이 빌드되므로 코드 폴더에 둔다), 세컨드 브레인 원문(읽기 전용).
 - 안내: `~/projects/_data/README.md`.
 
 ### 4.2 숫자 데이터
@@ -144,7 +155,7 @@ _data/<사업>/<종류>/<이름>/
 ## 5. 정리·삭제 규칙
 
 1. 다시 만들 수 있는 것(빌드 캐시 `.next`, `__pycache__`, 병합된 git worktree)은 바로 지운다. worktree는 `git worktree remove`.
-2. 그 밖의 파일·폴더는 바로 지우지 않고 `_archive/<날짜>/원래경로`로 옮긴다 → launchd·코드 참조가 없는지 확인 → 7일 뒤 목록을 사장님께 보여 주고 비운다.
+2. 그 밖의 파일·폴더는 바로 지우지 않고 `_archive/<날짜>/원래경로`로 옮기고 그 날짜 폴더 `MOVED.txt`에 한 줄 적는다 → launchd·코드 참조가 없는지 확인 → 7일 뒤 목록을 사장님께 보여 주고 비운다.
 3. 실행 중인 launchd가 가리키는 파일을 옮기면 같은 작업에서 plist도 고치고 다시 불러온다.
 4. `rm -rf` 금지(전역 규칙). 비밀 파일(`.env`, `~/.cadam-secrets`, 발행 서버 `config.json`·쿠키)은 **옮기지도 복사하지도 않는다. 제자리에서 읽기만** 한다(읽는 쪽 코드에 그 경로를 적는다). 값은 화면·로그·git에 남기지 않는다.
 5. 이동 전 해당 저장소에서 `checkpoint:` 커밋, 다른 세션의 미커밋 변경이 있으면 멈추고 보고.

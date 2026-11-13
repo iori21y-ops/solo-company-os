@@ -74,7 +74,7 @@ retired:
   - {pattern: '\bcadam-pipeline/', since: 2026-11-13, now: 'cadam/core (설정·공용 모듈) / cadam/{collect,process,check,facts,services}'}
   - {pattern: 'projects/collectors|cadam/collectors', since: 2026-11-13, now: 'cadam/collect'}
   - {pattern: 'cadam/scripts/|projects/cadam/backup_cadam\.sh|cadam/(daily_report|cleanup_logs)\.sh', since: 2026-11-13, now: 'cadam/ops/'}
-  - {pattern: '_meta/agents|REG-001|md-viewer|:9724\b', since: 2026-11-13, now: '없음 — 결재 에이전트 체계 폐지, _meta/_trash/20261113_agent-system'}
+  - {pattern: '_meta/agents|REG-001|md-viewer|:9724\b', since: 2026-11-13, now: '없음 — 결재 에이전트 체계 폐지, 보관함도 비움(2026-11-13 사장님 결정)'}
   - {pattern: 'claude-broker|[Oo]pen[Cc]law|\.openclaw', since: 2026-11-13, now: '없음 — 폐지(2026-11-13), 알림은 "알림" 봇 하나'}
   - {pattern: 'governance/index\.md', since: 2026-11-13, now: 'governance/RULES_MAP.md'}
 
