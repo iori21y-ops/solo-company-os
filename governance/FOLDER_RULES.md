@@ -63,7 +63,7 @@
   1. DB (Supabase, 로컬 PostgreSQL schema)
   2. 내보내기 파일 (데이터 창고 `_data/<사업>/` 아래 JSON 등 — 읽기만)
   3. **데이터 창구 명령** — 그 사업이 내놓는 명령 하나를 실행해 JSON 답만 받는다. 계산 규칙은 그 사업 코드에 그대로 둔다.
-     예: `cadam-pipeline/scripts/content/facts_cli.py <함수이름>` ← `content-engine/brands/rentailor/sources.py`가 부름.
+     예: `cadam/facts/facts_cli.py <함수이름>` ← `content-engine/brands/rentailor/sources.py`가 부름.
      창구의 함수 이름·반환 모양을 바꾸면 부르는 쪽도 같이 고친다. 진행 기록은 stderr, 답(JSON)은 stdout 한 줄.
 - 실시간 외부 조회(API 호출)처럼 "데이터"가 아닌 작은 도우미 코드가 양쪽에 필요하면 `solo_common`으로 옮긴다. 당장 못 옮겨 사본을 만들면 §6 목록에 적는다.
 
