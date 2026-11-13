@@ -4,7 +4,7 @@ import os, sys, json, subprocess, re
 from pathlib import Path
 
 def _load_env():
-    envp = Path.home()/'projects/cadam/collectors/.env'
+    envp = Path.home()/'projects/cadam/collect/.env'
     if envp.exists():
         for ln in envp.read_text().splitlines():
             ln=ln.strip()
