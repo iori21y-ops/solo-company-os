@@ -70,7 +70,7 @@
 | WORK_RULES.md | 일하는 방식·소통·세션·Linear·비용·실행 환경 | 2026-11-13 | active |
 | SAFETY_RULES.md | 승인 범위·절대 금지·DB 쓰기·삭제·백업·비밀 | 2026-11-13 | active |
 | GIT_DEPLOY_RULES.md | 커밋·리포·push·배포 | 2026-11-13 | active |
-| COLLECT_RULES.md | 웹 수집 도구·예절·약관 예외·수집기 운영 | 2026-11-11 | active |
+| COLLECT_RULES.md | 웹 수집 도구·예절·약관 예외·수집기 운영 | 2026-11-13 | active |
 | DOCS_RULES.md | 문서 원본·노션·세션 종료·위키·구조 변경 후 문서 정리 | 2026-11-13 | active |
 | FOLDER_RULES.md | 폴더·저장 위치 | v1.6, 2026-11-13 | active |
 | DATA_RULES.md | 데이터 창고 기준 | v1.0, 2026-11-13 (사장님 확정) | active |
@@ -90,9 +90,9 @@
 1. **Transfermarkt 감독 이력**(`tm_managers`) 수집 승인일이 기록에 없음.
 2. **Capology** 연봉 수집(사용자 결정 2026-11-10, robots `use=reference` 준수) — 약관상 자동 수집 금지인지 기록이 없음.
 3. **리그 공식 사이트**: `football-blog/docs/operations.md`(옛 CLAUDE.md 내용)에 "보류(premierleague.com 약관이 DB 생성 금지)"와 "추가 수집 `official.py`(2026-11-09 사용자 지시)"가 함께 있음.
-4. **엔카 웹 시세**(`scrape_encar.py`): 수집기 규약은 "엔카 API 금지"만 적혀 있고 웹 페이지 약관 상태는 기록이 없음.
+4. ~~엔카 웹 시세~~ — 2026-11-13 확인·결정: 위험 알고 유지, 예외 표에 올림(REN-154).
 5. **인스타그램** 공식 계정 사진 수집(2026-11-06 사용자 결정, 수집 전용 계정) — 약관 상태 기록 없음.
-6. **무공해차 통합누리집 충전요금**(ego 수집): 규약에 "약관 미확인 → 노출 전 확인".
+6. ~~무공해차 통합누리집 충전요금~~ — 2026-11-13 확인: 약관·금지 조항 없음, 노출 허용(REN-154).
 
 ## 알려진 불일치 (원본이 맞고, 다른 문서를 고칠 차례)
 - `cadam/collect/COLLECTOR_CONVENTION.md` 2.2는 창고 백업을 `warehouse_backup.sh`(로컬 4개 + iCloud 8개)로 적었으나, 그 예약 작업 plist가 `~/Library/LaunchAgents`에 없다(2026-11-11 확인). 실제 DB 백업은 `cadam/ops/backup_cadam.sh`. 원본: [SAFETY_RULES.md](SAFETY_RULES.md) §6.
