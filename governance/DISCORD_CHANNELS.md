@@ -15,7 +15,7 @@
 ## 카테고리 구성
 | 카테고리 | 채널 | 무엇이 오나 |
 |---|---|---|
-| 📁 렌테일러 | #콘텐츠기획 | 글감 후보(B코드)·크롤러/큐레이터·발행 (content-engine rentailor) |
+| 📁 렌테일러 | #콘텐츠기획 | 글감 후보(B코드)·크롤러/큐레이터·발행 (content-engine rentailor), GPU 이미지 작업 알림·검토(`cadam/services/gpu-agent/config/loop-config.json`, 11-13 #대표이사실에서 이동) |
 | | #데이터 | 키워드 스캔(keyword-scan), 수집기 알림(가격표 대조·가격·옵션·색상 변경·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 — `cadam/collect/lib/notify.py` 한 곳을 거침), 엔카 시세·RSS |
 | | #마케팅 | 주간 유입 분석, 검색 문구 실험(S코드) |
 | | #상담 (1570612529640640512) | 🆕 새 상담 알림 R-#### (Spidey Bot 웹훅, ERP) |
