@@ -1,10 +1,11 @@
-# ~/projects 폴더 규칙 (v1.5, 2026-11-13)
+# ~/projects 폴더 규칙 (v1.6, 2026-11-13)
 
 > 규칙 지도: [RULES_MAP.md](RULES_MAP.md) — 이 파일이 폴더·저장 위치 규칙의 원본이다.
 > v1.2 (2026-11-11): 저장 위치 요약·파일명 언어 규칙 추가, 규칙 지도 연결.
 > v1.3 (2026-11-13): 파일 데이터는 모두 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>` (§4) — 사장님 결정.
 > v1.4 (2026-11-13): 3층 구조 — 엔진 층(`content-engine` 글·영상, `web-engine` 웹) · 사업 층(수집기·데이터 창구 = 데이터를 만드는 코드) · 데이터 창고. 사장님 결정, 근거 `cadam/docs/strategy/engines-and-business-folders-20261113.md`. 옮기는 중인 것은 §6 목록.
 > v1.5 (2026-11-13): 폴더 이동 완료 반영(백업·로그 정리 스크립트 = `cadam/ops/`, 사이트 = `web-engine/cadam-web`), DATA_RULES v1.0 확정.
+> v1.6 (2026-11-13): §0.1 새 폴더 만들 때 순서 추가 + 모든 세션 자동 점검 훅(`~/.claude/hooks/check_folder_rules.py`) 연결.
 
 ## 0. 저장 위치 요약
 - 작업 산출물은 반드시 `~/projects/<프로젝트>/` 아래에 저장한다. 새 프로젝트는 `~/projects/<새이름>/` 폴더를 만든다.
@@ -13,6 +14,19 @@
 - **데이터(수집 원본·이미지·작업 파일·백업)는 코드 폴더가 아니라 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>`에 둔다(§4).**
 - 세션 인계 문서는 `~/projects/_meta/handoff/`. 위치가 모호하면 추측하지 말고 먼저 확인.
 - **파일명 언어**: 거버넌스·문서 파일명은 한국어 허용. 코드·스크립트·데이터 파일명은 영어.
+
+## 0.1 새 폴더 만들 때 (모든 세션 공통)
+폴더를 만들기 전에 위에서부터 차례로 맞는 자리를 고른다. 이미 있는 자리에 들어가면 새 폴더를 만들지 않는다.
+1. 데이터(수집 원본·사진·작업 파일·중간 결과·백업)인가? → `_data/<사업>/<collected|media|work|backups>/<이름>` (§4.1). 애매하면 `work/`.
+2. 글·영상을 만드는 코드인가? → `content-engine/` (새 브랜드 = `content-engine/brands/<이름>/`, §3)
+3. 사이트·ERP 코드인가? → `web-engine/` (§3.1)
+4. 두 사업 이상이 쓰는 코드인가? → `_shared/solo_common`
+5. 한 사업의 데이터를 만드는 코드인가? → 그 사업 폴더의 표준 틀 자리(`collect/ process/ check/ facts/ db/ knowledge/ manual/ services/ ops/ docs/ logs/`, §2)
+6. 규칙·인계 문서인가? → `_meta/governance/`, `_meta/handoff/`
+7. 위 어디에도 안 맞는 새 사업·새 프로젝트 → `~/projects/<새이름>/`을 §2 표준 틀로 만든다. **새 최상위 폴더는 사장님께 이름·자리를 먼저 확인**한다.
+- 이름: 영어 소문자, `-` 또는 `_`. 코드 폴더 안에 `data/`·`temp`·`tmp`·`_scratch` 금지(예외: 사이트·ERP 빌드 입력 `src/data`).
+- 표준 틀에 없는 폴더를 새로 두면 그 프로젝트 `CLAUDE.md`(또는 README) 폴더 지도에 한 줄 적는다.
+- 자동 점검: 모든 세션의 `mkdir`·새 폴더 파일 쓰기를 훅 `~/.claude/hooks/check_folder_rules.py`가 본다. 홈 바로 아래·`~/Downloads`·`~/Desktop`·`~/logs`는 막고, 나머지 어긋남은 알림만 준다. 스크립트·예약 작업이 만드는 폴더는 보지 못한다. 끄려면 `~/.claude/settings.json`의 해당 훅 줄을 지운다.
 
 > 목적: 블로그 엔진·데이터 창고·수집 인프라를 사업(브랜드)별로 같은 모양으로 두고, 새 형식(브랜드)을 폴더 하나 추가로 붙인다.
 > 근거 조사: 2026-11-10 전체 인벤토리 (`~/projects/cadam/docs/strategy/blog-engine-and-folders-20261110.md` §1).
