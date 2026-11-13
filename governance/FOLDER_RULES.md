@@ -25,10 +25,12 @@
                   창고 DB 접속, LLM 호출, 기사 본문 추출 — 두 프로젝트 이상이 쓰는 도구만)
   _data/          데이터 창고: <사업>/<collected|media|work|backups>/<이름> (§4) — 모든 파일 데이터
   _archive/       삭제 대기 보관함: _archive/<YYYY-MM-DD>/<원래 경로> — 7일간 문제 없으면 비운다
+                  보류 프로젝트도 여기로: _archive/paused-<이름>/ (+ README에 보류 날짜·재개 방법). `_paused/`는 2026-11-13 없앰
   ── 엔진 층: 사업이 없는 공용 생산 라인. 사업마다 다른 것은 brands/<브랜드>/ 설정만 ──
   content-engine/ 콘텐츠 엔진 — 글(blog)·영상(video) 두 라인, 모든 브랜드 공용 (§3). 옛 이름 blog-engine
   web-engine/     웹 묶음 — 사이트·ERP (§3.1). 임포리스 웹은 렌테일러 사이트 안 구역으로
   ── 사업 층: 그 사업의 데이터를 만드는 코드(수집기·점검·데이터 창구 facts_cli)와 문서 ──
+  keyword-scan/   여러 사업이 쓰는 키워드 수집기(결과는 _data/shared)
   <사업>/          cadam = 렌테일러, import-lease = 임포리스, football-blog = 해외파, money = 재테크, cert = 자격증
                   (폴더 이름은 바꾸지 않는다. 창고 이름과의 대응은 _data/README.md)
 ```
@@ -62,7 +64,7 @@
 ```
 content-engine/   (옛 이름 blog-engine, 2026-11-13 이름 변경)
   engine/         공통 단계: 대기열·상태, 자료 묶음, 초안, 검수, 재작성, 숫자 검증, 금액 표기, 중복 검사, 보류 스위치, 알림 (글·영상 같이)
-  video/          영상 라인 공통: 이야기 검증(probe) → 구성 → 렌더(HyperFrames) → QA → 업로드, 기록·보류 (렌테일러 datashorts·해외파 shorts-lab·my-shorts 제작 도구를 합치는 중 — §6)
+  video/          영상 라인 공통: 이야기 검증(probe) → 구성 → 렌더(HyperFrames) → QA → 업로드, 기록·보류 (2026-11-13: 수동 쇼츠 작업 공간 = content-engine/video (옛 my-shorts, 자기 git), 자동 제작기 = brands/<브랜드>/video — 공통부 합치기는 쇼츠 과정 재설계 때)
   rules/          공통 규칙(common/)과 발행처별 형식 규칙(sites/<발행처>/) — 블로그별 규칙은 brands/<브랜드>/rules/ (지도: rules/README.md)
   publishers/     발행처: wordpress/, naver/, youtube/(영상), instagram/(추후)
   graphics/       표·그래프·카드 (blog_graphics), 설명 애니메이션 (explainer) — 실제 파일이 여기 있다(2026-11-10 `_shared`에서 되돌림)

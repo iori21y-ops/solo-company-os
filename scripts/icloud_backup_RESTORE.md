@@ -39,7 +39,7 @@
    ```
    그 뒤 키체인에 같은 암호를 다시 넣는다: `security add-generic-password -a "$USER" -s icloud-backup-secrets -w` (입력 창에 암호)
 6. 각 리포에서 `npm install` 또는 `pip install -r`을 실행한다. 가상환경 목록은 `~/manifest/venv-requirements.txt`에 있다. `~/manifest/git-repos.txt`에서 GitHub에 안 올라간 변경(dirty·unpushed)을 확인한다.
-7. 예약 작업 켜기: `~/manifest/launchctl-list.txt`에 있는 것만 `launchctl load ~/Library/LaunchAgents/<이름>.plist`. **보류 중인 프로젝트(_paused)는 켜지 않는다.**
+7. 예약 작업 켜기: `~/manifest/launchctl-list.txt`에 있는 것만 `launchctl load ~/Library/LaunchAgents/<이름>.plist`. **보류 중인 프로젝트(_archive/paused-*)는 켜지 않는다.**
 
 ## 확인
 - 백업 결과: 디스코드 "✅ iCloud 백업" 메시지, 로그 `~/projects/_data/shared/work/icloud-backup/backup.log`
