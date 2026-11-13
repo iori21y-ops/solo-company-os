@@ -88,7 +88,7 @@ check_silent(){
   fi
 }
 check_silent "com.rentailor.recall-collect" "$HOME/projects/cadam/collect/recall/recall_collect.py"
-check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/collect/scrape_encar.py"
+check_silent "com.cadam.encar-crawler-v2" "$HOME/projects/cadam/collect/crawl/scrape_encar.py"
 
 # ══════════════════════════════════════════════════════════════
 # A5. 하트비트 누락 — 당일 헬스체크 하트비트(heartbeat/ALL OK) 흔적 없음
