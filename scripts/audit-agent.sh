@@ -153,7 +153,7 @@ fi
 # ══════════════════════════════════════════════════════════════
 # A6. 중복 알람 — 동일 잡 하루 발신 횟수 임계 초과
 # ══════════════════════════════════════════════════════════════
-DR_LOG="$HOME/projects/cadam/core/logs/daily_report.log"
+DR_LOG="$HOME/projects/cadam/logs/daily_report.log"
 if [ -f "$DR_LOG" ]; then
   # daily_report.log 는 "요일 월 일 HH:MM:SS ... 전송 완료" 형식 → 오늘 발신 수 카운트
   DR_CNT=$(grep "$(date '+%b %e')" "$DR_LOG" 2>/dev/null | grep -c "전송 완료"); DR_CNT=${DR_CNT:-0}
