@@ -39,14 +39,22 @@
 ## 2. 사업(브랜드) 프로젝트 안의 모양 — 데이터를 만드는 코드 층
 
 ```
-<사업>/
-  collectors/     그 사업의 수집기 전부 (한 곳). 수집기 하나 = 폴더 하나 또는 파일 하나
-  facts_cli.py    데이터 창구 (엔진·웹이 이 명령으로 데이터를 받는다. cadam은 cadam-pipeline/scripts/content/facts_cli.py)
-  manual/         (선택) 사람이 입력하는 원본 표 — git에 넣는다
-  launchd/        이 사업의 launchd plist 원본 사본 (설치본과 동일하게 유지)
-  logs/           이 사업 코드의 실행 기록 (git 제외)
-  docs/           운영 문서
+<사업>/                (2026-11-13 표준 틀 — 새 사업은 처음부터 이 모양, 기존 사업은 단계적으로 옮김)
+  CLAUDE.md  README.md
+  collect/     ① 수집기 (외부 → 원본). 수집기 하나 = 폴더 하나 또는 파일 하나
+  process/     ② 가공·변환·DB 적재 (원본 → DB)
+  check/       ③ 점검·감시·보고 (품질·알림)
+  facts/       ④ 데이터 창구 facts_cli.py — 엔진·웹이 이 사업의 숫자를 받는 유일한 입구
+  db/          ⑤ 스키마·마이그레이션 SQL
+  knowledge/   ⑥ 규칙·프롬프트·사람이 쓴 맥락 메모 (비밀 제외)
+  manual/      (선택) 사람이 입력하는 원본 표 — git에 넣는다
+  services/    ⑦ (있을 때만) 상시 실행 서버
+  ops/         ⑧ 백업·정리·일일 보고 스크립트 + launchd/ (설치본과 같은 plist 사본)
+  docs/        ⑨ 운영 문서
+  logs/        ⑨ 실행 기록 (git 제외)
 ```
+- 사업 폴더에 두지 않는 것: 데이터 → `_data/<사업>/`, 글·영상 코드 → `content-engine`, 사이트·ERP → `web-engine`, 두 사업 이상이 쓰는 코드 → `_shared/solo_common`, 임시 작업 파일 → `_data/<사업>/work/<이름>` (코드 폴더 안 `_scratch`·`temp` 금지).
+- 기존 사업의 현재 위치(옮기는 중): cadam = `collectors/`(①) + `cadam-pipeline/scripts/*`(①②③④⑥⑦) + `supabase/`(⑤) + `scripts/`(⑧); football-blog = `football/`(①②③) + `facts_cli.py` + `brain/`(⑥) + `tools/`·`launchd/`(⑧); import-lease = `crawler/`(①②③) + `db/`(⑤). 분석표: `cadam/docs/strategy/engines-and-business-folders-20261113.md` §8.
 - 데이터(수집 원본·캐시·내보내기)는 이 폴더가 아니라 `_data/<사업>/...`(§4). 숫자 데이터의 원본은 로컬 PostgreSQL.
 - 글·영상을 만드는 코드는 `content-engine`, 사이트·ERP 코드는 `web-engine`에 둔다(사업 폴더에 두지 않는다).
 - 수집기 출력 규칙은 `cadam/collectors/COLLECTOR_CONVENTION.md`를 따른다: 숫자 → PostgreSQL, 맥락 → second-brain, 사이트 노출값 → Supabase.
