@@ -125,8 +125,10 @@ def check_missing_paths(files, reg) -> list[dict]:
         for i, line in live_lines(f):
             if is_history(line, markers):
                 continue
-            for m in PATH_RE.findall(line):
-                p = m.rstrip(".:")
+            for mo in PATH_RE.finditer(line):
+                if line[mo.end():mo.end() + 1] in ("*", "{"):
+                    continue  # glob or brace pattern (e.g. weekly_check_*.md) — not a single path
+                p = mo.group(0).rstrip(".:")
                 if any(c in p for c in "<>$[]") or "YYYY" in p or "MM-DD" in p:
                     continue
                 if not os.path.exists(expand(p.replace("/Users/kim", "~"))):
