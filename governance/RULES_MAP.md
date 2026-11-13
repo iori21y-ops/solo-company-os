@@ -72,13 +72,13 @@
 | GIT_DEPLOY_RULES.md | 커밋·리포·push·배포 | 2026-11-13 | active |
 | COLLECT_RULES.md | 웹 수집 도구·예절·약관 예외·수집기 운영 | 2026-11-13 | active |
 | DOCS_RULES.md | 문서 원본·노션·세션 종료·위키·구조 변경 후 문서 정리 | 2026-11-13 | active |
-| FOLDER_RULES.md | 폴더·저장 위치 | v1.6, 2026-11-13 | active |
+| FOLDER_RULES.md | 폴더·저장 위치 | v1.7, 2026-11-13 | active |
 | DATA_RULES.md | 데이터 창고 기준 | v1.0, 2026-11-13 (사장님 확정) | active |
 | DISCORD_CHANNELS.md | 디스코드 채널 지도·봇 | 2026-11-13 | active |
 | COMPAT_LIST.md | 임시 연결·사본·남은 위반 목록 | 2026-11-13 | active |
 | doc_registry.yaml | 문서 점검 설정 (실행 `python3 ~/projects/_meta/scripts/doc_audit.py`) | 2026-11-13 | active |
 
-> ⚠️ 폐기 — 기록용: 에이전트 결재·보고 규정 `REG-001`·합의메모·에이전트 학습 볼트(`_meta/agents`)는 결재 에이전트 체계 폐지(2026-11-13)로 `_meta/_trash/20261113_agent-system/`에 보관. 지금 규칙이 아니다.
+> ⚠️ 폐기 — 기록용: 에이전트 결재·보고 규정 `REG-001`·합의메모·에이전트 학습 볼트(`_meta/agents`)는 결재 에이전트 체계 폐지(2026-11-13)로 `_meta/_trash/20261113_agent-system/`에 보관했다가 같은 날 사장님 결정으로 비움(삭제됨). 지금 규칙이 아니다.
 
 ## 규칙을 바꿀 때
 1. **원본 파일만** 고친다 (위 표의 원본 파일). 다른 문서에는 내용을 옮겨 적지 말고 원본을 가리킨다.
