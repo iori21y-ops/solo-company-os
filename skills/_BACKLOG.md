@@ -14,6 +14,7 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | 7 | launchd-restart | script | ✅완료 | 2026-11-15 개정 — 아래 연결 상태표 |
 | 8 | databot-alert-debug | script ⭐ | 🪦은퇴 | 같은 날 은퇴(데이터봇 알림 — 체계 폐지). 복원 `git show 9f4bf0b:skills/8-databot-alert-debug/SKILL.md` |
 | 9 | bak-cleanup | script | ✅완료 | 2026-11-15 개정 — 아래 연결 상태표 |
+| 10 | field-note | rule | ✅완료 | 2026-11-15 신설 — 사장님 현장 메모 → raw/ 원문 보관 → 위키 '현장 설명' 칸, 확정 사실은 확인 후. 스크립트는 `~/second-brain/scripts/field_note.py`(save·suggest·pending) 바로가기 |
 
 ⭐ = Anthropic 문서가 효과 최대로 꼽은 2개(검증·런북). 둘 다 script형.
 
@@ -28,4 +29,5 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | bak-cleanup | ✅ 연결 | 2026-11-15 개정: `rm` → `_archive/<날짜>/` 이동 + `MOVED.txt`, `~/projects` 안만, 비밀 가능 백업·데이터 창고 백업·git 추적·launchd 참조 보존. 테스트 16/16 PASS |
 | launchd-restart | ✅ 연결 | 2026-11-15 개정: 정확한 라벨만, 상시 서비스(`--run`)와 예약형(`--run-scheduled-now`, 지금 한 번 실행) 구분, 승인 후에만 실행. 테스트 11/11 PASS(재시작 0회) |
 | new-migration | ✅ 연결 | 2026-11-15 개정: `find.sh`(그 표를 마지막으로 다룬 폴더) + `new.sh`(본파일+롤백, 승인·백업 칸). DB 적용 안 함. 테스트 26/26 PASS. 렌테일러 DB는 `cadam/db` 한 곳(2026-11-15 사장님 결정), 같은 이름 표가 여러 사업 DB에 있으면 묻기 |
+| field-note | ✅ 연결 | 2026-11-15 신설. "현장메모:" 트리거, 밤 인제스트는 second-brain CLAUDE.md §4.1.7로 같은 절차 |
 | broker-api · verify-distribute · databot-alert-debug | 🪦 은퇴 | 2026-11-13 결재 에이전트 체계 폐지로 은퇴(커밋 `ef3ca5b`). 디스크에 없음, git 이력(`9f4bf0b`)에만 남음 |

@@ -1,0 +1,1 @@
+/Users/kim/second-brain/scripts/field_note.py
