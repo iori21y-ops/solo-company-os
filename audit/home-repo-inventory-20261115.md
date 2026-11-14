@@ -19,7 +19,7 @@
 1. **cadam `/p`·`/progress`·`/ps` 명령어 은퇴** — 없어진 `rentailor-plan/`을 읽고 썼음. 세션 종료는 `DOCS_RULES.md` §4. → `~/projects/_archive/2026-11-15/cadam/.claude/commands/` (cadam 커밋 `0295494`).
 2. **문서 점검 범위 확대** — `doc_registry.yaml`에 `~/projects/CLAUDE.md`, `*/.claude/commands/*.md`, `*/.claude/skills/*/SKILL.md`, `_meta/skills/*/SKILL.md` 추가 (_meta 커밋 `5d9f368`).
 3. **hyperframes 직접 설치본 4개 은퇴** — `~/.claude/skills/{hyperframes,hyperframes-cli,hyperframes-registry,media-use}`(10-31)가 플러그인과 두 벌로 동시에 읽혔음. 플러그인 쪽만 남김 → `~/projects/_archive/2026-11-15/home-claude-skills/`. 새 세션 확인: `hyperframes:*` 7개만 보임.
-4. **cadam-web 옛 Cursor 규칙 3개 은퇴(브랜치만)** — `.cursorrules`·`cursor_rules.md`·`CURSORRULES-ADDITION.md`(3월, 없어진 `price_ranges` 표 기준). main push = 배포이고 월 렌트료 자동화가 main을 push하므로, main·작업 폴더는 그대로 두고 브랜치 `chore/retire-cursor-rules`(커밋 `ea81fb7`)에만 기록. **다음 배포 승인 때 합친다.**
+4. **cadam-web 옛 Cursor 규칙 3개 은퇴(브랜치만)** — `.cursorrules`·`cursor_rules.md`·`CURSORRULES-ADDITION.md`(3월, 없어진 `price_ranges` 표 기준). main push = 배포이고 월 렌트료 자동화가 main을 push하므로, main·작업 폴더는 그대로 두고 브랜치 `chore/retire-cursor-rules`(커밋 `ea81fb7`)에만 기록 → 같은 날 사장님 배포 승인, 최신 main 위에 올려(`6baaf48`) 로컬 빌드 성공 후 push, Vercel Production Ready 확인.
 
 보관함 기록: `~/projects/_archive/2026-11-15/MOVED.txt` — 2026-11-22 이후 사장님 확인 후 비움.
 
