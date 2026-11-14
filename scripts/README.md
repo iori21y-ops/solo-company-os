@@ -110,3 +110,11 @@ Claude가 자동:
   2. 오늘 세션 내용 요약
   3. save-handoff.sh 호출 명령 생성
   4. 클코에 던지면 끝
+
+## Claude 장기 토큰 (`claude_token_env.sh`, launchd `com.solo.claude-token`) — 2026-11-14
+- 예약 작업의 `claude -p`가 브라우저 로그인 만료로 멈추지 않게, `claude setup-token`으로 만든 토큰을 모든 launchd 작업에 넘긴다(`launchctl setenv CLAUDE_CODE_OAUTH_TOKEN`). 맥이 켜질 때와 토큰 파일이 바뀔 때 자동 실행.
+- 토큰 파일: `~/.cadam-secrets/claude_oauth_token` (권한 600, git·백업 대상 아님, 출력 금지). 기록: `_meta/logs/claude_token.log` (글자 수만).
+- 갱신(만료 시): 터미널에서 `claude setup-token` → 출력된 토큰 복사 → 아래 한 줄 → 끝(자동으로 다시 읽음).
+  `(umask 077; pbpaste | tr -d '[:space:]' > ~/.cadam-secrets/claude_oauth_token); echo -n "" | pbcopy; wc -c ~/.cadam-secrets/claude_oauth_token`
+- 이미 켜져 있던 상주 서비스는 재시작해야 토큰을 받는다(주기 실행 작업은 다음 실행부터 자동).
+- 별도: `~/.cadam-secrets/claude-token.env`(10-26)는 linear_approval·linear_diagnose·audit-agent·server-health-check가 직접 읽는 옛 토큰 파일 — 이 장치와 별개.
