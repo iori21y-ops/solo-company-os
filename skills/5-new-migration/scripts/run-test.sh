@@ -33,6 +33,17 @@ OUT="$(./new.sh "$P/a/db/migrations" add_y 2>&1)";        ok "같은 이름 덮�
 ./new.sh "$P/c/supabase/migrations" add_w >/dev/null 2>&1; ok "타임스탬프형 폴더 → 14자리" 'ls "$P/c/supabase/migrations" | grep -qE "^[0-9]{14}_add_w\.sql$"'
 
 OUT="$(./find.sh shorts_plans 2>&1)";  ok "find: 가장 최근에 표를 다룬 폴더 제시" 'echo "$OUT" | grep -q "따를 폴더: ~/projects/a/db/migrations"'
+
+# Plain db/ folder (like cadam/db/) newer than the migrations/ subfolder; dumps and create scripts ignored.
+echo "alter table public.erp_tasks add column a int;" > "$P/a/db/migrations/20260709_erp_tasks_a.sql"
+echo "revoke select on public.erp_tasks from anon;"  > "$P/a/db/20261022_erp_tasks_drop_public_read.sql"
+echo "create table public.erp_tasks (id int);"       > "$P/a/db/erp_tasks_create.sql"
+echo "-- dump erp_tasks"                              > "$P/a/db/db_backup_20261201.sql"
+OUT="$(./find.sh erp_tasks 2>&1)"
+ok "find: db/ 바로 아래 파일도 찾음(더 최근)" 'echo "$OUT" | grep -q "따를 폴더: ~/projects/a/db (" && echo "$OUT" | grep -q 20261022_erp_tasks'
+ok "find: 덤프·이름 없는 create 스크립트는 제외" '! echo "$OUT" | grep -qE "db_backup|erp_tasks_create"'
+./new.sh "$P/a/db" add_v >/dev/null 2>&1
+ok "new: db/ 폴더 허용 + 날짜형(이름 없는 파일 무시)" '[ -f "$P/a/db/$(date +%Y%m%d)_add_v.sql" ]'
 OUT="$(./find.sh no_such_table 2>&1)"; ok "find: 처음 다루는 표면 사장님께 묻기" 'echo "$OUT" | grep -q "사장님께 묻는다"'
 OUT="$(./find.sh 'x;rm' 2>&1)";        ok "find: 이상한 이름 거부" 'echo "$OUT" | grep -q 사용법'
 

@@ -27,5 +27,5 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | code-before-acting | ✅ 연결 | 추측 금지 4단계. 옛 예시(broker) 문구 갱신 |
 | bak-cleanup | ✅ 연결 | 2026-11-15 개정: `rm` → `_archive/<날짜>/` 이동 + `MOVED.txt`, `~/projects` 안만, 비밀 가능 백업·데이터 창고 백업·git 추적·launchd 참조 보존. 테스트 16/16 PASS |
 | launchd-restart | ✅ 연결 | 2026-11-15 개정: 정확한 라벨만, 상시 서비스(`--run`)와 예약형(`--run-scheduled-now`, 지금 한 번 실행) 구분, 승인 후에만 실행. 테스트 11/11 PASS(재시작 0회) |
-| new-migration | ✅ 연결 | 2026-11-15 개정: `find.sh`(그 표를 마지막으로 다룬 폴더) + `new.sh`(본파일+롤백, 승인·백업 칸). DB 적용 안 함. 테스트 16/16 PASS. 렌테일러 Supabase 폴더 2곳 통일은 사장님 결정 대기 |
+| new-migration | ✅ 연결 | 2026-11-15 개정: `find.sh`(그 표를 마지막으로 다룬 폴더) + `new.sh`(본파일+롤백, 승인·백업 칸). DB 적용 안 함. 테스트 19/19 PASS. 렌테일러 DB 마이그레이션 폴더 3곳(cadam/db·cadam/db/migrations·cadam-web/supabase/migrations) 통일은 사장님 결정 대기 |
 | broker-api · verify-distribute · databot-alert-debug | — | 표에는 완료로 적혀 있으나 이 폴더에 없음(옛 위치 미확인) |

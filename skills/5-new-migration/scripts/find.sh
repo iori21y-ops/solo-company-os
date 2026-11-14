@@ -9,8 +9,11 @@ if [ -z "$TABLE" ] || ! echo "$TABLE" | grep -qE '^[a-z_][a-z0-9_]*$'; then
   echo "사용법: find.sh <표 이름(영어 소문자·_)>"; exit 2
 fi
 echo "=== '$TABLE'을(를) 다룬 마이그레이션 (최근 순) ==="
+# Migrations live in */migrations/, directly in */db/ (e.g. cadam/db/20261022_*.sql) and in */supabase/.
+# Only files whose name starts with a number/date/timestamp count (skips dumps, seeds, create scripts).
 HITS="$(find "$ROOT" \( -name node_modules -o -name _archive -o -name .git -o -name '_wt-*' \) -prune -o \
-  -type f -name '*.sql' -path '*migrations*' -print 2>/dev/null \
+  -type f -name '*.sql' \( -path '*migrations*' -o -path '*/db/*' -o -path '*/supabase/*' \) -print 2>/dev/null \
+  | grep -E '/([0-9]{3}|[0-9]{8}[a-z]?|[0-9]{14}|[0-9]{4}-[0-9]{2}-[0-9]{2})_[^/]*\.sql$' \
   | while IFS= read -r f; do grep -qiwE "$TABLE" "$f" && printf '%s\t%s\n' "$(basename "$f")" "$f"; done \
   | sort -r | cut -f2)"
 if [ -z "$HITS" ]; then

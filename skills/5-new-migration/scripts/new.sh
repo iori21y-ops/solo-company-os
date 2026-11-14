@@ -17,11 +17,11 @@ DIR="${DIR/#\~/$HOME}"
 [ -d "$DIR" ] || { echo "⛔ 거부: 폴더 없음 '$DIR' (새 폴더는 만들지 않는다)"; exit 1; }
 DIR="$(cd "$DIR" && pwd -P)"; ROOT_REAL="$(cd "$ROOT" && pwd -P)"
 case "$DIR/" in "$ROOT_REAL"/*) ;; *) echo "⛔ 거부: ~/projects 안이 아님"; exit 1;; esac
-case "$DIR" in *migrations*) ;; *) echo "⛔ 거부: migrations 폴더가 아님"; exit 1;; esac
+case "$DIR" in *migrations*|*/db) ;; *) echo "⛔ 거부: 마이그레이션 폴더가 아님 (…/migrations 또는 …/db 만)"; exit 1;; esac
 case "$DIR" in */_archive/*|*/_wt-*) echo "⛔ 거부: 보관함·작업 사본 폴더"; exit 1;; esac
 
 # Detect the folder's naming pattern from its newest main (non-rollback) file.
-LATEST="$(ls "$DIR" 2>/dev/null | grep -E '\.sql$' | grep -v '_rollback' | sort | tail -1)"
+LATEST="$(ls "$DIR" 2>/dev/null | grep -E '^[0-9][0-9a-z-]*_.*\.sql$' | grep -v '_rollback' | sort | tail -1)"
 if echo "$LATEST" | grep -qE '^[0-9]{3}_'; then
   N=$((10#${LATEST:0:3} + 1)); PREFIX="$(printf '%03d' "$N")"
 elif echo "$LATEST" | grep -qE '^[0-9]{14}_'; then
