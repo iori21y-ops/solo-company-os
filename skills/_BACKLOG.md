@@ -25,7 +25,7 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | supabase-query | ✅ 연결 | 읽기 전용 가드 + Management API(규칙 허용 경로). `.env` 경로 문구 갱신 |
 | handoff-writer | ✅ 연결 | "인수인계 작성해줘" 명시 지시 때만 작동 |
 | code-before-acting | ✅ 연결 | 추측 금지 4단계. 옛 예시(broker) 문구 갱신 |
-| bak-cleanup | ⏸ 보류 | `cleanup.sh`가 `rm`으로 바로 삭제 — 삭제 규칙(`_archive/<날짜>/`로 옮기고 7일 후 승인, FOLDER_RULES §5)과 충돌. 옮기기 방식으로 고친 뒤 연결 |
+| bak-cleanup | ✅ 연결 | 2026-11-15 개정: `rm` → `_archive/<날짜>/` 이동 + `MOVED.txt`, `~/projects` 안만, 비밀 가능 백업·데이터 창고 백업·git 추적·launchd 참조 보존. 테스트 16/16 PASS |
 | launchd-restart | ⏸ 보류 | 예시 라벨(`com.cadam.md-dashboard`·`com.rentailor.claude-broker`)과 plist 경로가 없어짐. 재시작은 승인 대상(SAFETY_RULES §1)이라 문구도 함께 고친 뒤 연결 |
 | new-migration | ⏸ 보류 | 기준 "003 패턴" 파일이 어디인지 불분명(현재 `import-lease/db/migrations/003_*`만 있음). 기준 파일·백업 절차 확정 후 연결 |
 | broker-api · verify-distribute · databot-alert-debug | — | 표에는 완료로 적혀 있으나 이 폴더에 없음(옛 위치 미확인) |
