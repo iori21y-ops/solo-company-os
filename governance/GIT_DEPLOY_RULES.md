@@ -1,7 +1,7 @@
 # git·배포 규칙 (GIT_DEPLOY_RULES)
 
 > 무엇을 정하는 파일: 커밋 메시지, 저장소(리포) 목록, 커밋에 넣을 파일 고르기, push와 배포.
-> 마지막 갱신: 2026-11-13 (폴더 이동 후 리포 표 다시 확인) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 마지막 갱신: 2026-11-15 (리포 표 보강, 본사 시작 파일 `~/projects/CLAUDE.md` 연결) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
 > 배포 상세(Vercel 설정·환경변수·도메인)는 `~/projects/cadam/docs/deploy.md`.
 
 ## 1. 커밋 (사장님 결정 1, 2026-11-11)
@@ -13,7 +13,9 @@
 - `node_modules`, `.next`, `__pycache__`, `.env` 류는 커밋하지 않는다.
 
 ## 2. 저장소(리포) — 커밋·push 전 `pwd` + `git remote -v` 확인 필수
-2026-11-13 `git remote` 확인. 리모트는 모두 `github.com/iori21y-ops/…`.
+2026-11-15 `git remote`·공개 여부 다시 확인(빠졌던 `_data`·`keyword-scan`·`gpu-agent` 추가). 리모트는 모두 `github.com/iori21y-ops/…`.
+- 이 표가 **저장소 지도 원본**이다. `~/projects/CLAUDE.md`(본사 시작 파일)가 이 파일을 불러와서 `~/projects` 아래에서 연 모든 세션에 자동으로 읽힌다 — 표를 다른 곳에 다시 적지 말 것.
+- **공개 리포는 `_meta`(`solo-company-os`) 하나** — 휴대폰 세션이 웹으로 읽는다. 여기에는 비밀·고객·매출 같은 사업 정보를 적지 않는다. 나머지는 모두 비공개.
 
 | 폴더 | 리모트 | 무엇 |
 |---|---|---|
@@ -23,8 +25,11 @@
 | `~/projects/content-engine` | `blog-engine` (리포 이름은 옛 이름 그대로) | 콘텐츠 엔진(글·영상) |
 | `~/projects/content-engine/publishers/naver` | `cadam-naver` | 네이버 발행 서버 (엔진 안의 따로 리포) |
 | `~/projects/content-engine/video` | `my-shorts` | 수동 쇼츠 작업 공간 (엔진 안의 따로 리포) |
+| `~/projects/cadam/services/gpu-agent` | `cadam-gpu-agent` | GPU 서버 작업 에이전트 (cadam 안의 따로 리포) |
+| `~/projects/keyword-scan` | `keyword-scan` | 여러 사업 공용 키워드 수집기 (결과는 `_data/shared`) |
 | `~/projects/_shared` | `solo-shared` | 공용 라이브러리 `solo_common` |
-| `~/projects/_meta` | `solo-company-os` | 공통 규칙·인계·점검 스크립트 |
+| `~/projects/_data` | `data-warehouse` | 데이터 창고 — 수집 원본·이미지·작업 파일·백업 ([DATA_RULES.md](DATA_RULES.md)) |
+| `~/projects/_meta` | `solo-company-os` (**공개**) | 공통 규칙·인계·점검 스크립트 |
 | `~/projects/football-blog` | `football-blog` | 해외파 |
 | `~/projects/import-lease` | `import-lease` | 임포리스 |
 | `~/second-brain-git` | `second-brain` | 위키 미러 |
