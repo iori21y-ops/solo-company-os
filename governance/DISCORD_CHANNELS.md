@@ -1,7 +1,7 @@
 # 디스코드 채널 지도 (사업별 정리)
 
 > 무엇을 정하는 파일: 어느 알림이 어느 채널로 가는지, 어떤 봇이 보내는지. 지도: [RULES_MAP.md](RULES_MAP.md)
-> 마지막 갱신: 2026-11-13 (결재 에이전트 체계 폐지 반영 — 봇은 "알림" 하나)
+> 마지막 갱신: 2026-11-15 (세컨드 브레인 알림 → #데이터로 모음; 2026-11-13 결재 에이전트 체계 폐지 — 봇은 "알림" 하나)
 > 채널 이름을 바꾸면 알림이 끊긴다 — 여러 프로그램이 채널을 **이름**으로 찾는다
 > (`_shared/solo_common/discord_client.find_channel`: "콘텐츠기획"·"데이터"·"축구블로그"·"클리퍼").
 > 그래서 사업별 정리는 **이름은 그대로 두고 카테고리(채널 묶음)만** 나눈다.
@@ -9,14 +9,14 @@
 
 ## 봇
 - **"알림" 봇 하나만 쓴다** (옛 이름 관리팀장, 2026-11-13 이름 변경). 토큰 `DISCORD_BOT_TOKEN`은 `~/.cadam-secrets/secrets.env`에서 읽는다(값 출력 금지).
-- 보내는 코드: `_shared/solo_common/discord_client.py`, `cadam/collect/lib/notify.py`, `~/.cadam-secrets/notify_discord.sh`, `_meta/scripts/server-health-check.sh`, ERP 알림(`web-engine/cadam-erp`).
+- 보내는 코드: `_shared/solo_common/discord_client.py`, `cadam/collect/lib/notify.py`, `~/.cadam-secrets/notify_discord.sh`(기본 #시스템알림, `NOTIFY_DISCORD_CHANNEL`로 다른 채널), `_meta/scripts/server-health-check.sh`, ERP 알림(`web-engine/cadam-erp`).
 - 옛 에이전트 봇(마케팅·콘텐츠·데이터·기획팀장)은 쓰지 않는다 — 서버에서 내보내기·앱 삭제는 사장님이 직접(디스코드 / Developer Portal).
 
 ## 카테고리 구성
 | 카테고리 | 채널 | 무엇이 오나 |
 |---|---|---|
 | 📁 렌테일러 | #콘텐츠기획 | 글감 후보(B코드)·크롤러/큐레이터·발행 (content-engine rentailor), GPU 이미지 작업 알림·검토(`cadam/services/gpu-agent/config/loop-config.json`, 11-13 #대표이사실에서 이동) |
-| | #데이터 | 키워드 스캔(keyword-scan), 수집기 알림(가격표 대조·가격·옵션·색상 변경·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 — `cadam/collect/lib/notify.py` 한 곳을 거침), 엔카 시세·RSS |
+| | #데이터 | 키워드 스캔(keyword-scan), 수집기 알림(가격표 대조·가격·옵션·색상 변경·렌트료 반영·사진 확인표·데이터 점검·수집기 실패 — `cadam/collect/lib/notify.py` 한 곳을 거침), 엔카 시세·RSS· **세컨드 브레인 파이프라인 전부**(야간 인제스트 실패·GitHub 백업 실패·06:15 감시 `pipeline_watch.py`·위키 입력 sync·RSS/여신협회/KRCA 수집 — 2026-11-15 #시스템알림에서 모음, 성공 알림 없음) |
 | | #마케팅 | 주간 유입 분석, 검색 문구 실험(S코드) |
 | | #상담 (1570612529640640512) | 🆕 새 상담 알림 R-#### (Spidey Bot 웹훅, ERP) |
 | 📁 축구 | #축구블로그 | 축구 초안·발행·자동 점검 경고 (football-blog, 11/11부터 보류) |
