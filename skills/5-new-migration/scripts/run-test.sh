@@ -8,8 +8,11 @@ mkdir -p "$P/a/db/migrations" "$P/b/db/migrations" "$P/c/supabase/migrations" "$
 touch "$P/a/db/migrations/20261024_trend_keywords.sql" "$P/a/db/migrations/20261024_trend_keywords_rollback.sql"
 touch "$P/b/db/migrations/005_x.sql" "$P/b/db/migrations/006_brand_policy.sql"
 touch "$P/c/supabase/migrations/20261113120000_erp.sql"
+mkdir -p "$P/a/supabase/migrations"
 echo "alter table public.shorts_plans add column x text;" > "$P/a/db/migrations/20261112_shorts_plans_key.sql"
-echo "create table public.shorts_plans (id int);" > "$P/c/supabase/migrations/20260101000000_old.sql"
+echo "create table public.shorts_plans (id int);" > "$P/a/supabase/migrations/20260101000000_old.sql"
+touch -t 202611120000 "$P/a/db/migrations/20261112_shorts_plans_key.sql"
+touch -t 202601010000 "$P/a/supabase/migrations/20260101000000_old.sql"
 
 pass=0; fail=0
 ok() { if eval "$2"; then echo "PASS: $1"; pass=$((pass+1)); else echo "FAIL: $1"; fail=$((fail+1)); fi; }
@@ -39,6 +42,8 @@ echo "alter table public.erp_tasks add column a int;" > "$P/a/db/migrations/2026
 echo "revoke select on public.erp_tasks from anon;"  > "$P/a/db/20261022_erp_tasks_drop_public_read.sql"
 echo "create table public.erp_tasks (id int);"       > "$P/a/db/erp_tasks_create.sql"
 echo "-- dump erp_tasks"                              > "$P/a/db/db_backup_20261201.sql"
+touch -t 202607090000 "$P/a/db/migrations/20260709_erp_tasks_a.sql"
+touch -t 202610220000 "$P/a/db/20261022_erp_tasks_drop_public_read.sql"
 OUT="$(./find.sh erp_tasks 2>&1)"
 ok "find: db/ 바로 아래 파일도 찾음(더 최근)" 'echo "$OUT" | grep -q "따를 폴더: ~/projects/a/db (" && echo "$OUT" | grep -q 20261022_erp_tasks'
 ok "find: 덤프·이름 없는 create 스크립트는 제외" '! echo "$OUT" | grep -qE "db_backup|erp_tasks_create"'
@@ -46,6 +51,30 @@ ok "find: 덤프·이름 없는 create 스크립트는 제외" '! echo "$OUT" | 
 ok "new: db/ 폴더 허용 + 날짜형(이름 없는 파일 무시)" '[ -f "$P/a/db/$(date +%Y%m%d)_add_v.sql" ]'
 OUT="$(./find.sh no_such_table 2>&1)"; ok "find: 처음 다루는 표면 사장님께 묻기" 'echo "$OUT" | grep -q "사장님께 묻는다"'
 OUT="$(./find.sh 'x;rm' 2>&1)";        ok "find: 이상한 이름 거부" 'echo "$OUT" | grep -q 사용법'
+
+# Rentailor rule (2026-11-15): cadam/db only.
+mkdir -p "$P/cadam/db/migrations" "$P/web-engine/cadam-web/supabase/migrations"
+echo "alter table public.leads add column a int;" > "$P/web-engine/cadam-web/supabase/migrations/20261113120000_leads.sql"
+touch "$P/cadam/db/20261114_x.sql"
+OUT="$(./find.sh leads 2>&1)"
+ok "find: 렌테일러 표는 옛 폴더 기록이어도 cadam/db 안내" 'echo "$OUT" | grep -q "따를 폴더: ~/projects/cadam/db (렌테일러"'
+OUT="$(./new.sh "$P/cadam/db/migrations" add_u 2>&1)";                      ok "new: cadam/db/migrations 거부" 'echo "$OUT" | grep -q "cadam/db 한 곳"'
+OUT="$(./new.sh "$P/web-engine/cadam-web/supabase/migrations" add_u 2>&1)"; ok "new: cadam-web/supabase/migrations 거부" 'echo "$OUT" | grep -q "cadam/db 한 곳"'
+./new.sh "$P/cadam/db" add_u >/dev/null 2>&1;                               ok "new: cadam/db 허용" '[ -f "$P/cadam/db/$(date +%Y%m%d)_add_u.sql" ]'
+
+# Same table name in two business DBs (like brands in import-lease and cadam): ask, don't pick.
+mkdir -p "$P/import-lease/db/migrations"
+echo "alter table public.brands add column p text;" > "$P/import-lease/db/migrations/006_brand_option_policy.sql"
+echo "update public.brands set x = 1 where id = 1;" > "$P/cadam/db/20261025_finance_calibration.sql"
+touch -t 202611140000 "$P/import-lease/db/migrations/006_brand_option_policy.sql"
+touch -t 202610250000 "$P/cadam/db/20261025_finance_calibration.sql"
+OUT="$(./find.sh brands 2>&1)"
+ok "find: 여러 사업 DB에 같은 표 → 묻기(폴더 단정 안 함)" 'echo "$OUT" | grep -q "여러 사업 DB" && ! echo "$OUT" | grep -q "따를 폴더"'
+ok "find: 최근 순서는 이름이 아니라 기록 시각(006이 위)" '[ "$(echo "$OUT" | grep -m1 "\[" | grep -c import-lease)" = 1 ]'
+# import-lease only table → its own folder
+echo "alter table public.lease_sources add column q text;" > "$P/import-lease/db/migrations/003_lease_source_view.sql"
+OUT="$(./find.sh lease_sources 2>&1)"
+ok "find: 임포리스 전용 표 → import-lease 폴더" 'echo "$OUT" | grep -q "따를 폴더: ~/projects/import-lease/db/migrations"'
 
 echo ""
 echo "=== 결과: PASS $pass / FAIL $fail (임시 폴더: $TMP, DB·실제 폴더 무손상) ==="

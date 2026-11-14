@@ -19,6 +19,13 @@ DIR="$(cd "$DIR" && pwd -P)"; ROOT_REAL="$(cd "$ROOT" && pwd -P)"
 case "$DIR/" in "$ROOT_REAL"/*) ;; *) echo "⛔ 거부: ~/projects 안이 아님"; exit 1;; esac
 case "$DIR" in *migrations*|*/db) ;; *) echo "⛔ 거부: 마이그레이션 폴더가 아님 (…/migrations 또는 …/db 만)"; exit 1;; esac
 case "$DIR" in */_archive/*|*/_wt-*) echo "⛔ 거부: 보관함·작업 사본 폴더"; exit 1;; esac
+# Owner decision 2026-11-15: rentailor DB migrations only directly under cadam/db.
+case "$DIR" in
+  "$ROOT_REAL/cadam/db") ;;
+  "$ROOT_REAL/cadam/"*|"$ROOT_REAL/web-engine/"*)
+    echo "⛔ 거부: 렌테일러 DB 마이그레이션은 ~/projects/cadam/db 한 곳에만 만든다 (2026-11-15 사장님 결정). 옛 폴더에는 새 파일을 두지 않는다."
+    exit 1 ;;
+esac
 
 # Detect the folder's naming pattern from its newest main (non-rollback) file.
 LATEST="$(ls "$DIR" 2>/dev/null | grep -E '^[0-9][0-9a-z-]*_.*\.sql$' | grep -v '_rollback' | sort | tail -1)"
