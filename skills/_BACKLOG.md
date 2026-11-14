@@ -5,15 +5,15 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 
 | # | 스킬 | type | 상태 | 비고 |
 |---|------|------|------|------|
-| 1 | broker-api | rule | ✅완료 | 본문+포인터 |
-| 2 | verify-distribute | script ⭐ | ✅완료 | 라이브 실증(부모71 PASS) |
+| 1 | broker-api | rule | 🪦은퇴 | 2026-11-13 결재 에이전트 체계 폐지로 은퇴(커밋 `ef3ca5b`). 필요하면 `git show 9f4bf0b:skills/1-broker-api/SKILL.md`로 복원 |
+| 2 | verify-distribute | script ⭐ | 🪦은퇴 | 같은 날 은퇴(카드 배분 검증 — 체계 폐지). 복원 `git show 9f4bf0b:skills/2-verify-distribute/SKILL.md` |
 | 3 | supabase-query | script | ✅완료 | 가드 7/7 PASS, 실제 쓰기 0 |
 | 4 | handoff-writer | rule | ✅완료 | — |
-| 5 | new-migration | script | ✅완료 | 003 패턴, 적용은 사람 수동 |
+| 5 | new-migration | script | ✅완료 | 2026-11-15 개정 — 아래 연결 상태표 |
 | 6 | code-before-acting | rule | ✅완료 | — |
-| 7 | launchd-restart | script | ✅완료 | 테스트 PASS |
-| 8 | databot-alert-debug | script ⭐ | ✅완료 | SKILL 런북+diagnose.sh, 라이브 실증 |
-| 9 | bak-cleanup | script | ✅완료 | 테스트 PASS |
+| 7 | launchd-restart | script | ✅완료 | 2026-11-15 개정 — 아래 연결 상태표 |
+| 8 | databot-alert-debug | script ⭐ | 🪦은퇴 | 같은 날 은퇴(데이터봇 알림 — 체계 폐지). 복원 `git show 9f4bf0b:skills/8-databot-alert-debug/SKILL.md` |
+| 9 | bak-cleanup | script | ✅완료 | 2026-11-15 개정 — 아래 연결 상태표 |
 
 ⭐ = Anthropic 문서가 효과 최대로 꼽은 2개(검증·런북). 둘 다 script형.
 
@@ -28,4 +28,4 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | bak-cleanup | ✅ 연결 | 2026-11-15 개정: `rm` → `_archive/<날짜>/` 이동 + `MOVED.txt`, `~/projects` 안만, 비밀 가능 백업·데이터 창고 백업·git 추적·launchd 참조 보존. 테스트 16/16 PASS |
 | launchd-restart | ✅ 연결 | 2026-11-15 개정: 정확한 라벨만, 상시 서비스(`--run`)와 예약형(`--run-scheduled-now`, 지금 한 번 실행) 구분, 승인 후에만 실행. 테스트 11/11 PASS(재시작 0회) |
 | new-migration | ✅ 연결 | 2026-11-15 개정: `find.sh`(그 표를 마지막으로 다룬 폴더) + `new.sh`(본파일+롤백, 승인·백업 칸). DB 적용 안 함. 테스트 26/26 PASS. 렌테일러 DB는 `cadam/db` 한 곳(2026-11-15 사장님 결정), 같은 이름 표가 여러 사업 DB에 있으면 묻기 |
-| broker-api · verify-distribute · databot-alert-debug | — | 표에는 완료로 적혀 있으나 이 폴더에 없음(옛 위치 미확인) |
+| broker-api · verify-distribute · databot-alert-debug | 🪦 은퇴 | 2026-11-13 결재 에이전트 체계 폐지로 은퇴(커밋 `ef3ca5b`). 디스크에 없음, git 이력(`9f4bf0b`)에만 남음 |
