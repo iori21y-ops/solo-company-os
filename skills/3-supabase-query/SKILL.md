@@ -18,7 +18,7 @@ python3 scripts/query.py "SELECT * FROM erp_tasks LIMIT 5"
 - 결과 50행 상한.
 
 ## 🚫 절대 금지
-- 토큰 하드코딩 금지. cadam-n8n/.env에서만 읽는다 (gitignore 필수).
+- 토큰 하드코딩 금지. `~/projects/cadam/collect/.env`에서만 읽는다 (query.py가 자동으로 읽음, 값 출력 금지, gitignore 필수). 2026-11-15 경로 갱신(옛 cadam-n8n은 cadam에 합쳐짐).
 - 쓰기/스키마 변경은 이 스킬로 하지 않는다 → 5-new-migration.
 - requests 쓰지 말 것 (LibreSSL 경고) → curl.
 
