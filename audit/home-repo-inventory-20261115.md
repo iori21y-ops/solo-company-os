@@ -24,6 +24,7 @@
 보관함 기록: `~/projects/_archive/2026-11-15/MOVED.txt` — 2026-11-22 이후 사장님 확인 후 비움.
 
 ## 남은 것
-- **cadam 전용 스킬·명령어 안 옛 경로 11건** (점검 범위 확대로 새로 잡힘, `_meta/logs/doc_audit.md`): `cadam-stats`(옛 `cadam/scripts/`, claude-broker), `cadam-crawl`(없는 `terms_crawler/output/`·`core/scripts/crawl/crawler_agent.py`), `cadam-image`(없는 `vehicle-images/hyundai/`·`public/cars/360/`), `/test`(없는 `test-logs/`). 고칠지 사장님 결정 대기.
+- ~~cadam 전용 스킬·명령어 안 옛 경로 11건~~ → 2026-11-15 고침(사장님 승인): `cadam-stats` 일일 보고 `ops/`·디스코드, `cadam-crawl` 약관 결과 = Supabase `terms_documents`·크롤러 `collect/crawl/`, `cadam-image` 360° = 휴면 표시(원본은 GPU 콜드 아카이브), `/test` 기록 = `_data/rentailor/work/test-logs/`. 같은 옛 경로가 있던 `docs/runbook.md`·`docs/architecture.md`도 함께. 점검 결과 0건.
+- `cadam/docs/architecture.md` "cadam-pipeline" 표의 데이터 입출력·로그·Git(`cadam-auto.git`) 줄은 옛 내용일 가능성 — 이번엔 확인 안 함.
 - Codex용 `~/projects/AGENTS.md` 연결 — 보류(사장님).
 - 공통 코딩 기준 문서 없음 — 필요 시 별도.
