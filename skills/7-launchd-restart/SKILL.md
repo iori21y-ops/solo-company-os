@@ -6,7 +6,7 @@ type: script
 
 # launchd 서비스 재시작
 
-> 2026-11-15 개정: 없어진 서비스(md-dashboard·claude-broker) 예시 삭제, 정확한 라벨만 허용, 상시 서비스와 예약형 작업 구분, 승인 규칙 반영.
+> 2026-11-15 개정: 옛 서비스(md-dashboard·claude-broker) 예시 삭제, 정확한 라벨만 허용, 상시 서비스와 예약형 작업 구분, 승인 규칙 반영.
 > 근거: 전역 `~/.claude/CLAUDE.md`·`governance/SAFETY_RULES.md` §1(서비스 재시작 = 승인 필요), `cadam/docs/security.md` §5.2(kickstart = 승인 후, plist 삭제 금지).
 
 ## 목적

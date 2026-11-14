@@ -8,8 +8,13 @@
 # 점검할 문서 (~ 는 홈). glob 사용 가능.
 docs:
   - ~/.claude/CLAUDE.md
+  - ~/projects/CLAUDE.md                       # 본사 시작 파일 (2026-11-15)
   - ~/projects/*/CLAUDE.md
   - ~/projects/*/AGENTS.md
+  # 명령어·스킬도 옛 경로를 품을 수 있다 (2026-11-15: /p·/progress·/ps가 없어진 rentailor-plan/을 가리키던 것을 못 잡았음)
+  - ~/projects/*/.claude/commands/*.md
+  - ~/projects/*/.claude/skills/*/SKILL.md     # 프로젝트 자체 스킬 (설치형인 content-engine/video/.claude/skills는 깊이가 달라 제외됨)
+  - ~/projects/_meta/skills/*/SKILL.md
   - ~/projects/cadam/*/CLAUDE.md
   - ~/projects/web-engine/CLAUDE.md
   - ~/projects/web-engine/*/CLAUDE.md
