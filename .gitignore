@@ -65,3 +65,12 @@ _archive/
 
 # n8n workflow backups (may contain credentials)
 n8n-backups/
+
+# ── 2026-11-16: regenerated daily/weekly outputs + large installers (audit A9) ──
+installers/
+sitemap/scan-diff-*.json
+sitemap/scan-infra-*.json
+audit/audit-seen.txt
+audit/audit-streak.txt
+logs/doc_audit.json
+logs/doc_audit.md
