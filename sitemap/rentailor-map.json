@@ -4143,54 +4143,6 @@
       "note": "info-articles는 요청시 WP 블로그글 병합, sync-wp는 크론으로 WP→info_articles 미러링"
     },
     {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks",
-      "kind": "broker-write",
-      "note": "[TASK] 태그로 GET/POST/PATCH, x-dashboard-token 세션 우회(erp_tasks)"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks/[id]",
-      "kind": "broker-write",
-      "note": "태스크 상태 수정, x-dashboard-token"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks/[id]/approval",
-      "kind": "broker-write",
-      "note": "승인 처리, x-dashboard-token"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks/[id]/approval/request",
-      "kind": "broker-write",
-      "note": "승인 요청, x-dashboard-token"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks/[id]/thread",
-      "kind": "broker-read",
-      "note": "스레드 조회, x-dashboard-token"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks/[id]/timeline",
-      "kind": "broker-read",
-      "note": "타임라인, x-dashboard-token"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/tasks/progress",
-      "kind": "broker-write",
-      "note": "진행 로그 기록(erp_task_progress_log), ERP UI 호출 없음, x-dashboard-token"
-    },
-    {
-      "from": "claude-broker",
-      "to": "erp:/api/agent-approvals/decide",
-      "kind": "broker-fs",
-      "note": "broker가 pending .md 생성→ERP/broker가 decide로 이동. x-dashboard-token 우회 경로(/api/agent-approvals*)"
-    },
-    {
       "from": "cron:collect-tick.sh",
       "to": "erp:/api/monitoring/collect",
       "kind": "cron",
@@ -4330,39 +4282,6 @@
       "notes": "naver config·plist·crontab·n8n DB(sqlite integrity_check) 백업. 7세대 보존. notify_discord.sh 성공/실패 통보."
     },
     {
-      "id": "ops:broker-adminStatusPoll",
-      "nodeType": "poller",
-      "category": "A-watch",
-      "name": "broker: adminStatusPoll (미결재 잔량)",
-      "cadence": "60초 폴(하루 1회 dedup)",
-      "alert_channel": "ops:chan-discord-approval",
-      "log_path": null,
-      "check": { "method": "none", "reason": "broker 프로세스(ops:claude-broker) 내부 폴러 — 생존은 broker 프로세스에 종속", "judge": "info" },
-      "notes": "outputs/pending/*.md 미결재 잔량 감시. 0건이면 침묵."
-    },
-    {
-      "id": "ops:broker-approvalNotifyPoll",
-      "nodeType": "poller",
-      "category": "A-watch",
-      "name": "broker: approvalNotifyPoll (카드 결정 통보)",
-      "cadence": "5초",
-      "alert_channel": "원채널/스레드(담당 역할멘션)",
-      "log_path": null,
-      "check": { "method": "none", "reason": "broker 내부 폴러 — broker 프로세스에 종속", "judge": "info" },
-      "notes": "ERP 카드 승인/수정/반려(approvalRequested=true 상신분만) 통보."
-    },
-    {
-      "id": "ops:broker-fileApprovalNotifyPoll",
-      "nodeType": "poller",
-      "category": "A-watch",
-      "name": "broker: fileApprovalNotifyPoll (파일 결재)",
-      "cadence": "5초",
-      "alert_channel": "ops:chan-discord-approval",
-      "log_path": null,
-      "check": { "method": "none", "reason": "broker 내부 폴러 — broker 프로세스에 종속", "judge": "info" },
-      "notes": "outputs/approved·rejected/*.md 파일 결재 통보. adminStatus와 동일 채널 공유(설계상)."
-    },
-    {
       "id": "ops:n8n-pipeline-alerts",
       "nodeType": "n8n",
       "category": "A-watch",
@@ -4405,39 +4324,6 @@
       "log_path": null,
       "check": { "method": "launchctl", "target": "com.cadam.kosis", "kind": "scheduled", "expect": "loaded", "judge": "strict" },
       "notes": "자체로그. 주 1회 배치."
-    },
-    {
-      "id": "ops:api-hub-car-sales",
-      "nodeType": "launchd",
-      "category": "B-schedule",
-      "name": "api-hub car-sales (공공데이터)",
-      "cadence": "매일 09~10시대",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.cadam.api-hub.car-sales", "kind": "scheduled", "expect": "loaded", "judge": "strict" },
-      "notes": "자체로그."
-    },
-    {
-      "id": "ops:api-hub-ev-chargers",
-      "nodeType": "launchd",
-      "category": "B-schedule",
-      "name": "api-hub ev-chargers (공공데이터)",
-      "cadence": "매일 09~10시대",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.cadam.api-hub.ev-chargers", "kind": "scheduled", "expect": "loaded", "judge": "strict" },
-      "notes": "자체로그. 07-13 외부 API 504로 실패(외부 장애성)."
-    },
-    {
-      "id": "ops:api-hub-gas-stations",
-      "nodeType": "launchd",
-      "category": "B-schedule",
-      "name": "api-hub gas-stations (공공데이터)",
-      "cadence": "매일 09~10시대",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.cadam.api-hub.gas-stations", "kind": "scheduled", "expect": "loaded", "judge": "strict" },
-      "notes": "자체로그."
     },
     {
       "id": "ops:api-hub-insurance",
@@ -4572,17 +4458,6 @@
       "notes": "유지보수. 무알림."
     },
     {
-      "id": "ops:agent-hourly-reminders",
-      "nodeType": "launchd",
-      "category": "B-schedule",
-      "name": "cleanup-agent-reminders (리마인더 정리)",
-      "cadence": "3600초",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.rentailor.agent-hourly-reminders", "kind": "scheduled", "expect": "loaded", "judge": "strict" },
-      "notes": "정리 전용(알람 아님)."
-    },
-    {
       "id": "ops:gpu-agent-stop",
       "nodeType": "launchd",
       "category": "B-schedule",
@@ -4594,39 +4469,6 @@
       "notes": "gpu-agent 정지 companion. 시각 의존."
     },
     {
-      "id": "ops:broker-scheduledCardPoll",
-      "nodeType": "poller",
-      "category": "B-schedule",
-      "name": "broker: scheduledCardPoll (주기 카드 발화)",
-      "cadence": "60초",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "none", "reason": "broker 내부 폴러 — broker 프로세스에 종속", "judge": "info" },
-      "notes": "알림 아님 — 작업 enqueue 전용(cadence/last_run 기반)."
-    },
-    {
-      "id": "ops:openclaw-gateway",
-      "nodeType": "process",
-      "category": "C-resident",
-      "name": "ai.openclaw.gateway (기획팀장 게이트웨이)",
-      "cadence": "상주(KeepAlive)",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "ai.openclaw.gateway", "kind": "resident", "expect": "PID 상주", "judge": "strict", "pgrep": "openclaw" },
-      "notes": "생존은 health-check가 대리 점검. pgrep 교차확인 병행."
-    },
-    {
-      "id": "ops:claude-broker",
-      "nodeType": "process",
-      "category": "C-resident",
-      "name": "claude-broker (디스코드 에이전트 브로커)",
-      "cadence": "상주(KeepAlive)",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.rentailor.claude-broker", "kind": "resident", "expect": "PID 상주", "judge": "strict" },
-      "notes": "poller 3종+scheduledCardPoll의 부모 프로세스. pgrep -f claude-broker/agent.js 로는 안 잡힘 → launchctl 로 점검."
-    },
-    {
       "id": "ops:erp",
       "nodeType": "process",
       "category": "C-resident",
@@ -4636,28 +4478,6 @@
       "log_path": null,
       "check": { "method": "launchctl", "target": "com.cadam.erp", "kind": "resident", "expect": "PID 상주 + :3001 리슨", "judge": "strict", "port": 3001 },
       "notes": "포트 3001 리슨 병행 확인."
-    },
-    {
-      "id": "ops:clipserver",
-      "nodeType": "process",
-      "category": "C-resident",
-      "name": "clipserver",
-      "cadence": "상주(KeepAlive)",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.cadam.clipserver", "kind": "resident", "expect": "PID 상주", "judge": "strict" },
-      "notes": "clips 정적 셸 서버."
-    },
-    {
-      "id": "ops:md-viewer",
-      "nodeType": "process",
-      "category": "C-resident",
-      "name": "md-viewer (:9724)",
-      "cadence": "상주(KeepAlive)",
-      "alert_channel": null,
-      "log_path": null,
-      "check": { "method": "launchctl", "target": "com.rentailor.md-viewer", "kind": "resident", "expect": "PID 상주 + :9724 리슨", "judge": "strict", "port": 9724, "pgrep": "md-viewer" },
-      "notes": "결재카드 모바일 뷰어. 포트+pgrep 병행."
     },
     {
       "id": "ops:monitor",
@@ -4779,12 +4599,6 @@
     { "from": "ops:daily-report", "to": "ops:chan-discord-system", "kind": "alerts-to", "log": "/Users/kim/projects/cadam/daily_report.log", "note": "일일 리포트" },
     { "from": "ops:secrets-drift", "to": "ops:chan-telegram", "kind": "alerts-to", "log": "/Users/kim/.cadam-secrets/check-drift.log", "note": "불일치 시에만" },
     { "from": "ops:n8n-pipeline-alerts", "to": "ops:chan-telegram", "kind": "alerts-to", "log": null, "note": "11개 워크플로 → 단일 chatId" },
-    { "from": "ops:broker-adminStatusPoll", "to": "ops:chan-discord-approval", "kind": "alerts-to", "log": null, "note": "미결재 잔량(하루 1회 dedup)" },
-    { "from": "ops:broker-fileApprovalNotifyPoll", "to": "ops:chan-discord-approval", "kind": "alerts-to", "log": null, "note": "파일 결재 통보" },
-    { "from": "ops:claude-broker", "to": "ops:broker-adminStatusPoll", "kind": "contains", "note": "broker 프로세스가 폴러를 호스팅" },
-    { "from": "ops:claude-broker", "to": "ops:broker-approvalNotifyPoll", "kind": "contains", "note": "broker 프로세스가 폴러를 호스팅" },
-    { "from": "ops:claude-broker", "to": "ops:broker-fileApprovalNotifyPoll", "kind": "contains", "note": "broker 프로세스가 폴러를 호스팅" },
-    { "from": "ops:claude-broker", "to": "ops:broker-scheduledCardPoll", "kind": "contains", "note": "broker 프로세스가 폴러를 호스팅" },
     { "from": "ops:docker-n8n", "to": "ops:n8n-pipeline-alerts", "kind": "hosts", "note": "n8n 컨테이너가 워크플로 알림을 구동" }
   ],
   "api_index": {
