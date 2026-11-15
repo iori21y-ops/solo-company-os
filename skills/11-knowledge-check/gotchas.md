@@ -10,3 +10,4 @@
 - `field_note.py save`는 파일 이름이 초 단위라 **같은 초에 여러 번 부르면 앞 것이 덮어써진다**(2026-11-15 실제 발생). 원문을 여러 개 저장할 땐 사이에 `sleep 1.2`를 넣는다.
 - **약관 원문·추출 칸은 Supabase가 아니라 맥 로컬 데이터 창고 DB**(`warehouse` 스키마, 2026-11-12 이전)에 있다. supabase-query로 찾으면 칸이 없다고 나온다. 읽기: `sys.path`에 `~/projects/_shared` 넣고 `from solo_common import warehouse as W; W.connect()` → `warehouse.terms_documents.raw_text`·`warehouse.terms_key_conditions`(SELECT만).
 - `ok`는 확정 사실 칸에 **자동으로** 줄을 넣는다. 고침을 손으로 반영할 때 맞음 문장을 다시 손으로 넣지 말 것(2026-11-15 두 페이지에서 중복 발생 → 지움).
+- **트림·옵션·차종 사양 문장은 사장님께 묻지 않는다** (2026-11-15 사장님 지시). 사장님은 시장 경험치를 답하는 사람이고, 트림·옵션은 제조사 데이터(가격표·CADAM 트림 데이터)로 판단한다. `next`에 그런 문장이 나오면 `skip`하고, 필요하면 데이터와 대조해 Claude가 고친다.
