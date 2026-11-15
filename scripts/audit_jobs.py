@@ -31,6 +31,8 @@ REAL_LOGS = {
     "com.cadam.audit": [str(HOME / "projects/_meta/audit/audit.log")],
     "com.rentailor.health-check": [str(HOME / "projects/_meta/logs/health-check.log")],
     "com.cadam.data-registry": [str(HOME / "projects/cadam/docs/data-registry-counts.md")],
+    # launchd.log only receives stderr (stale since an 11-14 iCloud permission error); backup.log is written every run
+    "com.solo.icloud-backup": [str(HOME / "projects/_data/shared/work/icloud-backup/backup.log")],
 }
 # Not checked for log age (reason in the value). Exit status is still checked.
 NO_LOG_AGE = {
