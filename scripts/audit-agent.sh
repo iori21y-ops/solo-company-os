@@ -218,10 +218,14 @@ fi
 
 # ── 실운영: 상태기록 + 요약발송 + 카드생성 ──
 # (A1 streak is written by audit_jobs.py)
-# (항상) 요약 1줄 발송 = 감사 생존 하트비트 겸용
+# Findings → Discord now. No findings → stamp only; the 09:00 daily report shows it ("야간 작업") and
+# marks ❌ when the stamp is missing or stale, so it still works as the audit heartbeat (2026-11-16)
 source "$SECRETS" 2>/dev/null
-source "$HOME/.cadam-secrets/notify_discord.sh"
-notify_discord "$SUMMARY"
+if [ "$FCOUNT" -gt 0 ]; then
+  source "$HOME/.cadam-secrets/notify_discord.sh"
+  notify_discord "$SUMMARY"
+fi
+printf '%s\n' "$SUMMARY" | head -1 | sed 's/^🔎 \[감사\] //' > "$HOME/projects/cadam/logs/nightly_ok_audit.txt"
 
 # Linear: one issue per actionable finding; closed automatically once the finding disappears (never blocks the audit)
 printf '%s\n' "$FINDINGS" | /usr/bin/python3 -c '

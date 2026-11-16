@@ -253,5 +253,12 @@ esac
 prune
 TOTAL=$(du -sh "$DEST" | cut -f1)
 log "done (iCloud folder $TOTAL)"
-notify "$([ -n "$SB_FAIL" ] && echo ❌ || echo ✅) iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${SB_MSG:+$SB_MSG / }${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${SEC_MSG:+ / $SEC_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
+SUMMARY_LINE="iCloud 백업(데이터 창고+맥 복원용) $(date '+%m-%d') — ${SB_MSG:+$SB_MSG / }${DATA_MSG}${SYS_MSG:+ / $SYS_MSG}${SEC_MSG:+ / $SEC_MSG}${MEDIA_MSG:+ / $MEDIA_MSG} · iCloud 백업 합계 $TOTAL$([ -n "$SNAP_WARN" ] && echo ' ⚠️ DB 사본 일부 실패')"
+# Problems → Discord now. Clean nightly run → stamp only, shown in the 09:00 daily report "야간 작업" (2026-11-16)
+if [ -n "$SB_FAIL" ] || [ -n "$SNAP_WARN" ]; then
+  notify "$([ -n "$SB_FAIL" ] && echo ❌ || echo ⚠️) $SUMMARY_LINE"
+elif [ "$MODE" != "auto" ] && [ "$MODE" != "all" ]; then
+  notify "✅ $SUMMARY_LINE"   # manual partial run: whoever ran it wants the result
+fi
+case "$MODE" in auto|all) printf '%s\n' "$([ -n "$SB_FAIL" ] && echo '❌ ' || true)$SUMMARY_LINE" > "$HOME/projects/cadam/logs/nightly_ok_icloud.txt" ;; esac
 exit 0

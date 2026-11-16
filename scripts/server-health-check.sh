@@ -149,11 +149,9 @@ print(json.dumps([{"key": "health:problems", "title": "[서버 자동점검] 문
 else
   # Linear: close the health issue if one is open
   echo "[]" | /usr/bin/python3 "$HOME/projects/_shared/solo_common/linear_alert.py" sync "health:" >> "$LOG_FILE" 2>&1 || true
-  # 정상 → 로그 + 하트비트 1회.
-  #   '문제 시에만 알림' 구조는 알림 경로 자체가 죽어도 무음이라 '무소식=정상'을 검증할 수 없다.
-  #   매일 1회 "정상 작동 중" 신호를 같은 시스템 채널로 보내 알림 파이프라인 생존까지 함께 확인한다.
+  # OK → no Discord message (2026-11-16). The heartbeat moved into the 09:00 daily report
+  #   (cadam/ops/daily_report.sh "야간 작업"), which marks this check ❌ when its stamp is missing or stale,
+  #   and whose own arrival proves the alert path is alive.
   echo "[$TIMESTAMP] ALL OK" >> "$LOG_FILE"
-  source "$HOME/.cadam-secrets/notify_discord.sh"
-  notify_discord "💓 [서버 자동점검] 정상 작동 중 — 이상 없음 ($TIMESTAMP)"
-  echo "[$TIMESTAMP] heartbeat sent" >> "$LOG_FILE"
 fi
+printf '%s\n' "$([ -n "$PROBLEMS" ] && echo "⚠️ 문제 있음 — 07:00 알림 보냄" || echo "정상")" > "$HOME/projects/cadam/logs/nightly_ok_health.txt"
