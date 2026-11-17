@@ -1,0 +1,26 @@
+# content-engine 동시 작업 나눔 (2026-11-17~)
+
+> 같은 리포(`~/projects/content-engine`)를 두 세션이 함께 고치는 동안의 약속. 사장님 지시(11-17): "겹치는 게 없도록".
+> 끝나면 이 파일 맨 위에 "종료" 날짜를 적는다.
+
+## 두 세션이 맡은 것
+
+| 세션 | 맡은 일 | 주로 고치는 곳 |
+|---|---|---|
+| 제목·사진 세션 | 모든 글의 제목 생성, 사진 넣기 규칙 | 제목·사진 규칙 문서(`rules/**`, `brands/rentailor/rules/**`의 제목·이미지), 프롬프트, 제목을 만드는 코드, 사진 고르기·넣기 코드(`blog_images.py`, `deep_photos.py`, `tracker_photos.py`, `cover_card.py`, `wp_cover.py`, `blog_cards.py`, `naver_rewrite.py`의 사진 넣기·제목 부분, `naver_digest.py`의 제목·프롬프트) |
+| 자동 발행 세션 | 무승인 자동 운영(실패 재시도, 알림, 감시, 보류·재개, 데이터 자동 채움) | `naver_rewrite.py`의 발행·대기열·마감·알림 부분(`publish`, `check_queued`, `check_stuck`, `check_digest_deadlines`, `digest_run`의 예외 처리, `main`의 poll 순서), `car_news.py`의 `daily`·`poll`·`make_draft` 저장 순서, `tips.py`의 `prepare` 반복문, `topic_selector.py`의 `hold_command`, `daily_stop.py`, `publish_slots.py`, `channel_check.py`, `brand.yaml`의 `auto_mode`·`publish_slots`, `publishers/wordpress/client.py`의 재시도, cadam `check/monitoring/*` |
+
+자동 발행 세션은 **제목 문구·제목 규칙·사진 고르기·사진 개수·사진 위치를 건드리지 않는다.** 사진이 0장일 때 "알림에 표시"만 하고, 사진을 고르는 방식은 바꾸지 않는다.
+
+## 같은 파일을 고칠 때 (특히 `naver_rewrite.py`, `car_news.py`, `brand.yaml`)
+
+1. 고치기 직전에 `git status`와 `git log --oneline -5`를 본다. 상대 세션의 미커밋 변경이 그 파일에 있으면 **그 파일은 고치지 않고** 다른 항목부터 한다.
+2. 한 번에 작게 고치고 바로 커밋한다 (`git add <내 파일>` → `git commit -- <내 파일>`). 미커밋 상태로 오래 두지 않는다.
+3. 함수 이름·인자·상태 파일의 칸 이름(`title`, `photos`, `cover`, `body` 등)을 바꿔야 하면 여기에 먼저 적는다.
+4. `brand.yaml`은 고친 뒤 `python3 run.py rentailor`로 읽히는지 확인한다(한 글자 오류로 글쓰기 전체가 멈춘다).
+5. push는 사장님 승인 후. 상대 세션의 커밋이 섞여 올라가면 보고한다.
+
+## 서로 알아야 할 변경 (생기면 아래에 한 줄씩)
+
+- 11-17 자동 발행 세션: `deep_publish.prepare`는 주소만 채우고 워드 페이지 공개는 `go_live`가 한다(`tracker_publish`도 같음). `tips.preview_draft` 추가. `brand.yaml auto_mode` 추가. `daily_stop.py` 새 파일.
+- 11-17 자동 발행 세션: 21:40에 글쓰기 보류가 자동으로 켜진다(시범). 보류 중에는 초안·발행이 안 돈다 — 시험 발행이 안 되면 이것부터 확인.
