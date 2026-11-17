@@ -35,6 +35,12 @@ REAL_LOGS = {
     "com.solo.icloud-backup": [str(HOME / "projects/_data/shared/work/icloud-backup/backup.log")],
 }
 # Not checked for log age (reason in the value). Exit status is still checked.
+# Real cadence differs from the plist (daily trigger, but the script exits silently unless a run is due).
+# price_crawler / chazm: twice a month (days 1-14, 15+) -> longest gap about 16 days.
+PERIOD_OVERRIDE = {
+    "com.cadam.price-crawler": 16 * DAY,
+    "com.cadam.chazm-monthly": 16 * DAY,
+}
 NO_LOG_AGE = {
     "com.kim.ollama-env": "runs once at login",
 }
@@ -137,7 +143,7 @@ def main():
         if not st["loaded"]:
             continue  # plist present but not loaded = deliberately off (football writers etc.)
         resident = bool(d.get("KeepAlive"))
-        period = period_of(d)
+        period = PERIOD_OVERRIDE.get(label) or period_of(d)
         kind = "resident" if resident else (f"every {period}s" if "StartInterval" in d else f"cal {human(period)}" if period else "atload")
         table.append(f"{label}\t{kind}\t{'pid ' + st['pid'] if st['pid'] else 'exit ' + str(st['exit'])}")
 
