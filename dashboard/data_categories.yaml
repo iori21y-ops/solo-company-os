@@ -42,7 +42,7 @@ rentailor:
   - id: industry
     name: 렌터카 업계
     desc: 렌터카 등록 대수, 조합·공제조합 공시, 렌터카 회사 재무.
-    tables: [rental_industry_stats, rental_seoul_companies, krma_disclosures, dart_financials]
+    tables: [rental_industry_stats, rental_seoul_companies, krma_disclosures, dart_fin_accounts, dart_audit_financials]
   - id: demand
     name: 뉴스·검색 수요
     desc: 수집 기사와 거기서 뽑은 사실, 검색량·급상승 키워드. 무엇을 쓸지 정하는 자료.
