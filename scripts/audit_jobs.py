@@ -37,6 +37,10 @@ REAL_LOGS = {
 # Not checked for log age (reason in the value). Exit status is still checked.
 # Real cadence differs from the plist (daily trigger, but the script exits silently unless a run is due).
 # price_crawler / chazm: twice a month (days 1-14, 15+) -> longest gap about 16 days.
+# REN-223 / REN-226 (2026-11-17): these two scripts exit silently on idle days BY DESIGN, so a stale log is normal.
+# The fix belongs here (real cadence x FRESH_MULT = 32 days), never in the collector scripts (heartbeat log lines
+# were added there on 11-17 and reverted on 11-19 under REN-244). Add any new "daily trigger, run only when due"
+# job to PERIOD_OVERRIDE instead of editing its runner script.
 PERIOD_OVERRIDE = {
     "com.cadam.price-crawler": 16 * DAY,
     "com.cadam.chazm-monthly": 16 * DAY,
