@@ -34,8 +34,9 @@ docs:
   - ~/projects/content-engine/brands/*/rules/README.md
   - ~/projects/content-engine/rules/*/README.md
   - ~/projects/content-engine/rules/sites/*/README.md
-  - ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/second-brain/CLAUDE.md
-  - ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/second-brain/wiki/system/*.md
+  # wiki mirror, not the iCloud vault: launchd-started python gets PermissionError there (REN-244 #16)
+  - ~/second-brain-git/CLAUDE.md
+  - ~/second-brain-git/wiki/system/*.md
   - ~/.claude/projects/-Users-kim-projects/memory/*.md
 
 # 점검하지 않는 문서 (날짜가 박힌 기록·자동 생성·작업 폴더)
