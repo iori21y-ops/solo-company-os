@@ -234,7 +234,10 @@ items = []
 for line in sys.stdin:
     p = line.rstrip("\n").split("|", 3)
     if len(p) == 4 and p[0] in ("A1", "A2", "A3", "A4", "A5"):
-        items.append({"key": f"audit:{p[0]}:{p[2]}", "title": f"[감사 {p[0]}] {p[2]}",
+        # REN-244 #13: one issue per job (p[2] = launchd label) — join an open job-tagged `data:` issue or a legacy `launchd:`/`audit:` one
+        items.append({"key": f"audit:{p[0]}:{p[2]}", "job": p[2], "merge": True,
+                      "aliases": [f"launchd:{p[2]}"] + [f"audit:A{n}:{p[2]}" for n in range(1, 6)],
+                      "title": f"[감사 {p[0]}] {p[2]}",
                       "body": f"일일 감사(audit-agent.sh, 매일 07:30)에서 발견: {p[3]}"})
 print(json.dumps(items, ensure_ascii=False))
 ' | /usr/bin/python3 "$HOME/projects/_shared/solo_common/linear_alert.py" sync "audit:" >> "$LOG" 2>&1 || true
