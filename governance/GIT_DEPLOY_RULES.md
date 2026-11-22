@@ -1,12 +1,13 @@
 # git·배포 규칙 (GIT_DEPLOY_RULES)
 
 > 무엇을 정하는 파일: 커밋 메시지, 저장소(리포) 목록, 커밋에 넣을 파일 고르기, push와 배포.
-> 마지막 갱신: 2026-11-15 (리포 표 보강, 본사 시작 파일 `~/projects/CLAUDE.md` 연결) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
+> 마지막 갱신: 2026-11-23 (checkpoint는 변경 있을 때만) · 2026-11-15 (리포 표 보강, 본사 시작 파일 `~/projects/CLAUDE.md` 연결) · **이 파일이 원본 — 다른 문서는 여기를 가리킨다.** 지도: [RULES_MAP.md](RULES_MAP.md)
 > 배포 상세(Vercel 설정·환경변수·도메인)는 `~/projects/cadam/docs/deploy.md`.
 
 ## 1. 커밋 (사장님 결정 1, 2026-11-11)
 - 커밋 메시지·코드 주석 = **영어**. (문서 본문은 한국어)
 - **파일을 고치기 전에** 그 저장소에서 먼저 커밋: `checkpoint: <작업 설명>`
+  - 고칠 파일에 아직 커밋 안 된 변경이 없으면(이미 마지막 커밋 상태면) **생략한다** — 빈 커밋(`--allow-empty`)을 만들지 않는다. 되돌릴 지점은 마지막 커밋이 이미 맡는다 (사장님 결정 2026-11-23).
 - Linear 이슈 번호를 넣는다: 진행 중 `Refs REN-N`, 끝났으면 `Fixes REN-N` (push 때 이슈 자동 연결·완료).
 - 위키(second-brain) 커밋 메시지: `ingest: …` / `query: …` / `lint: …`. iCloud 볼트 자체는 git이 아니다 — 미러 `~/second-brain-git`이 밤마다 볼트를 복사(rsync)한 뒤 커밋·push한다.
 - 커밋은 승인 없이 하고 보고한다 ([SAFETY_RULES.md](SAFETY_RULES.md) §1).
