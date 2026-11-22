@@ -120,6 +120,7 @@ def check_retired(files, reg) -> list[dict]:
 
 def check_missing_paths(files, reg) -> list[dict]:
     markers = reg.get("history_markers", [])
+    absence_ok = set(reg.get("absence_ok") or [])  # switch files whose absence is normal (see doc_registry.yaml)
     out = []
     for f in files:
         for i, line in live_lines(f):
@@ -130,6 +131,8 @@ def check_missing_paths(files, reg) -> list[dict]:
                     continue  # glob or brace pattern (e.g. weekly_check_*.md) — not a single path
                 p = mo.group(0).rstrip(".:")
                 if any(c in p for c in "<>$[]") or "YYYY" in p or "MM-DD" in p:
+                    continue
+                if p.rstrip("/").rsplit("/", 1)[-1] in absence_ok:
                     continue
                 if not os.path.exists(expand(p.replace("/Users/kim", "~"))):
                     out.append({"file": short(f), "line": i, "text": line.strip()[:160], "why": f"경로 없음: {p}"})
