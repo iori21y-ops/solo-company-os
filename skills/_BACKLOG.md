@@ -16,6 +16,7 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | 9 | bak-cleanup | script | ✅완료 | 2026-11-15 개정 — 아래 연결 상태표 |
 | 10 | field-note | rule | ✅완료 | 2026-11-15 신설 — 사장님 현장 메모 → raw/ 원문 보관 → 위키 '현장 설명' 칸, 확정 사실은 확인 후. 스크립트는 `~/second-brain/scripts/field_note.py`(save·suggest·pending) 바로가기 |
 | 11 | knowledge-check | script | ✅완료 | 2026-11-15 신설 — field-note의 반대 방향: 위키 장기렌트 문장을 사장님께 10개씩 검증(ㅇ·x·고침·?), 맞음→확정 사실 자동, 고침→현장 설명. 스크립트 `~/second-brain/scripts/knowledge_check.py`, 상태 `_data/shared/work/knowledge-check/` |
+| 12 | grill-me | rule | ✅완료 | 2026-11-22 도입 — Matt Pocock `grilling`+`grill-me`(MIT, `abeeaf9`)를 한 파일로 합치고 한국어·질문 7개 한도·결정표 저장 규칙 추가. 원문 `upstream/`. 사장님이 "그릴미"·`/grill-me`라고 할 때만 |
 
 ⭐ = Anthropic 문서가 효과 최대로 꼽은 2개(검증·런북). 둘 다 script형.
 
@@ -32,4 +33,5 @@ type 기준: 정답이 하나로 정해지나? YES→script / NO→rule
 | new-migration | ✅ 연결 | 2026-11-15 개정: `find.sh`(그 표를 마지막으로 다룬 폴더) + `new.sh`(본파일+롤백, 승인·백업 칸). DB 적용 안 함. 테스트 26/26 PASS. 렌테일러 DB는 `cadam/db` 한 곳(2026-11-15 사장님 결정), 같은 이름 표가 여러 사업 DB에 있으면 묻기 |
 | knowledge-check | ✅ 연결 | 2026-11-15 신설. "지식 검증 (이어서)" 트리거 |
 | field-note | ✅ 연결 | 2026-11-15 신설. "현장메모:" 트리거, 밤 인제스트는 second-brain CLAUDE.md §4.1.7로 같은 절차 |
+| grill-me | ✅ 연결 | 2026-11-22 도입. 명시 호출 때만 작동("그릴미: 주제") |
 | broker-api · verify-distribute · databot-alert-debug | 🪦 은퇴 | 2026-11-13 결재 에이전트 체계 폐지로 은퇴(커밋 `ef3ca5b`). 디스크에 없음, git 이력(`9f4bf0b`)에만 남음 |
