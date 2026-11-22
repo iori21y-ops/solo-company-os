@@ -18,6 +18,16 @@ const { execSync } = require('child_process'); // Node 내장 — 외부 패키�
 const HOME = process.env.HOME;
 const OUT_DIR = path.join(HOME, 'projects/_meta/sitemap');
 
+// Discord bot token: read from the shared secrets file when not in the environment, so the launchd plist
+// carries no secret (2026-11-22, REN-244 decision 9). Never printed.
+if (!process.env.DISCORD_BOT_TOKEN) {
+  try {
+    const env = fs.readFileSync(path.join(HOME, '.cadam-secrets/secrets.env'), 'utf8');
+    const m = env.match(/^(?:export\s+)?DISCORD_BOT_TOKEN=["']?([^"'\r\n]+)["']?\s*$/m);
+    if (m) process.env.DISCORD_BOT_TOKEN = m[1];
+  } catch (e) { /* missing file: alerts are skipped below with a warning, the scan still runs */ }
+}
+
 // --dry-run: 실발송·baseline 쓰기 없이 상태만 산출(검증용). 라우트 파일도 손대지 않음.
 const DRY_RUN = process.argv.includes('--dry-run');
 
