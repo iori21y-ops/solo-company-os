@@ -33,6 +33,8 @@ REAL_LOGS = {
     "com.cadam.data-registry": [str(HOME / "projects/cadam/docs/data-registry-counts.md")],
     # launchd.log only receives stderr (stale since an 11-14 iCloud permission error); backup.log is written every run
     "com.solo.icloud-backup": [str(HOME / "projects/_data/shared/work/icloud-backup/backup.log")],
+    # stdout goes to /dev/null and the err log stays empty on success; the script writes its own log
+    "com.importlease.encar-used": [str(HOME / "projects/import-lease/logs/encar_used.log")],
 }
 # Not checked for log age (reason in the value). Exit status is still checked.
 # Real cadence differs from the plist (daily trigger, but the script exits silently unless a run is due).
@@ -44,6 +46,8 @@ REAL_LOGS = {
 PERIOD_OVERRIDE = {
     "com.cadam.price-crawler": 16 * DAY,
     "com.cadam.chazm-monthly": 16 * DAY,
+    # daily 23:30 trigger, but since 2026-11-18 collect_all.sh only does work on Monday nights (crefia, krca)
+    "com.user.secondbrain.rss": 7 * DAY,
 }
 NO_LOG_AGE = {
     "com.kim.ollama-env": "runs once at login",
