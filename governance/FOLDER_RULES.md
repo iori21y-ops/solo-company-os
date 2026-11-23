@@ -12,7 +12,7 @@
 - 작업 산출물은 반드시 `~/projects/<프로젝트>/` 아래에 저장한다. 새 폴더 자리는 §0.1 순서로 고른다(새 최상위 폴더는 먼저 확인).
 - 저장 금지 위치: 홈 루트 직속, `~/Downloads`, `~/Desktop`, `~/logs`, 도구 임시폴더(`/tmp`는 잠금 파일만 — `COLLECT_RULES.md`).
 - 건드리지 않는 곳(도구가 관리): `~/.claude`, `~/.cursor`, `~/Library/Caches`, second-brain 볼트(`~/second-brain`, `~/second-brain-git` — 엔카 크롤러 launchd 기록도 여기), `~/.cadam-secrets`.
-- 홈 루트에 남겨 두는 예외: `~/backups/`(2026-07 옛 설정 백업, **읽기 전용** — 새 백업 금지, `SAFETY_RULES.md` §6), macOS 기본 폴더(Documents·Pictures 등)·`Google Drive`. 그 밖의 홈 직속 폴더·파일은 위반.
+- 홈 루트에 남겨 두는 예외: macOS 기본 폴더(Documents·Pictures 등)·`Google Drive`. 그 밖의 홈 직속 폴더·파일은 위반. (옛 `~/backups/`는 2026-11-23 `_archive/2026-11-23/home-backups`로 옮김 — 사장님 승인)
 - **데이터(수집 원본·이미지·작업 파일·백업)는 코드 폴더가 아니라 데이터 창고 `~/projects/_data/<사업>/<종류>/<이름>`에 둔다(§4).**
 - 세션 인계 문서는 `~/projects/_meta/handoff/`. 위치가 모호하면 추측하지 말고 먼저 확인.
 - **파일명 언어**: 거버넌스·문서 파일명은 한국어 허용. 코드·스크립트·데이터 파일명은 영어.

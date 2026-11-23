@@ -70,7 +70,7 @@
 |---|---|
 | 자동 백업 (예약 작업이 만드는 것) | 데이터 창고 `~/projects/_data/<사업>/backups/auto/` (예: DB 덤프 `_data/rentailor/backups/auto/postgres/`) |
 | 일회성 백업 (작업 전 손으로 뜨는 것) | `~/projects/_data/<사업>/backups/manual/` |
-| 기존 `~/backups/` | 옮기지 않는다. **읽기 전용 보관** — 새 백업을 여기 만들지 않는다 |
+| 옛 `~/backups/` | 2026-11-23 없앰(2026-07 옛 설정 사본, 지금 규칙·스킬로 대체됨 → `_archive/2026-11-23/home-backups`). 홈에 백업 폴더를 새로 만들지 않는다 |
 | 로컬 PostgreSQL DB (`cadam`) | `~/projects/cadam/ops/backup_cadam.sh` → `_data/rentailor/backups/auto/postgres/`: 최근 **14일은 매일**, 그 뒤 **84일(12주)까지 일요일분만**(2026-11-12 사장님 결정, 검증된 덤프가 생겼을 때만 옛것 정리) + iCloud Drive 사본 **주 1회, 최근 8개**(약 2달). 기록 `_data/rentailor/backups/auto/backup.log` |
 | content-engine 글쓰기 작업 파일(json·md) | 같은 스크립트가 매일 `content-engine-outbox.tar.gz`로 묶어 `_data/rentailor/backups/auto/<날짜>/`에 |
 | 데이터 창고 `~/projects/_data` 전체 (맥 밖 사본) | `_meta/scripts/icloud_backup.sh` (예약 `com.solo.icloud-backup` 매일 01:30) → iCloud Drive `data-warehouse-backup/`: 매일 `data_날짜.tar.zst`(media 제외, SQLite 안전 사본·Postgres 덤프 포함, 최근 7개+일요일분 4개) + 매일 `system_날짜.tar.zst`(맥 복원용: `~/projects` 코드·문서, Claude 설정·메모리, LaunchAgents, 설치 목록 — 비밀 파일·node_modules 제외) + 토요일 `media_날짜.tar`(사진·영상, 최근 4개). 동기화가 아니라 날짜별 묶음이라 맥에서 지워도 백업은 남는다. 결과는 디스코드. 복원 순서: iCloud 폴더의 `RESTORE.md` (2026-11-13). **예외 승인 2건(사장님 2026-11-13)**: ① 비밀 파일은 사장님 암호로 AES-256 잠근 `secrets_날짜.tar.zst.enc`로만 보관(암호=키체인 `icloud-backup-secrets`) ② 운영 Supabase DB(사이트 public 표 전부)를 매일 **읽기 전용(GET)** 으로 내보냄 — `scripts/supabase_rest_export.py`, 사이트 서비스 키로 REST API 조회 → `_data/rentailor/backups/auto/supabase/날짜/표.jsonl.gz` 14일. (pg_dump는 임시 DB 계정이 상담 등 잠긴 표를 못 읽어 포기, auth·storage 제외) |
