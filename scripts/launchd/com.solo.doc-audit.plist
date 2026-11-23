@@ -6,9 +6,9 @@
 	<string>com.solo.doc-audit</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/usr/bin/python3</string>
-		<string>/Users/kim/projects/_meta/scripts/doc_audit.py</string>
-		<string>--linear</string>
+		<string>/bin/zsh</string>
+		<string>-c</string>
+		<string>/usr/bin/python3 /Users/kim/projects/_meta/scripts/doc_audit.py --linear</string>
 	</array>
 	<key>StartCalendarInterval</key>
 	<dict>
