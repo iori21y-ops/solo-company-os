@@ -35,6 +35,9 @@ REAL_LOGS = {
     "com.solo.icloud-backup": [str(HOME / "projects/_data/shared/work/icloud-backup/backup.log")],
     # stdout goes to /dev/null and the err log stays empty on success; the script writes its own log
     "com.importlease.encar-used": [str(HOME / "projects/import-lease/logs/encar_used.log")],
+    # prints nothing on success (log only gets stderr on errors); the weekly report file is rewritten every run
+    "com.cadam.lead-attribution": [str(HOME / "projects/cadam/logs/lead_attribution.log"),
+                                   str(HOME / "projects/cadam/docs/reports/lead_attribution.md")],
 }
 # Not checked for log age (reason in the value). Exit status is still checked.
 # Real cadence differs from the plist (daily trigger, but the script exits silently unless a run is due).
