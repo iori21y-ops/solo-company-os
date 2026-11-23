@@ -9,5 +9,5 @@
 | 3 | 문서 감사(com.solo.doc-audit) — plist를 `/bin/zsh -c`로 감싸 실행 | ㅇ (Q1 ①) | 11-16 09:05 launchd 실행에서 iCloud 볼트 CLAUDE.md 읽기 PermissionError. 손 실행은 성공. 다른 위키 작업은 zsh 경유라 정상. 옛 plist 백업: `~/projects/_archive/2026-11-23/com.solo.doc-audit.plist.bak` |
 
 ## 남은 확인
-- 11-23 09:05 문서 감사 자동 실행 로그(`logs/doc_audit.log`) 성공 여부
+- ✅ 11-23 09:05 문서 감사 자동 실행 성공(종료 0, 문서 173개 점검). 새로 열린 REN-253(위키 경로 1건)·REN-254(plist 사본 2건 중 doc-audit 건은 38341f5로 해결, daily-stop 사본은 별개)
 - 11-24 07:30 감사 알림에서 3건 사라졌는지
