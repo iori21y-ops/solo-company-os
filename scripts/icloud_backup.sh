@@ -141,7 +141,7 @@ run_system() {
 
   local out="$DEST/system_$TODAY.tar.zst" tmp="$DEST/.system_$TODAY.tar.zst.partial"
   [ "$(free_gb)" -ge 10 ] || fail "맥 남은 공간 $(free_gb)GB (10GB 미만)"
-  tar -C "$HOME" -cf - --exclude 'projects/_data/*' "${SYS_EXCLUDES[@]}" "${have[@]}" -C "$STATE" manifest 2>>"$LOG" \
+  tar -C "$HOME" -cf - --exclude 'projects/_data/*' --exclude 'projects/household' "${SYS_EXCLUDES[@]}" "${have[@]}" -C "$STATE" manifest 2>>"$LOG" \
     | zstd -q -T0 -6 -o "$tmp" -f
   local rc=("${PIPESTATUS[@]}")
   [ "${rc[1]}" -eq 0 ] || { rm -f "$tmp"; fail "system 압축 실패 (zstd ${rc[1]})"; }
@@ -188,6 +188,8 @@ run_secrets() {
   { [ -d "$HOME/.cadam-secrets" ] && echo ".cadam-secrets"
     [ -d "$HOME/.ssh" ] && echo ".ssh"
     [ -f "$HOME/.zshrc" ] && echo ".zshrc"
+    # household finance (owner decision 2026-11-23): never in the plain system archive, only here, encrypted
+    [ -d "$HOME/projects/household" ] && echo "projects/household"
     find "$HOME/projects" -path "$HOME/projects/_data" -prune -o \( -name node_modules -o -name .next -o -name .venv -o -name venv \) -prune -o \
       -type f \( "${SECRET_FIND[@]}" \) -print 2>/dev/null | sed "s#^$HOME/##"; } > "$list"
   local out="$DEST/secrets_$TODAY.tar.zst.enc" tmp="$DEST/.secrets_$TODAY.partial"
