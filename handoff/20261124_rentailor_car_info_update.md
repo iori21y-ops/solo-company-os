@@ -74,3 +74,9 @@
 - 데이터·백업: `~/projects/_data/rentailor/work/trim_structure/`, `~/projects/_data/rentailor/backups/manual/`.
 - 화면 캡처 도구: `python3 ~/projects/cadam/check/analysis/capture_car_pages.py <주소> <저장폴더> [slug…]` (로컬 확인은 `npm run build` 뒤 `npx next start -p 3456`).
 - 모델 분담: Opus가 판단·검수, 정해진 반복 수정·미리보기 스크립트는 worker(Sonnet), 찾기·조회는 finder(Haiku).
+
+## 추가 (11-24 밤): 차종 범위 점검 결과 — 같은 새 세션에서 함께 처리
+- 보고서: `~/projects/cadam/docs/reports/lineup-coverage-20261124.md` (먼저 읽기).
+- 결론: 가격표 수집기는 등록된 차만 모은다. 빠진 승용 차종 후보는 **GV90**(11-10 출시, 신차 감지가 공식 가격표를 못 찾아 미등록), **르노 세닉 E-Tech**, **폴스타 2**, **GV80 하이브리드**(출시 확인 필요), 테슬라 Model S·X(비활성·트림 0), 사이버트럭(픽업이라 제외 후보). 있는 차종 안에서 빠진 구성은 **카니발 하이리무진**, **스타리아 라운지 리무진** 등이다.
+- 아이오닉 9는 운영 사이트에 이미 있다 [확인함].
+- 처리 순서: 사장님이 추가할 차를 고름 → `price_sources` 등록(숨김) → 가격표 수집 → 엔진·인승 채우기 → 미리보기 → 공개 승인(사진·차 목록·렌트료 준비 뒤).
