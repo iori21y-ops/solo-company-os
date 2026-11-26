@@ -8,7 +8,7 @@
 | `data_날짜.tar.zst` | 데이터 창고 `~/projects/_data` 전체(사진·영상 제외). Postgres(cadam) 덤프 포함(`rentailor/backups/auto/postgres/`). SQLite는 안전 사본이 `shared/work/icloud-backup/sqlite-snapshot/`에 있음 → **DB는 이 사본으로 복원** | 매일 01:30 · 최근 7개 + 일요일분 4개 |
 | `system_날짜.tar.zst` | `~/projects` 코드·문서 전체(_data 제외), Claude 설정·메모리·스킬, 예약 작업(LaunchAgents), `.gitconfig`·`.zprofile`·`.ssh/config`, `~/backups`, `manifest/`(설치 목록 등) | 매일 · 최근 7개 + 일요일분 4개 |
 | (data 안) `rentailor/backups/auto/supabase/날짜/` | **렌테일러 사이트 DB(Supabase) public 표 전부** — 표마다 `표이름.jsonl.gz`(한 줄 = 한 행) + `openapi.json`(열·타입·기본키) + `summary.json`(행 수). 읽기 전용으로 받음. auth(관리자 로그인)·storage는 빠짐 | 매일 · 14일 |
-| `media_날짜.tar` | 모든 사업의 `media/`(사진·영상) | 토요일 · 최근 4개 |
+| `media_날짜.tar` | 모든 사업의 `media/`(사진·영상). **폴더 안에 `.no-cloud-backup` 파일이 있으면 그 폴더는 빠진다**(비공개 자료용, 2026-11-26) | 토요일 · 최근 4개 |
 | `secrets_날짜.tar.zst.enc` | 비밀 파일(`.env`, `~/.cadam-secrets`, `~/.ssh`, `.zshrc`, 키·쿠키) — **사장님 암호로 AES-256 잠금** | 매일 · 최근 7개 |
 
 **비밀 파일**은 system 묶음에서 빠지고 `secrets_` 암호화 묶음에만 있다. 암호는 맥 키체인(`icloud-backup-secrets`)과 사장님 보관처(폰 등)에만 있다 — **맥이 죽으면 사장님이 기억·보관한 암호가 유일한 열쇠**. `node_modules`·`.next`·가상환경은 아래 6번에서 다시 설치한다. Obsidian 위키(second-brain)는 원래 iCloud에 있다.

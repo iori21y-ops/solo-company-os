@@ -11,6 +11,7 @@
 #             (restore DBs from the snapshot copy, not from the live file in the archive)
 #   weekly -> media_YYYYMMDD.tar    : every <business>/media folder (photos/videos, no compression)
 #             runs on Saturdays, or whenever no media archive exists yet
+#             EXCEPT any folder that contains a file named .no-cloud-backup (private data stays off iCloud)
 # The folder list is discovered on every run, so moved/new folders are picked up automatically.
 #   daily  -> system_YYYYMMDD.tar.zst : ~/projects code/docs (no _data, no node_modules/.next/venv, NO secrets),
 #             Claude settings+memory, LaunchAgents, dotfiles, manifests (Brewfile, crontab, git repo states,
@@ -101,7 +102,11 @@ run_media() {
   local need; need=$(( $(du -sg "${MEDIA_ITEMS[@]}" | awk '{s+=$1} END{print s}') + 5 ))
   [ "$(free_gb)" -ge "$need" ] || fail "맥 남은 공간 $(free_gb)GB (media 백업에 ${need}GB 필요)"
   local out="$DEST/media_$TODAY.tar" tmp="$DEST/.media_$TODAY.tar.partial"
-  tar -cf "$tmp" "${MEDIA_ITEMS[@]}" 2>>"$LOG"; local rc=$?
+  # Private folders stay off iCloud: a folder that contains a file named .no-cloud-backup is left out of the archive.
+  local -a skip=(); local m
+  while IFS= read -r m; do skip+=(--exclude "${m%/.no-cloud-backup}"); done < <(find "${MEDIA_ITEMS[@]}" -name .no-cloud-backup -type f 2>/dev/null)
+  [ ${#skip[@]} -gt 0 ] && log "media: leaving out $(( ${#skip[@]} / 2 )) private folder(s) marked .no-cloud-backup"
+  tar -cf "$tmp" "${skip[@]}" "${MEDIA_ITEMS[@]}" 2>>"$LOG"; local rc=$?
   local cnt; cnt=$(count_entries "$tmp")
   [ "${cnt:-0}" -gt 100 ] || { rm -f "$tmp"; fail "media 묶음 검증 실패 (tar $rc, 항목 ${cnt:-0}개)"; }
   mv -f "$tmp" "$out"
