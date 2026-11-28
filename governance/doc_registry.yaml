@@ -64,7 +64,7 @@ retired:
   - {pattern: 'cadam-n8n', since: 2026-11-10, now: 'cadam/collect (cadam-n8n은 호환 링크)'}
   - {pattern: '\bn8n\b', since: 2026-11-10, now: 'content-engine (글쓰기·발행) / launchd (예약 작업)'}
   - {pattern: '[Dd]ocker', since: 2026-11-10, now: '없음 — launchd'}
-  - {pattern: 'cadam-dashboard|:3101\b', since: 2026-11-10, now: 'cadam-erp (모니터) / 엔진 대시보드 :8787'}
+  - {pattern: 'cadam-dashboard|:3101\b', since: 2026-11-10, now: 'cadam-erp (모니터) / 인프라 지도 :8795'}
   - {pattern: 'md-dashboard|:9725\b', since: 2026-07-11, now: '없음'}
   - {pattern: 'prompt-bff|:3099\b', since: 2026-11-10, now: '없음'}
   - {pattern: 'rentailor-plan/', since: 2026-11-11, now: 'cadam/docs/PROGRESS.md'}
@@ -91,7 +91,6 @@ retired:
 plist_copies:
   - ~/projects/content-engine/launchd
   - ~/projects/football-blog/launchd
-  - ~/projects/_meta/dashboard/launchd
   - ~/projects/_meta/scripts/launchd
   - ~/projects/cadam/core/scripts/content
 
@@ -119,7 +118,6 @@ code:
   - ~/projects/football-blog/**/*.sh
   - ~/projects/_meta/scripts/**/*.py
   - ~/projects/_meta/scripts/**/*.sh
-  - ~/projects/_meta/dashboard/*.py
   - ~/projects/_meta/librarian/*.sh
   - ~/Library/LaunchAgents/*.plist
 code_skip_dirs: [node_modules, .next, outbox, _archive, .venv, venv, __pycache__, data, backups, .git, _wt-consult-steps]

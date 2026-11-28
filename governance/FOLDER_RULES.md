@@ -146,7 +146,7 @@ _data/<사업>/<종류>/<이름>/
 
 ### 4.2 숫자 데이터
 
-> 데이터 한 건을 어떻게 적고(카테고리·이용 등급·쓰는 곳), 언제 늘리고 줄이는지는 `DATA_RULES.md`(v1.0). 현황 화면은 엔진 대시보드(ERP `/engine-dashboard`, 만드는 코드 `_meta/dashboard/build.py`).
+> 데이터 한 건을 어떻게 적고(카테고리·이용 등급·쓰는 곳), 언제 늘리고 줄이는지는 `DATA_RULES.md`(v1.0). 현황 화면은 인프라 지도 '데이터' 탭(`http://macmini:8795`, 만드는 코드 `cadam/ops/infra_map/data_map.py`).
 
 - 숫자 데이터: 로컬 PostgreSQL 하나(현재 DB `cadam`). 사업마다 schema를 나눈다(`warehouse`=렌테일러, `data`=KOSIS, 해외파는 추후 `football`).
 - 백업은 한 경로로: `cadam/ops/backup_cadam.sh` → `_data/rentailor/backups/auto/postgres/` (14일 매일 + 12주까지 일요일분) + iCloud 사본 주 1회 8개. 겹치는 백업은 없앤다. 백업 전체 규칙은 `SAFETY_RULES.md` §6.
